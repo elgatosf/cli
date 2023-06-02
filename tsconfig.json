@@ -1,0 +1,17 @@
+{
+	"extends": "@tsconfig/node20/tsconfig.json",
+	"compilerOptions": {
+		"outDir": "./lib/",
+		"module": "ESNext",
+		"sourceMap": true
+	},
+	"include": [
+		"./src/index.ts"
+	],
+	"exclude": [
+		"bin",
+		"lib",
+		"node_modules",
+		"template"
+	]
+}

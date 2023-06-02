@@ -1,2 +1,3 @@
-# nodejs-streamdeck-cli
-The official CLI for building Node.js Stream Deck plugins.
+# Stream Deck CLI
+
+The official Node.js CLI for creating Stream Deck plugins

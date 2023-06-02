@@ -1,0 +1,49 @@
+{
+	"name": "@elgato/streamdeck-cli",
+	"version": "0.1.0",
+	"description": "The official CLI for building Node.js Stream Deck plugins.",
+	"bin": {
+		"streamdeck": "./bin/index.mjs"
+	},
+	"type": "module",
+	"scripts": {
+		"build": "tsc",
+		"watch": "nodemon --watch \"src/**\" --ext \"ts\" --exec \"tsc\"",
+		"lint": "eslint . --ext .ts --max-warnings 0",
+		"lint-format": "prettier --config .prettierrc \"./src/**/*.ts\" --write"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/elgatosf/node-streamdeck-cli.git"
+	},
+	"keywords": [
+		"stream-deck",
+		"node",
+		"cli"
+	],
+	"author": "Elgato",
+	"bugs": {
+		"url": "https://github.com/elgatosf/node-streamdeck-cli/issues"
+	},
+	"homepage": "https://github.com/elgatosf/node-streamdeck-cli#readme",
+	"dependencies": {
+		"chalk": "^5.2.0",
+		"commander": "^10.0.1",
+		"inquirer": "^9.2.6"
+	},
+	"devDependencies": {
+		"@trivago/prettier-plugin-sort-imports": "^4.1.1",
+		"@tsconfig/node20": "^1.0.0",
+		"@types/inquirer": "^9.0.3",
+		"@types/node": "^20.1.2",
+		"@typescript-eslint/eslint-plugin": "^5.59.5",
+		"@typescript-eslint/parser": "^5.59.5",
+		"eslint": "^8.40.0",
+		"eslint-config-prettier": "^8.8.0",
+		"eslint-plugin-jsdoc": "^44.2.3",
+		"eslint-plugin-prettier": "^4.2.1",
+		"nodemon": "^2.0.22",
+		"prettier": "^2.8.8",
+		"typescript": "^5.0.4"
+	}
+}
