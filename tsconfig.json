@@ -1,8 +1,9 @@
 {
 	"extends": "@tsconfig/node20/tsconfig.json",
 	"compilerOptions": {
-		"outDir": "./lib/",
+		"declaration": true,
 		"module": "ESNext",
+		"outDir": "./lib/",
 		"sourceMap": true
 	},
 	"include": [

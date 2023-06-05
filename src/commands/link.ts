@@ -3,30 +3,63 @@ import inquirer from "inquirer";
 import fs from "node:fs";
 import path from "node:path";
 
-import { getOSPluginsPath, PluginInfo } from "../plugin.js";
+import { getOSPluginsPath, isValidUUID, PluginInfo } from "../plugin-info.js";
 
 /**
- * Creates a symbolic link between the Elgato Stream Deck plugins folder, and the development environment.
+ * Creates a symbolic link between the Elgato Stream Deck plugins folder, and the development environment. The command validates the plugin's path exists, and there is a valid
+ * UUID prior to attempting to establish a link. When establishing a link, if a folder or link already exists in the Stream Deck plugins folder, the user is prompted to confirm
+ * replacing / re-routing to the current plugin's path.
  */
 export default async function link() {
 	const plugin = new PluginInfo();
-	const osPluginsPath = getOSPluginsPath();
-	const installationPath = path.join(osPluginsPath, `${plugin.manifest.UUID}.sdPlugin`);
 
-	const status = await validatePaths(plugin, installationPath);
+	// Prompts the user to generate a valid UUID.
+	if (!isValidUUID(plugin.manifest.UUID)) {
+		await promptForUUID(plugin);
+	}
+
+	const installationPath = path.join(getOSPluginsPath(), `${plugin.manifest.UUID}.sdPlugin`);
+	const validation = await validatePaths(plugin, installationPath);
 
 	// When the user opted to abort linking, bail out.
-	if (status === ValidationResult.Abort) {
+	if (validation === ValidationResult.Abort) {
 		console.log("Linking aborted.");
 		return;
 	}
 
 	// Otherwise, when the result was okay, establish the symlink.
-	if (status === ValidationResult.CanLink) {
+	if (validation === ValidationResult.CanLink) {
 		fs.symlinkSync(plugin.path, installationPath, "junction");
 	}
 
-	console.log(`Successfully linked ${chalk.green(plugin.manifest.UUID)} -> ${chalk.green(plugin.path)}`);
+	console.log(`Successfully linked ${chalk.green(plugin.manifest.UUID)} to ${chalk.green(plugin.path)}.`);
+}
+
+/**
+ * Prompts the user to specify a UUID to associate with the plugin; this is a required step prior to linking.
+ * @param plugin Plugin whose UUID is being prompted for.
+ */
+async function promptForUUID(plugin: PluginInfo): Promise<void> {
+	console.log(`The UUID (unique-identifier) for the plugin must be set before linking.`);
+	const answers = await inquirer.prompt({
+		name: "uuid",
+		message: "Plugin UUID:",
+		default: plugin.generateUUID(),
+		type: "input",
+		validate: (uuid) => {
+			const valid = isValidUUID(uuid);
+			if (!valid) {
+				console.log();
+				console.log(chalk.red("UUID can only contain lower-case alpha-numeric characters (a-z, 0-9), hyphens (-), underscores (_), or periods (.)."));
+			}
+
+			return valid;
+		}
+	});
+
+	plugin.manifest.UUID = answers.uuid;
+	plugin.writeManifest();
+	console.log(`Successfully set plugin ${chalk.green("UUID")} to ${chalk.green(answers.uuid)}.`);
 }
 
 /**
