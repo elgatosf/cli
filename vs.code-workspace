@@ -9,5 +9,9 @@
 			"name": "Template"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"files.exclude": {
+			"template": true
+		}
+	}
 }
