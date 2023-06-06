@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": ".",
+			"name": "CLI"
+		},
+		{
+			"path": "template",
+			"name": "Template"
+		}
+	],
+	"settings": {}
+}

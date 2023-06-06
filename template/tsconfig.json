@@ -1,0 +1,13 @@
+{
+	"extends": "@tsconfig/node20/tsconfig.json",
+	"compilerOptions": {
+		"outDir": "./plugin/build",
+		"sourceMap": true
+	},
+	"include": [
+		"src/plugin.ts"
+	],
+	"exclude": [
+		"node_modules"
+	]
+}

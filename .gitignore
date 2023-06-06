@@ -1,2 +1,5 @@
-lib/
+# Node.js
 node_modules/
+
+# Build output
+lib/

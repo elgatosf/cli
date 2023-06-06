@@ -1,5 +1,8 @@
 {
 	/** Prefer tabs over spaces for accessibility */
 	"editor.insertSpaces": false,
-	"editor.detectIndentation": false
+	"editor.detectIndentation": false,
+	"files.exclude": {
+		"template": true
+	}
 }

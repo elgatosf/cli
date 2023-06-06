@@ -1,0 +1,6 @@
+# Node.js
+node_modules
+
+# Build output
+plugin/build
+plugin/logs
