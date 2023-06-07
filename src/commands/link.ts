@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { getOSPluginsPath, isValidUUID, PluginInfo } from "../plugin-info.js";
+import * as questions from "../questions.js";
 
 /**
  * Creates a symbolic link between the Elgato Stream Deck plugins folder, and the development environment. The command validates the plugin's path exists, and there is a valid
@@ -41,21 +42,7 @@ export default async function link() {
  */
 async function promptForUUID(plugin: PluginInfo): Promise<void> {
 	console.log(`The UUID (unique-identifier) for the plugin must be set before linking.`);
-	const answers = await inquirer.prompt({
-		name: "uuid",
-		message: "Plugin UUID:",
-		default: plugin.generateUUID(),
-		type: "input",
-		validate: (uuid) => {
-			const valid = isValidUUID(uuid);
-			if (!valid) {
-				console.log();
-				console.log(chalk.red("UUID can only contain lower-case alpha-numeric characters (a-z, 0-9), hyphens (-), underscores (_), or periods (.)."));
-			}
-
-			return valid;
-		}
-	});
+	const answers = await inquirer.prompt(questions.uuid(plugin.generateUUID()));
 
 	plugin.manifest.UUID = answers.uuid;
 	plugin.writeManifest();

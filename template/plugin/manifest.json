@@ -13,9 +13,7 @@
 			],
 			"States": [
 				{
-					"FontSize": "18",
-					"Image": "imgs/counter/image",
-					"TitleAlignment": "middle"
+					"Image": "imgs/counter/image"
 				}
 			]
 		}
@@ -32,7 +30,7 @@
 	"OS": [
 		{
 			"Platform": "mac",
-			"MinimumVersion": "10.11"
+			"MinimumVersion": "10.15"
 		},
 		{
 			"Platform": "windows",

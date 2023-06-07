@@ -45,32 +45,7 @@ export class PluginInfo {
 	 * @returns UUID that represents the plugin, from information found in the manifest.json file; otherwise `undefined`.
 	 */
 	public generateUUID(): string | undefined {
-		const author = formatSection(this.manifest?.Author);
-		const name = formatSection(this.manifest?.Name);
-
-		if (author === undefined || name === undefined) {
-			return;
-		}
-
-		return `com.${author}.${name}`;
-
-		/**
-		 * Attempts to format the specified `value` as a section of the plugin's UUID; when the `value` results in an empty string, `undefined` is returned.
-		 * @param value Value to parse, and make UUID safe.
-		 * @returns Value that is safe for a UUID section; otherwise `undefined`.
-		 */
-		function formatSection(value: string | undefined): string | undefined {
-			if (value === undefined) {
-				return undefined;
-			}
-
-			const safeValue = value
-				.toLowerCase()
-				.replaceAll(" ", "-")
-				.replaceAll(/[^\-a-z0-9_]/g, "");
-
-			return safeValue !== "" ? safeValue : undefined;
-		}
+		return generateUUID(this.manifest?.Author, this.manifest?.Name);
 	}
 
 	/**
@@ -79,6 +54,43 @@ export class PluginInfo {
 	public writeManifest() {
 		const contents = JSON.stringify(this.manifest, undefined, 2 /* spaces */);
 		fs.writeFileSync(this.manifestPath, contents);
+	}
+}
+
+/**
+ * Generates a UUID from the `author` and `name` values. Values are parsed to ensure valid sections, resulting in a complete UUID; when a value cannot be parsed, the resulting UUID is `undefined`.
+ * @param author Author of the plugin.
+ * @param name Name of the plugin.
+ * @returns UUID that represents the plugin, from information found in the manifest.json file; otherwise `undefined`.
+ */
+export function generateUUID(author: string | undefined, name: string | undefined): string | undefined {
+	const sections = {
+		author: formatSection(author),
+		name: formatSection(name)
+	};
+
+	if (sections.author === undefined || sections.name === undefined) {
+		return;
+	}
+
+	return `com.${sections.author}.${sections.name}`;
+
+	/**
+	 * Attempts to format the specified `value` as a section of the plugin's UUID; when the `value` results in an empty string, `undefined` is returned.
+	 * @param value Value to parse, and make UUID safe.
+	 * @returns Value that is safe for a UUID section; otherwise `undefined`.
+	 */
+	function formatSection(value: string | undefined): string | undefined {
+		if (value === undefined) {
+			return undefined;
+		}
+
+		const safeValue = value
+			.toLowerCase()
+			.replaceAll(" ", "-")
+			.replaceAll(/[^\-a-z0-9_]/g, "");
+
+		return safeValue !== "" ? safeValue : undefined;
 	}
 }
 
