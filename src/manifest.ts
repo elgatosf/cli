@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { basename, dirname } from "node:path";
+import { dirname } from "node:path";
 
 /**
  * Provides information and methods for working with the `manifest.json` file that supports a Stream Deck plugin.
@@ -61,7 +61,7 @@ export default class Manifest {
 	 */
 	constructor(path: string) {
 		this.__sourcePath = path;
-		this.__workingDir = basename(dirname(path));
+		this.__workingDir = dirname(path);
 
 		if (fs.existsSync(this.__sourcePath)) {
 			if (!fs.statSync(this.__sourcePath).isFile()) {
@@ -93,6 +93,8 @@ export default class Manifest {
 	 */
 	public writeFile() {
 		const data = JSON.stringify(this, (key, value) => (key.startsWith("__") ? undefined : value), 2);
+		console.log(data);
+		console.log(`writing to ${this.__sourcePath}`);
 		fs.writeFileSync(this.__sourcePath, data);
 	}
 }

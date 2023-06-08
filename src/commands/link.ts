@@ -8,12 +8,38 @@ import Manifest, { isValidUUID } from "../manifest.js";
 import * as questions from "../questions.js";
 
 /**
+ * Options available to the `link` command.
+ */
+export type LinkOptions = {
+	/**
+	 * Path to the plugin.
+	 */
+	path: string;
+
+	/**
+	 * Determines whether a successful output should be written to the console.
+	 */
+	quiet: boolean;
+};
+
+const defaultOptions: LinkOptions = {
+	path: process.cwd(),
+	quiet: false
+};
+
+/**
  * Creates a symbolic link between the Elgato Stream Deck plugins folder, and the development environment. The command validates the plugin's path exists, and there is a valid
  * UUID prior to attempting to establish a link. When establishing a link, if a folder or link already exists in the Stream Deck plugins folder, the user is prompted to confirm
  * replacing / re-routing to the current plugin's path.
+ * @param options Options that define the execution of the command.
  */
-export default async function link() {
-	const manifest = new Manifest(path.join(process.cwd(), "manifest.json"));
+export default async function link(options: Partial<LinkOptions> = defaultOptions) {
+	const settings: LinkOptions = {
+		...defaultOptions,
+		...options
+	};
+
+	const manifest = new Manifest(path.join(settings.path, "manifest.json"));
 
 	// Prompts the user to generate a valid UUID.
 	if (!isValidUUID(manifest.UUID)) {
@@ -34,7 +60,9 @@ export default async function link() {
 		fs.symlinkSync(manifest.workingDir(), installationPath, "junction");
 	}
 
-	console.log(`Successfully linked ${chalk.green(manifest.UUID)} to ${chalk.green(manifest.workingDir())}.`);
+	if (!options.quiet) {
+		console.log(`Successfully linked ${chalk.green(manifest.UUID)} to ${chalk.green(manifest.workingDir())}.`);
+	}
 }
 
 /**
