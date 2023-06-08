@@ -1,12 +1,16 @@
 import chalk from "chalk";
 import inquirer from "inquirer";
-import { exec, execSync } from "node:child_process";
+import child_process, { ExecOptions } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
 
 import Manifest, { generateUUID } from "../manifest.js";
 import * as questions from "../questions.js";
+import { stdoutSpinner } from "../utils.js";
+
+const exec = promisify(child_process.exec);
 
 /**
  * Launches the Stream Deck Plugin creation wizard, and guides users through creating a local development environment for creating plugins based on the template.
@@ -164,20 +168,33 @@ async function writePlugin(answers: ManifestAnswers, dest: string) {
 	});
 
 	// Update the manifest.
-	const manifest = new Manifest(path.join(process.cwd(), "plugin/manifest.json"));
-	manifest.Author = answers.Author;
-	manifest.Description = answers.Description;
-	manifest.Name = answers.Name;
-	manifest.UUID = answers.uuid;
-	manifest.writeFile();
+	await stdoutSpinner("Writing manifest.json", async () => {
+		const manifest = new Manifest(path.join(process.cwd(), "plugin/manifest.json"));
+		manifest.Author = answers.Author;
+		manifest.Category = answers.Name;
+		manifest.Description = answers.Description;
+		manifest.Name = answers.Name;
+		manifest.UUID = answers.uuid;
+		manifest.writeFile();
+	});
 
-	// Run setup.
-	const options = { cwd: path.resolve(dest) };
-	execSync("npm i", options);
-	execSync(`npm link "@elgato/streamdeck"`, options); // TODO: Remove this once we publish the library.
-	execSync("npm run build", options);
+	const options: ExecOptions = {
+		cwd: path.resolve(dest),
+		windowsHide: true
+	};
 
+	// Install npm dependencies; temporarily link to the local streamdeck package.
+	await stdoutSpinner("Installing dependencies", async () => {
+		await exec("npm i", options);
+		await exec(`npm link "@elgato/streamdeck"`, options); // TODO: Remove this once we publish the library.
+	});
+
+	// Build the plugin locally.
+	await stdoutSpinner("Building plugin", () => exec("npm run build", options));
+
+	console.log();
 	console.log(chalk.green("Successfully created plugin!"));
+
 	await tryOpenVSCode(dest);
 }
 

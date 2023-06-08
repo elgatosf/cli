@@ -11,6 +11,11 @@ export default class Manifest {
 	public Author?: string;
 
 	/**
+	 * Category used to group the plugin's actions together in the action's list, in Stream Deck.
+	 */
+	public Category?: string;
+
+	/**
 	 * General description of what the plugin does.
 	 */
 	public Description?: string;
