@@ -5,8 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { Manifest } from "../manifest.js";
-import { generateUUID } from "../plugin-info.js";
+import Manifest, { generateUUID } from "../manifest.js";
 import * as questions from "../questions.js";
 
 /**
@@ -16,7 +15,7 @@ export default async function create() {
 	await validateDirIsEmpty(process.cwd());
 
 	showWelcome();
-	const answers = await inquirer.prompt<ManifestAnswers>([
+	const answers = await inquirer.prompt<Omit<ManifestAnswers, "OS">>([
 		{
 			name: "Author",
 			message: "Author:",
@@ -27,7 +26,7 @@ export default async function create() {
 			message: "Plugin Name:",
 			type: "input"
 		},
-		questions.uuid(({ Author, Name }: ManifestAnswers) => generateUUID(Author, Name)),
+		questions.uuid(({ Author, Name }: Omit<ManifestAnswers, "OS">) => generateUUID(Author, Name)),
 		{
 			name: "Description",
 			message: "Description:",
@@ -153,7 +152,7 @@ async function validateDirIsEmpty(path: string) {
  * @param answers Answers provided by the user as part of the creation utility.
  * @param dest Destination path where the plugin will be created.
  */
-async function writePlugin(answers: Partial<Manifest>, dest: string) {
+async function writePlugin(answers: ManifestAnswers, dest: string) {
 	console.log();
 	console.log(`Creating ${chalk.blue(answers.Name)}...`);
 
@@ -169,7 +168,7 @@ async function writePlugin(answers: Partial<Manifest>, dest: string) {
 	manifest.Author = answers.Author;
 	manifest.Description = answers.Description;
 	manifest.Name = answers.Name;
-	manifest.UUID = answers.UUID;
+	manifest.UUID = answers.uuid;
 	manifest.writeFile();
 
 	// Run setup.
@@ -206,11 +205,16 @@ async function tryOpenVSCode(dest: string) {
 }
 
 /**
- * Answers
+ * Answers provided by the user as part of the creation utility.
  */
-type ManifestAnswers = Pick<Manifest, "Author" | "Description" | "Name" | "UUID"> & {
+type ManifestAnswers = Pick<Manifest, "Author" | "Description" | "Name" | "OS"> & {
 	/**
 	 * Platforms the plugin will support.
 	 */
 	platforms: "both" | "mac" | "windows";
+
+	/**
+	 * Unique identifier that represents the plugin.
+	 */
+	uuid: string;
 };

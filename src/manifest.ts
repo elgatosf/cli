@@ -1,9 +1,10 @@
 import fs from "node:fs";
+import { basename, dirname } from "node:path";
 
 /**
  * Provides information and methods for working with the `manifest.json` file that supports a Stream Deck plugin.
  */
-export class Manifest {
+export default class Manifest {
 	/**
 	 * Author of the plugin; this can be a user, or an organization.
 	 */
@@ -40,9 +41,14 @@ export class Manifest {
 	public UUID?: string;
 
 	/**
-	 * The source path of the manifest file.
+	 * Gets the source path of the manifest file.
 	 */
 	private readonly __sourcePath: string;
+
+	/**
+	 * Gets the working directory of the plugin; this is typically the development environment.
+	 */
+	private readonly __workingDir: string;
 
 	/**
 	 * Initializes a new instance of {@link Manifest}.
@@ -50,6 +56,7 @@ export class Manifest {
 	 */
 	constructor(path: string) {
 		this.__sourcePath = path;
+		this.__workingDir = basename(dirname(path));
 
 		if (fs.existsSync(this.__sourcePath)) {
 			if (!fs.statSync(this.__sourcePath).isFile()) {
@@ -61,10 +68,76 @@ export class Manifest {
 	}
 
 	/**
+	 * Generates a UUID from the `Author` and `Name`; both values are parsed to ensure they result in a whole valid UUID. When one or more value cannot be parsed, the resulting UUID is `undefined`.
+	 * @returns UUID that represents the plugin, from information found in the manifest.json file; otherwise `undefined`.
+	 */
+	public generateUUID(): string | undefined {
+		return generateUUID(this.Author, this.Name);
+	}
+
+	/**
+	 * Gets the working directory of the plugin; this is typically the development environment.
+	 * @returns Path to the working directory of the plugin.
+	 */
+	public workingDir() {
+		return this.__workingDir;
+	}
+
+	/**
 	 * Writes the information to the manifest.json file.
 	 */
 	public writeFile() {
-		const data = JSON.stringify(this, (key, value) => (key === "__sourcePath" ? undefined : value), 2);
+		const data = JSON.stringify(this, (key, value) => (key.startsWith("__") ? undefined : value), 2);
 		fs.writeFileSync(this.__sourcePath, data);
 	}
+}
+
+/**
+ * Generates a UUID from the `author` and `name` values. Values are parsed to ensure valid sections, resulting in a complete UUID; when a value cannot be parsed, the resulting UUID is `undefined`.
+ * @param author Author of the plugin.
+ * @param name Name of the plugin.
+ * @returns UUID that represents the plugin, from information found in the manifest.json file; otherwise `undefined`.
+ */
+export function generateUUID(author: string | undefined, name: string | undefined): string | undefined {
+	const sections = {
+		author: formatSection(author),
+		name: formatSection(name)
+	};
+
+	if (sections.author === undefined || sections.name === undefined) {
+		return;
+	}
+
+	return `com.${sections.author}.${sections.name}`;
+
+	/**
+	 * Attempts to format the specified `value` as a section of the plugin's UUID; when the `value` results in an empty string, `undefined` is returned.
+	 * @param value Value to parse, and make UUID safe.
+	 * @returns Value that is safe for a UUID section; otherwise `undefined`.
+	 */
+	function formatSection(value: string | undefined): string | undefined {
+		if (value === undefined) {
+			return undefined;
+		}
+
+		const safeValue = value
+			.toLowerCase()
+			.replaceAll(" ", "-")
+			.replaceAll(/[^\-a-z0-9_]/g, "");
+
+		return safeValue !== "" ? safeValue : undefined;
+	}
+}
+
+/**
+ * Determines whether the specified `uuid` is a valid unique-identifier.
+ * @param uuid UUID being checked.
+ * @returns `true` when the `uuid` represents a valid unique-identifier; otherwise `false`.
+ */
+export function isValidUUID(uuid: string | undefined): boolean {
+	if (uuid === undefined) {
+		return false;
+	}
+
+	return /^([a-z0-9\-_.]+)$/.test(uuid);
 }

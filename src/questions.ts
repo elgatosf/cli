@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import { InputQuestion } from "inquirer";
 
-import { isValidUUID } from "./plugin-info.js";
+import { isValidUUID } from "./manifest.js";
 
 /**
  * Provides an {@link InputQuestion} that is responsible for prompting the user for a valid UUID.
