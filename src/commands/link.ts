@@ -1,9 +1,10 @@
 import chalk from "chalk";
 import inquirer from "inquirer";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
-import { getOSPluginsPath, isValidUUID, PluginInfo } from "../plugin-info.js";
+import Manifest, { isValidUUID } from "../manifest.js";
 import * as questions from "../questions.js";
 
 /**
@@ -12,15 +13,15 @@ import * as questions from "../questions.js";
  * replacing / re-routing to the current plugin's path.
  */
 export default async function link() {
-	const plugin = new PluginInfo();
+	const manifest = new Manifest(path.join(process.cwd(), "manifest.json"));
 
 	// Prompts the user to generate a valid UUID.
-	if (!isValidUUID(plugin.manifest.UUID)) {
-		await promptForUUID(plugin);
+	if (!isValidUUID(manifest.UUID)) {
+		await promptForUUID(manifest);
 	}
 
-	const installationPath = path.join(getOSPluginsPath(), `${plugin.manifest.UUID}.sdPlugin`);
-	const validation = await validatePaths(plugin, installationPath);
+	const installationPath = path.join(getOSPluginsPath(), `${manifest.UUID}.sdPlugin`);
+	const validation = await validatePaths(manifest, installationPath);
 
 	// When the user opted to abort linking, bail out.
 	if (validation === ValidationResult.Abort) {
@@ -30,34 +31,47 @@ export default async function link() {
 
 	// Otherwise, when the result was okay, establish the symlink.
 	if (validation === ValidationResult.CanLink) {
-		fs.symlinkSync(plugin.path, installationPath, "junction");
+		fs.symlinkSync(manifest.workingDir(), installationPath, "junction");
 	}
 
-	console.log(`Successfully linked ${chalk.green(plugin.manifest.UUID)} to ${chalk.green(plugin.path)}.`);
+	console.log(`Successfully linked ${chalk.green(manifest.UUID)} to ${chalk.green(manifest.workingDir())}.`);
+}
+
+/**
+ * Gets the path, specific to the user's operating system, that identifies where Stream Decks plugins are installed.
+ * @returns Path to the Stream Deck plugins directory.
+ */
+export function getOSPluginsPath(): string {
+	if (os.platform() === "darwin") {
+		return path.join(os.homedir(), "Library/Application Support/com.elgato.StreamDeck/Plugins");
+	}
+
+	const appData = process.env.APPDATA ?? path.join(os.homedir(), "AppData/Roaming");
+	return path.join(appData, "Elgato/StreamDeck/Plugins");
 }
 
 /**
  * Prompts the user to specify a UUID to associate with the plugin; this is a required step prior to linking.
- * @param plugin Plugin whose UUID is being prompted for.
+ * @param manifest Manifest associated with the plugin.
  */
-async function promptForUUID(plugin: PluginInfo): Promise<void> {
+async function promptForUUID(manifest: Manifest): Promise<void> {
 	console.log(`The UUID (unique-identifier) for the plugin must be set before linking.`);
-	const answers = await inquirer.prompt(questions.uuid(plugin.generateUUID()));
+	const answers = await inquirer.prompt(questions.uuid(manifest.generateUUID()));
 
-	plugin.manifest.UUID = answers.uuid;
-	plugin.writeManifest();
+	manifest.UUID = answers.uuid;
+	manifest.writeFile();
 	console.log(`Successfully set plugin ${chalk.green("UUID")} to ${chalk.green(answers.uuid)}.`);
 }
 
 /**
- * Ensures the specified `installationPath` can be linked to the `plugin`.
+ * Ensures the specified `installationPath` can be linked to the plugin defined by the `manifest`.
  * When the path already exists as a symlink to another plugin, the user is prompted to replace it.
  * When the path already exists as a directory of another plugin, the user is prompted (twice) to overwrite it.
- * @param plugin Information about the plugin being linked to.
+ * @param manifest Manifest associated with the plugin.
  * @param installationPath Installation path that wil link to the plugin.
  * @returns The {@link ValidationResult} based on the current state of the `installationPath`, and the user's input.
  */
-async function validatePaths(plugin: PluginInfo, installationPath: string): Promise<ValidationResult> {
+async function validatePaths(manifest: Manifest, installationPath: string): Promise<ValidationResult> {
 	// When the installation path does not exist, we can create a link.
 	if (!fs.existsSync(installationPath)) {
 		return ValidationResult.CanLink;
@@ -65,11 +79,11 @@ async function validatePaths(plugin: PluginInfo, installationPath: string): Prom
 
 	// When the installation path is an existing symlink, validate it against the plugin path.
 	if (fs.lstatSync(installationPath).isSymbolicLink()) {
-		return validateExistingSymlink(plugin, installationPath);
+		return validateExistingSymlink(manifest, installationPath);
 	}
 
 	// Otherwise, prompt the user (twice) to replace the installation directory, with the link.
-	console.log(`Plugin ${chalk.yellow(plugin.manifest.UUID)} is an existing directory.`);
+	console.log(`Plugin ${chalk.yellow(manifest.UUID)} is an existing directory.`);
 	console.log();
 
 	let answers = await inquirer.prompt({
@@ -98,25 +112,25 @@ async function validatePaths(plugin: PluginInfo, installationPath: string): Prom
 }
 
 /**
- * Ensures the specified `installationPath`, that is an existing symlink, can be linked to the `plugin`. When the existing link does not point to the plugin,
- * the user is prompted to confirm redirecting the current link.
- * @param plugin Information about the plugin being linked to.
+ * Ensures the specified `installationPath`, that is an existing symlink, can be linked to the plugin. When the existing link does not point to the plugin, the user is prompted to
+ * confirm redirecting the current link.
+ * @param manifest Manifest associated with the plugin.
  * @param installationPath Installation path that wil link to the plugin.
  * @returns The {@link ValidationResult} based on the current state of the `installationPath`, and the user's input.
  */
-async function validateExistingSymlink(plugin: PluginInfo, installationPath: string): Promise<ValidationResult> {
+async function validateExistingSymlink(manifest: Manifest, installationPath: string): Promise<ValidationResult> {
 	const existingSymlink = fs.readlinkSync(installationPath);
 
 	// Check if the existing symlink already points to the plugin.
-	if (path.resolve(existingSymlink) === path.resolve(plugin.path)) {
+	if (path.resolve(existingSymlink) === path.resolve(manifest.workingDir())) {
 		return ValidationResult.AlreadyLinked;
 	}
 
 	// Otherwise prompt the user to replace the existing symlink.
-	console.log(`Plugin ${chalk.yellow(plugin.manifest.UUID)} is already linked to another directory.`);
+	console.log(`Plugin ${chalk.yellow(manifest.UUID)} is already linked to another directory.`);
 	console.log();
 	console.log(`    old:  ${chalk.red(existingSymlink)}`);
-	console.log(`    new:  ${chalk.green(plugin.path)}`);
+	console.log(`    new:  ${chalk.green(manifest.workingDir())}`);
 	console.log();
 
 	const answers = await inquirer.prompt({
