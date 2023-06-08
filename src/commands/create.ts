@@ -9,6 +9,7 @@ import { promisify } from "node:util";
 import Manifest, { generateUUID } from "../manifest.js";
 import * as questions from "../questions.js";
 import { stdoutSpinner } from "../utils.js";
+import link from "./link.js";
 
 const exec = promisify(child_process.exec);
 
@@ -175,6 +176,10 @@ async function writePlugin(answers: ManifestAnswers, dest: string) {
 		manifest.Description = answers.Description;
 		manifest.Name = answers.Name;
 		manifest.UUID = answers.uuid;
+		if (manifest.Actions) {
+			manifest.Actions[0].UUID = `${answers.uuid}.increment`;
+		}
+
 		manifest.writeFile();
 	});
 
@@ -194,6 +199,12 @@ async function writePlugin(answers: ManifestAnswers, dest: string) {
 
 	console.log();
 	console.log(chalk.green("Successfully created plugin!"));
+
+	// Setup a symlink.
+	await link({
+		path: path.join(dest, "/plugin"),
+		quiet: true
+	});
 
 	await tryOpenVSCode(dest);
 }

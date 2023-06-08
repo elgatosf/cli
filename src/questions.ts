@@ -18,7 +18,7 @@ export function uuid(defaultValue: InputQuestion["default"]): InputQuestion {
 			const valid = isValidUUID(uuid);
 			if (!valid) {
 				console.log();
-				console.log(chalk.red("UUID can only contain lower-case alpha-numeric characters (a-z, 0-9), hyphens (-), underscores (_), or periods (.)."));
+				console.log(chalk.red("UUID can only contain lowercase alphanumeric characters (a-z, 0-9), hyphens (-), underscores (_), or periods (.)."));
 			}
 
 			return valid;

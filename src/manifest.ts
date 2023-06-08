@@ -6,6 +6,26 @@ import { dirname } from "node:path";
  */
 export default class Manifest {
 	/**
+	 * Collection of actions that define the functionality available to the user provided by the plugin. Actions are the primary method of interaction between the user, and the
+	 * plugin, with action information being provided by events emitted by the Stream Deck.
+	 * @example
+	 * "Mute Microphone"
+	 * @example
+	 * "Turn Lights On"
+	 */
+	public Actions?: {
+		/**
+		 * Unique identifier used to identify the action as part of events emitted by the Stream Deck. Identifiers should use reverse DNS format, and may only contain lowercase
+		 * alphanumeric characters (a-z, 0-9), hyphens (-), underscores (_), or periods (.).
+		 * @example
+		 * com.elgato.wavelink.mixermute
+		 * @example
+		 * com.elgato.controlcenter.lights-on-off
+		 */
+		UUID?: string;
+	}[];
+
+	/**
 	 * Author of the plugin; this can be a user, or an organization.
 	 */
 	public Author?: string;

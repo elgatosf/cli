@@ -13,7 +13,8 @@
 			],
 			"States": [
 				{
-					"Image": "imgs/counter/image"
+					"Image": "imgs/counter/image",
+					"TitleAlignment": "middle"
 				}
 			]
 		}
