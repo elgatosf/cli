@@ -93,8 +93,6 @@ export default class Manifest {
 	 */
 	public writeFile() {
 		const data = JSON.stringify(this, (key, value) => (key.startsWith("__") ? undefined : value), 2);
-		console.log(data);
-		console.log(`writing to ${this.__sourcePath}`);
 		fs.writeFileSync(this.__sourcePath, data);
 	}
 }
