@@ -5,9 +5,9 @@
 	"Actions": [
 		{
 			"Name": "Counter",
-			"UUID": "com.elgato.counter.increment",
+			"UUID": "com.elgato.nodejs-counter.increment",
 			"Icon": "imgs/counter/icon",
-			"Tooltip": "Displays a count, which increments by 1 on each press.",
+			"Tooltip": "Displays a count, which increments by one on press.",
 			"Controllers": [
 				"Keypad"
 			],
