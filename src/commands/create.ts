@@ -8,7 +8,7 @@ import { promisify } from "node:util";
 
 import Manifest, { generateUUID } from "../manifest.js";
 import * as questions from "../questions.js";
-import { stdoutSpinner } from "../utils.js";
+import { rewriteFile, stdoutSpinner } from "../utils.js";
 import link from "./link.js";
 
 const exec = promisify(child_process.exec);
@@ -170,17 +170,20 @@ async function writePlugin(answers: ManifestAnswers, dest: string) {
 
 	// Update the manifest.
 	await stdoutSpinner("Writing manifest.json", async () => {
+		const actionUUID = `${answers.uuid}.increment`;
 		const manifest = new Manifest(path.join(process.cwd(), "plugin/manifest.json"));
+
 		manifest.Author = answers.Author;
 		manifest.Category = answers.Name;
 		manifest.Description = answers.Description;
 		manifest.Name = answers.Name;
 		manifest.UUID = answers.uuid;
 		if (manifest.Actions) {
-			manifest.Actions[0].UUID = `${answers.uuid}.increment`;
+			manifest.Actions[0].UUID = actionUUID;
 		}
 
 		manifest.writeFile();
+		rewriteFile(path.join(process.cwd(), "src/plugin.ts"), (contents) => contents.replace("com.elgato.nodejs-counter.increment", actionUUID));
 	});
 
 	const options: ExecOptions = {
