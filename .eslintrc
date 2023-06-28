@@ -1,22 +1,24 @@
 {
+	"env": {
+		"node": true
+	},
 	"extends": [
 		"eslint:recommended",
-		"plugin:@typescript-eslint/eslint-recommended",
 		"plugin:@typescript-eslint/recommended",
-		"plugin:jsdoc/recommended",
 		"plugin:jsdoc/recommended-typescript",
 		"prettier"
 	],
 	"ignorePatterns": [
+		"dist/",
 		"node_modules/",
-		"lib/",
 		"template/"
 	],
 	"parser": "@typescript-eslint/parser",
 	"plugins": [
 		"jsdoc",
 		"prettier",
-		"@typescript-eslint"
+		"@typescript-eslint",
+		"import"
 	],
 	"root": true,
 	"rules": {

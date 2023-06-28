@@ -3,15 +3,15 @@
 	"compilerOptions": {
 		"declaration": true,
 		"module": "ESNext",
-		"outDir": "./lib/",
+		"outDir": "dist/",
 		"sourceMap": true
 	},
 	"include": [
-		"./src/index.ts"
+		"src/index.ts"
 	],
 	"exclude": [
 		"bin",
-		"lib",
+		"dist",
 		"node_modules",
 		"template"
 	]
