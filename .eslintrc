@@ -9,6 +9,7 @@
 		"prettier"
 	],
 	"ignorePatterns": [
+		"bin/",
 		"dist/",
 		"node_modules/",
 		"template/"

@@ -7,7 +7,7 @@
 		"sourceMap": true
 	},
 	"include": [
-		"src/index.ts"
+		"src",
 	],
 	"exclude": [
 		"bin",

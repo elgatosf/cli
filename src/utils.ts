@@ -2,6 +2,26 @@ import chalk from "chalk";
 import fs from "node:fs";
 
 /**
+ * Exits the process after displaying the specified {@link message}.
+ * @param message Message to display prior to existing.
+ * @param error Optional error to log before existing.
+ */
+export function exit(message: string, error?: unknown) {
+	console.log(chalk.red(message));
+
+	if (error instanceof Error) {
+		if (error.message) {
+			console.log(chalk.yellow(error.message));
+		}
+		if (error.stack) {
+			console.log(error.stack);
+		}
+	}
+
+	process.exit(1);
+}
+
+/**
  * Rewrites the file for the given {@link path}. The {@link replacer} is called with the current contents, allowing the caller to optionally replace existing content, or provide new
  * content altogether.
  * @param path Path to the file.

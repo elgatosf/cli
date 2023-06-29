@@ -9,6 +9,7 @@ import { promisify } from "node:util";
 import Manifest, { generateUUID } from "../manifest.js";
 import * as questions from "../questions.js";
 import { rewriteFile, stdoutSpinner } from "../utils.js";
+import dev from "./dev.js";
 import link from "./link.js";
 
 const exec = promisify(child_process.exec);
@@ -161,6 +162,8 @@ async function writePlugin(answers: ManifestAnswers, dest: string) {
 	console.log();
 	console.log(`Creating ${chalk.blue(answers.Name)}...`);
 
+	await stdoutSpinner("Enabling developer mode", () => dev.execute({ quiet: true }));
+
 	// Copy the template; path is determined relative to this command file.
 	const commandPath = path.dirname(fileURLToPath(import.meta.url));
 	fs.cpSync(path.resolve(commandPath, "../../template"), dest, {
@@ -199,15 +202,15 @@ async function writePlugin(answers: ManifestAnswers, dest: string) {
 
 	// Build the plugin locally.
 	await stdoutSpinner("Building plugin", () => exec("npm run build", options));
+	await stdoutSpinner("Finalizing setup", () =>
+		link({
+			path: path.join(dest, "/plugin"),
+			quiet: true
+		})
+	);
 
 	console.log();
 	console.log(chalk.green("Successfully created plugin!"));
-
-	// Setup a symlink.
-	await link({
-		path: path.join(dest, "/plugin"),
-		quiet: true
-	});
 
 	await tryOpenVSCode(dest);
 }
