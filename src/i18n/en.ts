@@ -1,4 +1,5 @@
 const resources: Resources = {
+	commandError: (name) => `Failed to run command "${name}"`,
 	commands: {
 		dev: {
 			description: "Enable Stream Deck Plugin development.",

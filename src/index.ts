@@ -13,7 +13,7 @@ program
 program
 	.command(dev.command)
 	.description(i18n.commands.dev.description)
-	.action(() => dev.execute());
+	.action(() => dev.run());
 
 program
 	.command("link")

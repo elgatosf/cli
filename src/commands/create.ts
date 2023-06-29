@@ -162,7 +162,7 @@ async function writePlugin(answers: ManifestAnswers, dest: string) {
 	console.log();
 	console.log(`Creating ${chalk.blue(answers.Name)}...`);
 
-	await stdoutSpinner("Enabling developer mode", () => dev.execute({ quiet: true }));
+	await stdoutSpinner("Enabling developer mode", () => dev.run({ quiet: true }));
 
 	// Copy the template; path is determined relative to this command file.
 	const commandPath = path.dirname(fileURLToPath(import.meta.url));

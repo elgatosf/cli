@@ -1,6 +1,6 @@
 /* eslint-disable jsdoc/require-jsdoc */
-
 declare type Resources = {
+	commandError: (name: string) => string;
 	commands: {
 		dev: {
 			description: string;
