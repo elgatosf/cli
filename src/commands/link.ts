@@ -92,59 +92,36 @@ async function promptForUUID(manifest: Manifest): Promise<void> {
 }
 
 /**
- * Ensures the specified `installationPath` can be linked to the plugin defined by the `manifest`.
+ * Ensures the specified {@link installationPath} can be linked to the plugin defined by the {@link manifest}.
  * When the path already exists as a symlink to another plugin, the user is prompted to replace it.
  * When the path already exists as a directory of another plugin, the user is prompted (twice) to overwrite it.
  * @param manifest Manifest associated with the plugin.
  * @param installationPath Installation path that wil link to the plugin.
- * @returns The {@link ValidationResult} based on the current state of the `installationPath`, and the user's input.
+ * @returns The {@link ValidationResult} based on the current state of the {@link installationPath}, and the user's input.
  */
 async function validatePaths(manifest: Manifest, installationPath: string): Promise<ValidationResult> {
+	const pathStats = fs.lstatSync(installationPath, { throwIfNoEntry: false });
+
 	// When the installation path does not exist, we can create a link.
-	if (!fs.existsSync(installationPath)) {
+	if (pathStats === undefined) {
 		return ValidationResult.CanLink;
 	}
 
 	// When the installation path is an existing symlink, validate it against the plugin path.
-	if (fs.lstatSync(installationPath).isSymbolicLink()) {
+	if (pathStats.isSymbolicLink()) {
 		return validateExistingSymlink(manifest, installationPath);
 	}
 
-	// Otherwise, prompt the user (twice) to replace the installation directory, with the link.
-	console.log(`Plugin ${chalk.yellow(manifest.UUID)} is an existing directory.`);
-	console.log();
-
-	let answers = await inquirer.prompt({
-		name: "confirm",
-		message: "Would you like to overwrite the directory?",
-		default: false,
-		type: "confirm"
-	});
-
-	if (answers.confirm) {
-		answers = await inquirer.prompt({
-			name: "confirm",
-			message: "Creating the link may result in data loss, are you sure?",
-			default: false,
-			type: "confirm"
-		});
-	}
-
-	// Only remove the directory when the user has double-checked.
-	if (answers.confirm) {
-		fs.rmdirSync(installationPath);
-		return ValidationResult.CanLink;
-	}
-
-	return ValidationResult.Abort;
+	// Linking would cause an existing directory/file to be overwritten, so confirm.
+	return validateCanOverwrite(manifest, installationPath, pathStats.isFile());
 }
 
 /**
- * Ensures the specified `installationPath`, that is an existing symlink, can be linked to the plugin. When the existing link does not point to the plugin, the user is prompted to
+ * Ensures the specified {@link installationPath}, that is an existing symlink, can be linked to the plugin. When the existing link does not point to the plugin, the user is prompted to
  * confirm redirecting the current link.
  * @param manifest Manifest associated with the plugin.
  * @param installationPath Installation path that wil link to the plugin.
- * @returns The {@link ValidationResult} based on the current state of the `installationPath`, and the user's input.
+ * @returns The {@link ValidationResult} based on the current state of the {@link installationPath}, and the user's input.
  */
 async function validateExistingSymlink(manifest: Manifest, installationPath: string): Promise<ValidationResult> {
 	const existingSymlink = fs.readlinkSync(installationPath);
@@ -175,6 +152,49 @@ async function validateExistingSymlink(manifest: Manifest, installationPath: str
 	}
 
 	// The user opted to not replace the existing symlink, so abort.
+	return ValidationResult.Abort;
+}
+
+/**
+ * Informs the user that creating a link is blocked due to an existing directory or file. The user is prompted to overwrite the existing directory or file, twice, before the link can
+ * be established.
+ * @param manifest Manifest associated with the plugin.
+ * @param installationPath Installation path that wil link to the plugin.
+ * @param isFile Determines whether the specified {@link installationPath} is a file.
+ * @returns The {@link ValidationResult} based on the current state of the {@link installationPath}, and the user's input.
+ */
+async function validateCanOverwrite(manifest: Manifest, installationPath: string, isFile: boolean): Promise<ValidationResult> {
+	// Prompt the user (twice) to replace the installation directory, with the link.
+	console.log(`Plugin ${chalk.yellow(manifest.UUID)} is an existing directory/file.`);
+	console.log();
+
+	let answers = await inquirer.prompt({
+		name: "confirm",
+		message: "Would you like to overwrite the directory/file?",
+		default: false,
+		type: "confirm"
+	});
+
+	if (answers.confirm) {
+		answers = await inquirer.prompt({
+			name: "confirm",
+			message: "Creating the link may result in data loss, are you sure?",
+			default: false,
+			type: "confirm"
+		});
+	}
+
+	// Only remove the directory/file when the user has double-checked.
+	if (answers.confirm) {
+		if (isFile) {
+			fs.rmSync(installationPath);
+		} else {
+			fs.rmdirSync(installationPath);
+		}
+
+		return ValidationResult.CanLink;
+	}
+
 	return ValidationResult.Abort;
 }
 
