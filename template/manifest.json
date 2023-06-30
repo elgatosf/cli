@@ -6,14 +6,14 @@
 		{
 			"Name": "Counter",
 			"UUID": "com.elgato.nodejs-counter.increment",
-			"Icon": "imgs/counter/icon",
+			"Icon": "imgs/actions/counter/icon",
 			"Tooltip": "Displays a count, which increments by one on press.",
 			"Controllers": [
 				"Keypad"
 			],
 			"States": [
 				{
-					"Image": "imgs/counter/image",
+					"Image": "imgs/actions/counter/key",
 					"TitleAlignment": "middle"
 				}
 			]
@@ -21,9 +21,9 @@
 	],
 	"Category": "Nodejs Example",
 	"CategoryIcon": "imgs/plugin/category-icon",
-	"CodePath": "build/plugin.js",
+	"CodePath": "bin/plugin.js",
 	"Description": "An example plugin demonstrating Node.js",
-	"Icon": "imgs/plugin/icon",
+	"Icon": "imgs/plugin/marketplace",
 	"SDKVersion": 2,
 	"Software": {
 		"MinimumVersion": "6.3"

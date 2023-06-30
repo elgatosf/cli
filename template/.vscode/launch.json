@@ -10,11 +10,10 @@
 			"request": "attach",
 			"processId": "${command:PickProcess}",
 			"outFiles": [
-				"${workspaceFolder}/plugin/**/*.js"
+				"${workspaceFolder}/bin/**/*.js"
 			],
 			"resolveSourceMapLocations": [
-				"${workspaceFolder}/**",
-				/** TODO: add @elgato/streamdeck **/
+				"${workspaceFolder}/**"
 			]
 		}
 	]

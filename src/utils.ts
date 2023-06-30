@@ -48,11 +48,13 @@ export async function stdoutSpinner<T = void>(name: string, task: () => Promise<
 		symbolIndex = symbolIndex == symbols.length - 1 ? 0 : symbolIndex + 1;
 	}, 150);
 
-	await task();
-	clearInterval(spinner);
-
-	write(chalk.green("✔"));
-	process.stdout.write("\n");
+	try {
+		await task();
+		finalize(chalk.green("✔"));
+	} catch (err) {
+		finalize(chalk.red("✖"));
+		exit("Task failed", err);
+	}
 
 	/**
 	 * Writes the current message that represents the state of the task.
@@ -62,5 +64,15 @@ export async function stdoutSpinner<T = void>(name: string, task: () => Promise<
 		process.stdout.clearLine(1);
 		process.stdout.cursorTo(0);
 		process.stdout.write(`    ${symbol} ${name}`);
+	}
+
+	/**
+	 * Writes the final message after the task has completed.
+	 * @param message Message to write.
+	 */
+	function finalize(message: string) {
+		clearInterval(spinner);
+		write(message);
+		process.stdout.write("\n");
 	}
 }

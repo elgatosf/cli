@@ -6,10 +6,11 @@
 	"explorer.fileNesting.enabled": true,
 	"explorer.fileNesting.patterns": {
 		"*.js": "${capture}.js.map, ${capture}.min.js, ${capture}.d.ts",
-		"package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml",
-		"tsconfig.json": "tsconfig.*.json"
+		"package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, tsconfig.json"
 	},
 	"files.exclude": {
+		".vscode": true,
+		"bin": true,
 		"node_modules": true
 	}
 }

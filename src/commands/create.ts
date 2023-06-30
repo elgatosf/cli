@@ -165,16 +165,12 @@ async function writePlugin(answers: ManifestAnswers, dest: string) {
 	await stdoutSpinner("Enabling developer mode", () => dev.run({ quiet: true }));
 
 	// Copy the template; path is determined relative to this command file.
-	const commandPath = path.dirname(fileURLToPath(import.meta.url));
-	fs.cpSync(path.resolve(commandPath, "../../template"), dest, {
-		filter: (src: string) => src.indexOf("node_modules") < 0,
-		recursive: true
-	});
+	await stdoutSpinner("Generating plugin", () => copyFiles(dest));
 
 	// Update the manifest.
 	await stdoutSpinner("Writing manifest.json", async () => {
 		const actionUUID = `${answers.uuid}.increment`;
-		const manifest = new Manifest(path.join(process.cwd(), "plugin/manifest.json"));
+		const manifest = new Manifest(path.join(dest, "manifest.json"));
 
 		manifest.Author = answers.Author;
 		manifest.Category = answers.Name;
@@ -186,7 +182,7 @@ async function writePlugin(answers: ManifestAnswers, dest: string) {
 		}
 
 		manifest.writeFile();
-		rewriteFile(path.join(process.cwd(), "src/plugin.ts"), (contents) => contents.replace("com.elgato.nodejs-counter.increment", actionUUID));
+		rewriteFile(path.join(dest, "src/plugin.ts"), (contents) => contents.replace("com.elgato.nodejs-counter.increment", actionUUID));
 	});
 
 	const options: ExecOptions = {
@@ -204,7 +200,7 @@ async function writePlugin(answers: ManifestAnswers, dest: string) {
 	await stdoutSpinner("Building plugin", () => exec("npm run build", options));
 	await stdoutSpinner("Finalizing setup", () =>
 		link({
-			path: path.join(dest, "/plugin"),
+			path: dest,
 			quiet: true
 		})
 	);
@@ -213,6 +209,41 @@ async function writePlugin(answers: ManifestAnswers, dest: string) {
 	console.log(chalk.green("Successfully created plugin!"));
 
 	await tryOpenVSCode(dest);
+}
+
+/**
+ * Copies the template files to the destination.
+ * @param dest Destination path where the plugin was created.
+ */
+async function copyFiles(dest: string) {
+	const commandPath = path.dirname(fileURLToPath(import.meta.url));
+	const templatePath = path.resolve(commandPath, "../../template");
+
+	copyDir("imgs");
+	copyDir("src");
+	copyFile(".gitignore");
+	copyFile("manifest.json");
+	copyFile("package.json");
+	copyFile("package-lock.json");
+	copyFile("tsconfig.json");
+
+	/**
+	 * Copies the specified {@link filePath} from the template to the destination.
+	 * @param filePath File path relative to the root of the template.
+	 */
+	function copyFile(filePath: string) {
+		fs.cpSync(path.join(templatePath, filePath), path.join(dest, filePath));
+	}
+
+	/**
+	 * Copies the specified {@link dirPath} recursively from the template to the destination.
+	 * @param dirPath Directory path relative to the root of the template.
+	 */
+	function copyDir(dirPath: string) {
+		fs.cpSync(path.join(templatePath, dirPath), path.join(dest, dirPath), {
+			recursive: true
+		});
+	}
 }
 
 /**
