@@ -22,7 +22,7 @@ export default async function create() {
 	await validateDirIsEmpty(process.cwd());
 
 	showWelcome();
-	const answers = await inquirer.prompt<Omit<ManifestAnswers, "OS">>([
+	const answers = await inquirer.prompt<ManifestAnswers>([
 		{
 			name: "Author",
 			message: "Author:",
@@ -33,7 +33,7 @@ export default async function create() {
 			message: "Plugin Name:",
 			type: "input"
 		},
-		questions.uuid(({ Author, Name }: Omit<ManifestAnswers, "OS">) => generateUUID(Author, Name)),
+		questions.uuid(({ Author, Name }: ManifestAnswers) => generateUUID(Author, Name)),
 		{
 			name: "Description",
 			message: "Description:",
@@ -235,12 +235,7 @@ async function tryOpenVSCode(dest: string) {
 /**
  * Answers provided by the user as part of the creation utility.
  */
-type ManifestAnswers = Pick<Manifest, "Author" | "Description" | "Name" | "OS"> & {
-	/**
-	 * Platforms the plugin will support.
-	 */
-	platforms: "both" | "mac" | "windows";
-
+type ManifestAnswers = Pick<Manifest, "Author" | "Description" | "Name"> & {
 	/**
 	 * Unique identifier that represents the plugin.
 	 */

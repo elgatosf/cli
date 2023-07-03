@@ -46,21 +46,6 @@ export default class Manifest {
 	public Name?: string;
 
 	/**
-	 * Collection of supported operating systems, and the minimum version required for the plugin to run.
-	 */
-	public OS?: {
-		/**
-		 * Minimum version of the operating system required for the plugin to run.
-		 */
-		MinimumVersion: number;
-
-		/**
-		 * Operating system platform identifier, e.g. mac for macOS, or Windows.
-		 */
-		Platform: "mac" | "windows";
-	}[];
-
-	/**
 	 * Plugin's unique identifier.
 	 */
 	public UUID?: string;
