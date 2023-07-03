@@ -172,14 +172,16 @@ async function copyFiles(options: Options) {
 	copyFile("tsconfig.json");
 
 	// sdPlugin Folder.
-	copyDir(`${TEMPLATE_PLUGIN_UUID}.sdPlugin`, `${options.uuid}.sdPlugin`);
+	copyDir(`${TEMPLATE_PLUGIN_UUID}.sdPlugin/imgs`, `${options.uuid}.sdPlugin/imgs`);
+	copyFile(`${TEMPLATE_PLUGIN_UUID}.sdPlugin/manifest.json`, `${options.uuid}.sdPlugin/manifest.json`);
 
 	/**
 	 * Copies the specified {@link relativeSource} from the template to the destination.
 	 * @param relativeSource Source file, relative to the root of the template.
+	 * @param relativeDest Optional destination file, relative to the root of the plugin.
 	 */
-	function copyFile(relativeSource: string) {
-		fs.cpSync(path.join(templatePath, relativeSource), path.join(options.destination, relativeSource));
+	function copyFile(relativeSource: string, relativeDest = relativeSource) {
+		fs.cpSync(path.join(templatePath, relativeSource), path.join(options.destination, relativeDest));
 	}
 
 	/**
