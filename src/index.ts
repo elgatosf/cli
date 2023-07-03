@@ -1,6 +1,6 @@
 import { program } from "commander";
 
-import create from "./commands/create.js";
+import { creationWizard } from "./commands/create.js";
 import { enableDeveloperMode } from "./commands/dev.js";
 import { linkToPlugin } from "./commands/link.js";
 import i18n from "./i18n/index.js";
@@ -8,7 +8,7 @@ import i18n from "./i18n/index.js";
 program
 	.command("create")
 	.description("Wizard that guides you through setting up a Stream Deck plugin.")
-	.action(() => create());
+	.action(() => creationWizard());
 
 program
 	.command("dev")

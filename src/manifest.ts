@@ -145,7 +145,7 @@ export function generateUUID(author: string | undefined, name: string | undefine
  * @returns `true` when the `uuid` represents a valid unique-identifier; otherwise `false`.
  */
 export function isValidUUID(uuid: string | undefined): boolean {
-	if (uuid === undefined) {
+	if (uuid === undefined || uuid === null) {
 		return false;
 	}
 

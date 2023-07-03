@@ -16,41 +16,54 @@ const exec = promisify(child_process.exec);
 const TEMPLATE_PLUGIN_UUID = "com.elgato.template";
 
 /**
+ * Options available to {@link creationWizard}.
+ */
+type Options = {
+	[K in keyof Pick<Manifest, "Author" | "Description" | "Name" | "UUID"> as Lowercase<K>]-?: Manifest[K];
+} & {
+	/**
+	 * Destination where the plugin is being created.
+	 */
+	destination: string;
+};
+
+/**
  * Launches the Stream Deck Plugin creation wizard, and guides users through creating a local development environment for creating plugins based on the template.
  */
-export default async function create() {
+export async function creationWizard() {
 	await validateDirIsEmpty(process.cwd());
 
 	showWelcome();
-	const answers = await inquirer.prompt<ManifestAnswers>([
+	const options = await inquirer.prompt<Options>([
 		{
-			name: "Author",
+			name: "author",
 			message: "Author:",
 			type: "input"
 		},
 		{
-			name: "Name",
+			name: "name",
 			message: "Plugin Name:",
 			type: "input"
 		},
-		questions.uuid(({ Author, Name }: ManifestAnswers) => generateUUID(Author, Name)),
+		questions.uuid(({ author, name }: Options) => generateUUID(author, name)),
 		{
-			name: "Description",
+			name: "description",
 			message: "Description:",
 			type: "input"
 		}
 	]);
 
 	console.log();
-	const correctInfo = await inquirer.prompt({
-		name: "confirm",
+	const info = await inquirer.prompt({
+		name: "isCorrect",
 		message: "Create Stream Deck plugin from information above?",
 		default: true,
 		type: "confirm"
 	});
 
-	if (correctInfo.confirm) {
-		await writePlugin(answers, process.cwd());
+	if (info.isCorrect) {
+		options.destination = process.cwd();
+		await writePlugin(options);
 	} else {
 		console.log("Canceled.");
 		process.exit(0);
@@ -100,37 +113,36 @@ async function validateDirIsEmpty(path: string) {
 }
 
 /**
- * Creates a plugin from the template, transforming the manifest with the provided `answers` from the user. After the plugin is created the environment is setup, e.g. `npm i`,
+ * Creates a plugin from the template, transforming the manifest with the provided {@link options} from the user. After the plugin is created the environment is setup, e.g. `npm i`,
  * `npm run build`, and then the user is prompted to open their plugin in VS Code (if installed).
- * @param answers Answers provided by the user as part of the creation utility.
- * @param dest Destination path where the plugin will be created.
+ * @param options Options provided by the user as part of the creation utility.
  */
-async function writePlugin(answers: ManifestAnswers, dest: string) {
+async function writePlugin(options: Options) {
 	console.log();
-	console.log(`Creating ${chalk.blue(answers.Name)}...`);
+	console.log(`Creating ${chalk.blue(options.name)}...`);
 
 	await stdoutSpinner("Enabling developer mode", () => enableDeveloperMode({ quiet: true }));
 
 	// Copy the template and re-configure the files.
-	await stdoutSpinner("Generating plugin", () => copyFiles(answers, dest));
-	await stdoutSpinner("Updating configuration", async () => localizeForUuid(answers, dest));
+	await stdoutSpinner("Generating plugin", () => copyFiles(options));
+	await stdoutSpinner("Updating configuration", async () => localizeForUuid(options));
 
-	const options: ExecOptions = {
-		cwd: dest,
+	const execOptions: ExecOptions = {
+		cwd: options.destination,
 		windowsHide: true
 	};
 
 	// Install npm dependencies; temporarily link to the local streamdeck package.
 	await stdoutSpinner("Installing dependencies", async () => {
-		await exec("npm i", options);
-		await exec(`npm link "@elgato/streamdeck"`, options); // TODO: Remove this once we publish the library.
+		await exec("npm i", execOptions);
+		await exec(`npm link "@elgato/streamdeck"`, execOptions); // TODO: Remove this once we publish the library.
 	});
 
 	// Build the plugin locally.
-	await stdoutSpinner("Building plugin", () => exec("npm run build", options));
+	await stdoutSpinner("Building plugin", () => exec("npm run build", execOptions));
 	await stdoutSpinner("Finalizing setup", () =>
 		linkToPlugin({
-			path: path.join(dest, `${answers.uuid}.sdPlugin`),
+			path: path.join(options.destination, `${options.uuid}.sdPlugin`),
 			quiet: true
 		})
 	);
@@ -138,15 +150,14 @@ async function writePlugin(answers: ManifestAnswers, dest: string) {
 	console.log();
 	console.log(chalk.green("Successfully created plugin!"));
 
-	await tryOpenVSCode(dest);
+	await tryOpenVSCode(options);
 }
 
 /**
  * Copies the template files to the destination.
- * @param answers Answers provided by the user as part of the creation utility.
- * @param dest Destination path where the plugin will be created.
+ * @param options Options provided by the user as part of the creation utility.
  */
-async function copyFiles(answers: ManifestAnswers, dest: string) {
+async function copyFiles(options: Options) {
 	const commandPath = path.dirname(fileURLToPath(import.meta.url));
 	const templatePath = path.resolve(commandPath, "../../template");
 
@@ -159,14 +170,14 @@ async function copyFiles(answers: ManifestAnswers, dest: string) {
 	copyFile("tsconfig.json");
 
 	// sdPlugin Folder.
-	copyDir(`${TEMPLATE_PLUGIN_UUID}.sdPlugin`, `${answers.uuid}.sdPlugin`);
+	copyDir(`${TEMPLATE_PLUGIN_UUID}.sdPlugin`, `${options.uuid}.sdPlugin`);
 
 	/**
 	 * Copies the specified {@link relativeSource} from the template to the destination.
 	 * @param relativeSource Source file, relative to the root of the template.
 	 */
 	function copyFile(relativeSource: string) {
-		fs.cpSync(path.join(templatePath, relativeSource), path.join(dest, relativeSource));
+		fs.cpSync(path.join(templatePath, relativeSource), path.join(options.destination, relativeSource));
 	}
 
 	/**
@@ -175,7 +186,7 @@ async function copyFiles(answers: ManifestAnswers, dest: string) {
 	 * @param relativeDest Optional destination directory, relative to the root of the plugin.
 	 */
 	function copyDir(relativeSource: string, relativeDest = relativeSource) {
-		fs.cpSync(path.join(templatePath, relativeSource), path.join(dest, relativeDest), {
+		fs.cpSync(path.join(templatePath, relativeSource), path.join(options.destination, relativeDest), {
 			recursive: true
 		});
 	}
@@ -183,37 +194,36 @@ async function copyFiles(answers: ManifestAnswers, dest: string) {
 
 /**
  * Configures the local files so that they're applicable to the plugin UUID.
- * @param answers Answers provided by the user as part of the creation utility.
- * @param dest Destination path where the plugin will be created.
+ * @param options Options provided by the user as part of the creation utility.
  */
-async function localizeForUuid(answers: ManifestAnswers, dest: string) {
-	const actionUUID = `${answers.uuid}.increment`;
-	const manifest = new Manifest(path.join(dest, `${answers.uuid}.sdPlugin/manifest.json`));
+async function localizeForUuid(options: Options) {
+	const actionUUID = `${options.uuid}.increment`;
+	const manifest = new Manifest(path.join(options.destination, `${options.uuid}.sdPlugin/manifest.json`));
 
-	manifest.Author = answers.Author;
-	manifest.Category = answers.Name;
-	manifest.Description = answers.Description;
-	manifest.Name = answers.Name;
-	manifest.UUID = answers.uuid;
+	manifest.Author = options.author;
+	manifest.Category = options.name;
+	manifest.Description = options.description;
+	manifest.Name = options.name;
+	manifest.UUID = options.uuid;
 	if (manifest.Actions) {
 		manifest.Actions[0].UUID = actionUUID;
 	}
 
 	manifest.writeFile();
 
-	rewriteFile(path.join(dest, "src/plugin.ts"), (contents) => contents.replace(`${TEMPLATE_PLUGIN_UUID}.increment`, actionUUID));
-	rewriteFile(path.join(dest, "tsconfig.json"), (contents) => {
+	rewriteFile(path.join(options.destination, "src/plugin.ts"), (contents) => contents.replace(`${TEMPLATE_PLUGIN_UUID}.increment`, actionUUID));
+	rewriteFile(path.join(options.destination, "tsconfig.json"), (contents) => {
 		const tsconfig = JSON.parse(contents);
-		tsconfig.compilerOptions.outDir = `${answers.uuid}.sdPlugin/bin`;
+		tsconfig.compilerOptions.outDir = `${options.uuid}.sdPlugin/bin`;
 		return JSON.stringify(tsconfig, undefined, "\t");
 	});
 }
 
 /**
  * Determines if the user has VS Code installed, and if so, prompts them to open the plugin.
- * @param dest Destination path where the plugin was created.
+ * @param options Options provided by the user as part of the creation utility.
  */
-async function tryOpenVSCode(dest: string) {
+async function tryOpenVSCode(options: Options) {
 	const paths = process.env.PATH?.split(":") ?? [];
 	if (!paths.some((p) => p.includes("Microsoft VS Code"))) {
 		return;
@@ -228,16 +238,6 @@ async function tryOpenVSCode(dest: string) {
 	});
 
 	if (vsCode.confirm) {
-		exec("code ./ --goto src/Plugin.ts", { cwd: dest });
+		exec("code ./ --goto src/Plugin.ts", { cwd: options.destination });
 	}
 }
-
-/**
- * Answers provided by the user as part of the creation utility.
- */
-type ManifestAnswers = Pick<Manifest, "Author" | "Description" | "Name"> & {
-	/**
-	 * Unique identifier that represents the plugin.
-	 */
-	uuid: string;
-};
