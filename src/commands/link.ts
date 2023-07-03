@@ -8,9 +8,9 @@ import Manifest, { isValidUUID } from "../manifest.js";
 import * as questions from "../questions.js";
 
 /**
- * Options available to the `link` command.
+ * Options available to {@link linkToPlugin}.
  */
-export type LinkOptions = {
+export type Options = {
 	/**
 	 * Path to the plugin.
 	 */
@@ -22,19 +22,19 @@ export type LinkOptions = {
 	quiet: boolean;
 };
 
-const defaultOptions: LinkOptions = {
+const defaultOptions: Options = {
 	path: process.cwd(),
 	quiet: false
 };
 
 /**
- * Creates a symbolic link between the Elgato Stream Deck plugins folder, and the development environment. The command validates the plugin's path exists, and there is a valid
- * UUID prior to attempting to establish a link. When establishing a link, if a folder or link already exists in the Stream Deck plugins folder, the user is prompted to confirm
- * replacing / re-routing to the current plugin's path.
+ * Creates a symbolic link between the Elgato Stream Deck plugins folder, and the development environment. The command validates the plugin's path exists, and there is a valid UUID
+ * prior to attempting to establish a link. When establishing a link, if a folder or link already exists in the Stream Deck plugins folder, the user is prompted to confirm replacing
+ * / re-routing to the current plugin's path.
  * @param options Options that define the execution of the command.
  */
-export default async function link(options: Partial<LinkOptions> = defaultOptions) {
-	const settings: LinkOptions = {
+export async function linkToPlugin(options: Partial<Options> = defaultOptions) {
+	const settings: Options = {
 		...defaultOptions,
 		...options
 	};
@@ -69,7 +69,7 @@ export default async function link(options: Partial<LinkOptions> = defaultOption
  * Gets the path, specific to the user's operating system, that identifies where Stream Decks plugins are installed.
  * @returns Path to the Stream Deck plugins directory.
  */
-export function getOSPluginsPath(): string {
+function getOSPluginsPath(): string {
 	if (os.platform() === "darwin") {
 		return path.join(os.homedir(), "Library/Application Support/com.elgato.StreamDeck/Plugins");
 	}

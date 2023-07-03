@@ -9,8 +9,8 @@ import { promisify } from "node:util";
 import Manifest, { generateUUID } from "../manifest.js";
 import * as questions from "../questions.js";
 import { rewriteFile, stdoutSpinner } from "../utils.js";
-import dev from "./dev.js";
-import link from "./link.js";
+import { enableDeveloperMode } from "./dev.js";
+import { linkToPlugin } from "./link.js";
 
 const exec = promisify(child_process.exec);
 const TEMPLATE_PLUGIN_UUID = "com.elgato.template";
@@ -109,7 +109,7 @@ async function writePlugin(answers: ManifestAnswers, dest: string) {
 	console.log();
 	console.log(`Creating ${chalk.blue(answers.Name)}...`);
 
-	await stdoutSpinner("Enabling developer mode", () => dev.run({ quiet: true }));
+	await stdoutSpinner("Enabling developer mode", () => enableDeveloperMode({ quiet: true }));
 
 	// Copy the template and re-configure the files.
 	await stdoutSpinner("Generating plugin", () => copyFiles(answers, dest));
@@ -129,7 +129,7 @@ async function writePlugin(answers: ManifestAnswers, dest: string) {
 	// Build the plugin locally.
 	await stdoutSpinner("Building plugin", () => exec("npm run build", options));
 	await stdoutSpinner("Finalizing setup", () =>
-		link({
+		linkToPlugin({
 			path: path.join(dest, `${answers.uuid}.sdPlugin`),
 			quiet: true
 		})
