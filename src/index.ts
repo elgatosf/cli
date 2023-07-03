@@ -12,7 +12,7 @@ program
 
 program
 	.command("dev")
-	.description(i18n.commands.dev.description)
+	.description(i18n.dev.description)
 	.action(() => enableDeveloperMode());
 
 program

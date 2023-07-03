@@ -38,14 +38,14 @@ export async function enableDeveloperMode(options: Partial<Options> = defaultOpt
 		} else if (platform === "win32") {
 			await enableWindows();
 		} else {
-			throw new Error(i18n.commands.dev.unsupportedOS);
+			throw new Error(i18n.dev.unsupportedOS);
 		}
 
 		if (!options.quiet) {
-			console.log(chalk.green(i18n.commands.dev.success));
+			console.log(chalk.green(i18n.dev.success));
 		}
 	} catch (err) {
-		exit(i18n.commands.dev.failed, err);
+		exit(i18n.dev.failed, err);
 	}
 	// do something
 }
@@ -61,7 +61,7 @@ const FLAG_NAME = "developer_mode";
 function enableMacOS() {
 	const { status } = childProcess.spawnSync("defaults", ["write", "com.elgato.StreamDeck", FLAG_NAME, "-bool", "YES"]);
 	if (status !== 0) {
-		throw new Error(i18n.commands.dev.macOSErrorCode(status));
+		throw new Error(i18n.dev.macOSErrorCode(status));
 	}
 }
 
