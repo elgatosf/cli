@@ -15,9 +15,11 @@ declare type Resources = {
 		openWithVSCode: string;
 		questions: {
 			author: string;
+			authorRequired: string;
 			confirmInfo: string;
 			description: string;
 			name: string;
+			nameRequired: string;
 		};
 		steps: {
 			building: string;

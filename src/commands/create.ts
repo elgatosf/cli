@@ -8,6 +8,7 @@ import { promisify } from "node:util";
 import i18n from "../i18n/index.js";
 import Manifest, { generateUUID } from "../manifest.js";
 import * as questions from "../questions.js";
+import { validateRequired } from "../questions.js";
 import { exit, rewriteFile, stdoutSpinner } from "../utils.js";
 import { enableDeveloperMode } from "./dev.js";
 import { linkToPlugin } from "./link.js";
@@ -38,12 +39,14 @@ export async function creationWizard() {
 		{
 			name: "author",
 			message: i18n.create.questions.author,
-			type: "input"
+			type: "input",
+			validate: validateRequired(i18n.create.questions.authorRequired)
 		},
 		{
 			name: "name",
 			message: i18n.create.questions.name,
-			type: "input"
+			type: "input",
+			validate: validateRequired(i18n.create.questions.nameRequired)
 		},
 		questions.uuid(({ author, name }: Options) => generateUUID(author, name)),
 		{
@@ -96,6 +99,7 @@ async function validateDirIsEmpty(path: string) {
 	if (fs.readdirSync(path).length != 0) {
 		console.log(i18n.create.dirNotEmptyWarning.title);
 		console.log(i18n.create.dirNotEmptyWarning.text);
+		console.log();
 
 		const overwrite = await inquirer.prompt({
 			name: "confirm",

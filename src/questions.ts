@@ -17,12 +17,26 @@ export function uuid(defaultValue: InputQuestion["default"]): InputQuestion<Uuid
 		validate: (uuid: string) => {
 			const valid = isValidUUID(uuid);
 			if (!valid) {
-				console.log();
-				console.log(i18n.common.invalidUuid);
+				return i18n.common.invalidUuid;
 			}
 
 			return valid;
 		}
+	};
+}
+
+/**
+ * Gets a function that accepts a single value; when that value is null, empty, or whitespace, the {@link error} is returned.
+ * @param error Error message to display when a value was not specified.
+ * @returns Function that can be used to validate an question's answer.
+ */
+export function validateRequired(error: string) {
+	return (value: unknown) => {
+		if (value && value?.toString().replaceAll(" ", "") != "") {
+			return true;
+		}
+
+		return error;
 	};
 }
 

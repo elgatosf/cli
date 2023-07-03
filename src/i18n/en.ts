@@ -2,12 +2,12 @@ import chalk from "chalk";
 
 const resources: Resources = {
 	common: {
-		invalidUuid: chalk.red("UUID can only contain lowercase alphanumeric characters (a-z, 0-9), hyphens (-), underscores (_), or periods (.)."),
+		invalidUuid: "UUID can only contain lowercase alphanumeric characters (a-z, 0-9), hyphens (-), underscores (_), or periods (.).",
 		taskFailed: "Task failed",
 		uuid: "Plugin UUID:"
 	},
 	create: {
-		aborted: "Creation aborted",
+		aborted: "Aborted",
 		dirNotEmptyWarning: {
 			confirm: `Continuing may result in ${chalk.yellow("data loss")}, are you sure you want to continue?`,
 			text: "This creation tool will write files to the current directory.",
@@ -16,9 +16,11 @@ const resources: Resources = {
 		openWithVSCode: "Would you like to open the plugin in VS Code?",
 		questions: {
 			author: "Author:",
+			authorRequired: "Please enter the author.",
 			confirmInfo: "Create Stream Deck plugin from information above?",
 			description: "Description:",
-			name: "Plugin Name:"
+			name: "Plugin Name:",
+			nameRequired: "Please enter the name of the plugin."
 		},
 		steps: {
 			building: "Building plugin",
@@ -45,7 +47,7 @@ const resources: Resources = {
 		unsupportedOS: "Unsupported operating system."
 	},
 	link: {
-		aborted: "Linking aborted",
+		aborted: "Aborted",
 		description: "Creates a symlink between the Elgato Stream Deck plugins folder, and the development environment.",
 		existingDirectoryOrFile: (uuid?: string) => `Plugin ${chalk.yellow(uuid)} is an existing directory/file.`,
 		existingLink: (uuid?: string) => `Plugin ${chalk.yellow(uuid)} is already linked to another directory.`,
