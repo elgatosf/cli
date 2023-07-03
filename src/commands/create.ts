@@ -219,6 +219,7 @@ async function copyFiles(dest: string) {
 	const commandPath = path.dirname(fileURLToPath(import.meta.url));
 	const templatePath = path.resolve(commandPath, "../../template");
 
+	copyDir(".vscode");
 	copyDir("imgs");
 	copyDir("src");
 	copyFile(".gitignore");
