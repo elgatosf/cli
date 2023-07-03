@@ -38,35 +38,23 @@ export default async function create() {
 			name: "Description",
 			message: "Description:",
 			type: "input"
-		},
-		{
-			name: "platforms",
-			message: "Supported OS:",
-			type: "list",
-			choices: [
-				{
-					value: "both",
-					name: "Both"
-				},
-				{
-					value: "mac",
-					name: "macOS Only"
-				},
-				{
-					value: "windows",
-					name: "Windows Only"
-				}
-			]
 		}
 	]);
 
-	await writePlugin(
-		{
-			...answers,
-			OS: await getPlatforms(answers.platforms)
-		},
-		process.cwd()
-	);
+	console.log();
+	const correctInfo = await inquirer.prompt({
+		name: "confirm",
+		message: "Create Stream Deck plugin from information above?",
+		default: true,
+		type: "confirm"
+	});
+
+	if (correctInfo.confirm) {
+		await writePlugin(answers, process.cwd());
+	} else {
+		console.log("Canceled.");
+		process.exit(0);
+	}
 }
 
 /**
@@ -86,48 +74,6 @@ function showWelcome() {
 	console.log();
 	console.log(chalk.grey("Press ^C at any time to quit."));
 	console.log();
-}
-
-/**
- * Prompts the user for the minimum versions required, of their chosen platforms, that are needed for their plugin to run.
- * @param platforms Platforms that the plugin will support.
- * @returns Collection of operating systems, and their minimum required versions.
- */
-async function getPlatforms(platforms: ManifestAnswers["platforms"]): Promise<Manifest["OS"]> {
-	const answers: Manifest["OS"] = [];
-
-	if (platforms === "both" || platforms === "mac") {
-		answers.push({
-			MinimumVersion: await getPlatformMinimumVersion("macOS", 10.15),
-			Platform: "mac"
-		});
-	}
-
-	if (platforms === "both" || platforms === "windows") {
-		answers.push({
-			MinimumVersion: await getPlatformMinimumVersion("Windows", 10),
-			Platform: "mac"
-		});
-	}
-
-	return answers;
-
-	/**
-	 * Prompts the user to specify a version for the platform specified by the `label`.
-	 * @param label Label identifying the platform, e.g. "macOS" or "Windows"
-	 * @param defaultValue Default platform minimum version.
-	 * @returns Minimum version required, of the platform, to run the plugin being created.
-	 */
-	async function getPlatformMinimumVersion(label: string, defaultValue: number): Promise<number> {
-		const answer = await inquirer.prompt({
-			name: "version",
-			message: `${label} Minimum Version:`,
-			default: defaultValue,
-			type: "number"
-		});
-
-		return answer.version;
-	}
 }
 
 /**
