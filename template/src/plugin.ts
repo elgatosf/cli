@@ -6,4 +6,4 @@ import { IncrementCounter } from "./actions/increment-counter";
 streamDeck.logger.setLogLevel(streamDeck.LogLevel.TRACE);
 
 // Register the increment action.
-streamDeck.router.route("com.elgato.nodejs-counter.increment", new IncrementCounter());
+streamDeck.router.route("com.elgato.template.increment", new IncrementCounter());

@@ -5,7 +5,7 @@
 	"Actions": [
 		{
 			"Name": "Counter",
-			"UUID": "com.elgato.nodejs-counter.increment",
+			"UUID": "com.elgato.template.increment",
 			"Icon": "imgs/actions/counter/icon",
 			"Tooltip": "Displays a count, which increments by one on press.",
 			"Controllers": [
@@ -42,5 +42,5 @@
 		"Version": "20",
 		"Debug": "enabled"
 	},
-	"UUID": "com.elgato.nodejs-counter"
+	"UUID": "com.elgato.template"
 }
