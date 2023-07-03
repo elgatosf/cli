@@ -4,6 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import i18n from "../i18n/index.js";
 import Manifest, { isValidUUID } from "../manifest.js";
 import * as questions from "../questions.js";
 
@@ -51,7 +52,7 @@ export async function linkToPlugin(options: Partial<Options> = defaultOptions) {
 
 	// When the user opted to abort linking, bail out.
 	if (validation === ValidationResult.Abort) {
-		console.log("Linking aborted.");
+		console.log(i18n.link.aborted);
 		return;
 	}
 
@@ -61,7 +62,7 @@ export async function linkToPlugin(options: Partial<Options> = defaultOptions) {
 	}
 
 	if (!options.quiet) {
-		console.log(`Successfully linked ${chalk.green(manifest.UUID)} to ${chalk.green(manifest.workingDir())}.`);
+		console.log(i18n.link.success(manifest.UUID, manifest.workingDir()));
 	}
 }
 
@@ -83,12 +84,12 @@ function getOSPluginsPath(): string {
  * @param manifest Manifest associated with the plugin.
  */
 async function promptForUUID(manifest: Manifest): Promise<void> {
-	console.log(`The UUID (unique-identifier) for the plugin must be set before linking.`);
+	console.log(i18n.link.uuidMustBeSet);
 	const answers = await inquirer.prompt(questions.uuid(manifest.generateUUID()));
 
 	manifest.UUID = answers.uuid;
 	manifest.writeFile();
-	console.log(`Successfully set plugin ${chalk.green("UUID")} to ${chalk.green(answers.uuid)}.`);
+	console.log(i18n.link.setUuidSuccess(answers.uuid));
 }
 
 /**
@@ -132,15 +133,15 @@ async function validateExistingSymlink(manifest: Manifest, installationPath: str
 	}
 
 	// Otherwise prompt the user to replace the existing symlink.
-	console.log(`Plugin ${chalk.yellow(manifest.UUID)} is already linked to another directory.`);
+	console.log(i18n.link.existingLink(manifest.UUID));
 	console.log();
-	console.log(`    old:  ${chalk.red(existingSymlink)}`);
-	console.log(`    new:  ${chalk.green(manifest.workingDir())}`);
+	console.log(`    ${i18n.link.old}:  ${chalk.red(existingSymlink)}`);
+	console.log(`    ${i18n.link.new}:  ${chalk.green(manifest.workingDir())}`);
 	console.log();
 
 	const answers = await inquirer.prompt({
 		name: "confirm",
-		message: "Would you like to redirect to the new link?",
+		message: i18n.link.questions.redirect,
 		default: false,
 		type: "confirm"
 	});
@@ -165,12 +166,12 @@ async function validateExistingSymlink(manifest: Manifest, installationPath: str
  */
 async function validateCanOverwrite(manifest: Manifest, installationPath: string, isFile: boolean): Promise<ValidationResult> {
 	// Prompt the user (twice) to replace the installation directory, with the link.
-	console.log(`Plugin ${chalk.yellow(manifest.UUID)} is an existing directory/file.`);
+	console.log(i18n.link.existingDirectoryOrFile(manifest.UUID));
 	console.log();
 
 	let answers = await inquirer.prompt({
 		name: "confirm",
-		message: "Would you like to overwrite the directory/file?",
+		message: i18n.link.questions.overwrite,
 		default: false,
 		type: "confirm"
 	});
@@ -178,7 +179,7 @@ async function validateCanOverwrite(manifest: Manifest, installationPath: string
 	if (answers.confirm) {
 		answers = await inquirer.prompt({
 			name: "confirm",
-			message: "Creating the link may result in data loss, are you sure?",
+			message: i18n.link.questions.confirmOverwrite,
 			default: false,
 			type: "confirm"
 		});

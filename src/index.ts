@@ -17,7 +17,7 @@ program
 
 program
 	.command("link")
-	.description("Creates a symlink between the Elgato Stream Deck plugins folder, and the development environment.")
+	.description(i18n.link.description)
 	.action(() => linkToPlugin());
 
 program.parse();
