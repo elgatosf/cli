@@ -1,4 +1,3 @@
-import chalk from "chalk";
 import inquirer from "inquirer";
 import child_process, { ExecOptions } from "node:child_process";
 import fs from "node:fs";
@@ -6,9 +5,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
+import i18n from "../i18n/index.js";
 import Manifest, { generateUUID } from "../manifest.js";
 import * as questions from "../questions.js";
-import { rewriteFile, stdoutSpinner } from "../utils.js";
+import { exit, rewriteFile, stdoutSpinner } from "../utils.js";
 import { enableDeveloperMode } from "./dev.js";
 import { linkToPlugin } from "./link.js";
 
@@ -37,18 +37,18 @@ export async function creationWizard() {
 	const options = await inquirer.prompt<Options>([
 		{
 			name: "author",
-			message: "Author:",
+			message: i18n.create.questions.author,
 			type: "input"
 		},
 		{
 			name: "name",
-			message: "Plugin Name:",
+			message: i18n.create.questions.name,
 			type: "input"
 		},
 		questions.uuid(({ author, name }: Options) => generateUUID(author, name)),
 		{
 			name: "description",
-			message: "Description:",
+			message: i18n.create.questions.description,
 			type: "input"
 		}
 	]);
@@ -56,7 +56,7 @@ export async function creationWizard() {
 	console.log();
 	const info = await inquirer.prompt({
 		name: "isCorrect",
-		message: "Create Stream Deck plugin from information above?",
+		message: i18n.create.questions.confirmInfo,
 		default: true,
 		type: "confirm"
 	});
@@ -65,8 +65,7 @@ export async function creationWizard() {
 		options.destination = process.cwd();
 		await writePlugin(options);
 	} else {
-		console.log("Canceled.");
-		process.exit(0);
+		exit(i18n.create.aborted);
 	}
 }
 
@@ -80,12 +79,12 @@ function showWelcome() {
 	console.log("|___/\\__|_| \\___\\__,_|_|_|_| |___/\\___\\__|_\\_\\");
 
 	console.log();
-	console.log(`Welcome to the ${chalk.green("Stream Deck Plugin")} creation wizard.`);
+	console.log(i18n.create.welcome.title);
 	console.log();
-	console.log("This utility will walk you through creating a local development environment for a plugin.");
-	console.log(`For more information on building plugins see ${chalk.blue("https://docs.elgato.com")}.`);
+	console.log(i18n.create.welcome.text);
+	console.log(i18n.create.welcome.moreInfo);
 	console.log();
-	console.log(chalk.grey("Press ^C at any time to quit."));
+	console.log(i18n.create.welcome.howToQuit);
 	console.log();
 }
 
@@ -95,19 +94,18 @@ function showWelcome() {
  */
 async function validateDirIsEmpty(path: string) {
 	if (fs.readdirSync(path).length != 0) {
-		console.log(chalk.yellow("Warning - Directory is not empty."));
-		console.log("This creation tool will write files to the current directory.");
+		console.log(i18n.create.dirNotEmptyWarning.title);
+		console.log(i18n.create.dirNotEmptyWarning.text);
 
 		const overwrite = await inquirer.prompt({
 			name: "confirm",
-			message: `Continuing may result in ${chalk.yellow("data loss")}, are you sure you want to continue?`,
+			message: i18n.create.dirNotEmptyWarning.confirm,
 			default: false,
 			type: "confirm"
 		});
 
 		if (!overwrite.confirm) {
-			console.log("Canceled.");
-			process.exit(0);
+			exit(i18n.create.aborted);
 		}
 	}
 }
@@ -119,13 +117,13 @@ async function validateDirIsEmpty(path: string) {
  */
 async function writePlugin(options: Options) {
 	console.log();
-	console.log(`Creating ${chalk.blue(options.name)}...`);
+	console.log(i18n.create.steps.intro(options.name));
 
-	await stdoutSpinner("Enabling developer mode", () => enableDeveloperMode({ quiet: true }));
+	await stdoutSpinner(i18n.create.steps.developerMode, () => enableDeveloperMode({ quiet: true }));
 
 	// Copy the template and re-configure the files.
-	await stdoutSpinner("Generating plugin", () => copyFiles(options));
-	await stdoutSpinner("Updating configuration", async () => localizeForUuid(options));
+	await stdoutSpinner(i18n.create.steps.copyFiles, () => copyFiles(options));
+	await stdoutSpinner(i18n.create.steps.updateConfig, async () => localizeForUuid(options));
 
 	const execOptions: ExecOptions = {
 		cwd: options.destination,
@@ -133,14 +131,14 @@ async function writePlugin(options: Options) {
 	};
 
 	// Install npm dependencies; temporarily link to the local streamdeck package.
-	await stdoutSpinner("Installing dependencies", async () => {
+	await stdoutSpinner(i18n.create.steps.dependencies, async () => {
 		await exec("npm i", execOptions);
 		await exec(`npm link "@elgato/streamdeck"`, execOptions); // TODO: Remove this once we publish the library.
 	});
 
 	// Build the plugin locally.
-	await stdoutSpinner("Building plugin", () => exec("npm run build", execOptions));
-	await stdoutSpinner("Finalizing setup", () =>
+	await stdoutSpinner(i18n.create.steps.building, () => exec("npm run build", execOptions));
+	await stdoutSpinner(i18n.create.steps.finalizing, () =>
 		linkToPlugin({
 			path: path.join(options.destination, `${options.uuid}.sdPlugin`),
 			quiet: true
@@ -148,7 +146,7 @@ async function writePlugin(options: Options) {
 	);
 
 	console.log();
-	console.log(chalk.green("Successfully created plugin!"));
+	console.log(i18n.create.steps.success);
 
 	await tryOpenVSCode(options);
 }
@@ -232,7 +230,7 @@ async function tryOpenVSCode(options: Options) {
 	console.log();
 	const vsCode = await inquirer.prompt({
 		name: "confirm",
-		message: "Would you like to open the plugin in VS Code?",
+		message: i18n.create.openWithVSCode,
 		default: true,
 		type: "confirm"
 	});

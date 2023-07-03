@@ -1,6 +1,6 @@
-import chalk from "chalk";
 import { InputQuestion } from "inquirer";
 
+import i18n from "./i18n/index.js";
 import { isValidUUID } from "./manifest.js";
 
 /**
@@ -11,14 +11,14 @@ import { isValidUUID } from "./manifest.js";
 export function uuid(defaultValue: InputQuestion["default"]): InputQuestion<UuidAnswer> {
 	return {
 		name: "uuid",
-		message: "Plugin UUID:",
+		message: i18n.common.uuid,
 		default: defaultValue,
 		type: "input",
 		validate: (uuid: string) => {
 			const valid = isValidUUID(uuid);
 			if (!valid) {
 				console.log();
-				console.log(chalk.red("UUID can only contain lowercase alphanumeric characters (a-z, 0-9), hyphens (-), underscores (_), or periods (.)."));
+				console.log(i18n.common.invalidUuid);
 			}
 
 			return valid;

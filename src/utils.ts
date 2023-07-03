@@ -1,13 +1,19 @@
 import chalk from "chalk";
 import fs from "node:fs";
 
+import i18n from "./i18n/index.js";
+
 /**
  * Exits the process after displaying the specified {@link message}.
  * @param message Message to display prior to existing.
  * @param error Optional error to log before existing.
  */
 export function exit(message: string, error?: unknown) {
-	console.log(chalk.red(message));
+	if (error) {
+		console.log(chalk.red(message));
+	} else {
+		console.log(message);
+	}
 
 	if (error instanceof Error) {
 		if (error.message) {
@@ -18,7 +24,7 @@ export function exit(message: string, error?: unknown) {
 		}
 	}
 
-	process.exit(1);
+	process.exit(error ? 1 : 0);
 }
 
 /**
@@ -53,7 +59,7 @@ export async function stdoutSpinner<T = void>(name: string, task: () => Promise<
 		finalize(chalk.green("✔"));
 	} catch (err) {
 		finalize(chalk.red("✖"));
-		exit("Task failed", err);
+		exit(i18n.common.taskFailed, err);
 	}
 
 	/**
