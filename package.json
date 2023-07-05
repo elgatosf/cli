@@ -1,5 +1,5 @@
 {
-	"name": "@elgato/streamdeck-cli",
+	"name": "@elgato/cli",
 	"version": "0.1.0",
 	"description": "The official CLI for building Node.js Stream Deck plugins.",
 	"bin": {
