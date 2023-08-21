@@ -7,7 +7,7 @@ streamDeck.logger.setLevel(LogLevel.TRACE);
 
 // Register the increment action.
 streamDeck.actions.registerAction({
-	uuid: "com.elgato.template.increment",
+	manifestId: "com.elgato.template.increment",
 	action: new IncrementCounter()
 });
 
