@@ -127,7 +127,7 @@ async function writePlugin(options: Options) {
 
 	// Copy the template and re-configure the files.
 	await stdoutSpinner(i18n.create.steps.copyFiles, () => copyFiles(options));
-	await stdoutSpinner(i18n.create.steps.updateConfig, async () => localizeForUuid(options));
+	await stdoutSpinner(i18n.create.steps.updateConfig, () => localizeForUuid(options));
 
 	const execOptions: ExecOptions = {
 		cwd: options.destination,
@@ -135,10 +135,7 @@ async function writePlugin(options: Options) {
 	};
 
 	// Install npm dependencies; temporarily link to the local streamdeck package.
-	await stdoutSpinner(i18n.create.steps.dependencies, async () => {
-		await exec("npm i", execOptions);
-		await exec(`npm link "@elgato/streamdeck"`, execOptions); // TODO: Remove this once we publish the library.
-	});
+	await stdoutSpinner(i18n.create.steps.dependencies, () => exec("npm i", execOptions));
 
 	// Build the plugin locally.
 	await stdoutSpinner(i18n.create.steps.building, () => exec("npm run build", execOptions));
@@ -215,7 +212,7 @@ async function localizeForUuid(options: Options) {
 
 	manifest.writeFile();
 
-	rewriteFile(path.join(options.destination, "src/plugin.ts"), (contents) => contents.replace(`${TEMPLATE_PLUGIN_UUID}.increment`, actionUUID));
+	rewriteFile(path.join(options.destination, "src/actions/increment-counter.ts"), (contents) => contents.replace(`${TEMPLATE_PLUGIN_UUID}.increment`, actionUUID));
 	rewriteFile(path.join(options.destination, "tsconfig.json"), (contents) => {
 		const tsconfig = JSON.parse(contents);
 		tsconfig.compilerOptions.outDir = `${options.uuid}.sdPlugin/bin`;
@@ -242,6 +239,6 @@ async function tryOpenVSCode(options: Options) {
 	});
 
 	if (vsCode.confirm) {
-		exec("code ./ --goto src/Plugin.ts", { cwd: options.destination });
+		exec("code ./ --goto src/plugin.ts", { cwd: options.destination });
 	}
 }

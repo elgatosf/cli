@@ -6,10 +6,7 @@ import { IncrementCounter } from "./actions/increment-counter";
 streamDeck.logger.setLevel(LogLevel.TRACE);
 
 // Register the increment action.
-streamDeck.actions.registerAction({
-	manifestId: "com.elgato.template.increment",
-	action: new IncrementCounter()
-});
+streamDeck.actions.registerAction(new IncrementCounter());
 
 // Finally, connect to the Stream Deck.
 streamDeck.connect();
