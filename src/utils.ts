@@ -1,5 +1,4 @@
 import chalk from "chalk";
-import fs from "node:fs";
 
 import i18n from "./i18n/index.js";
 
@@ -28,24 +27,11 @@ export function exit(message: string, error?: unknown) {
 }
 
 /**
- * Rewrites the file for the given {@link path}. The {@link replacer} is called with the current contents, allowing the caller to optionally replace existing content, or provide new
- * content altogether.
- * @param path Path to the file.
- * @param replacer Function that replaces the current contents.
- */
-export function rewriteFile(path: string, replacer: (contents: string) => string): void {
-	let contents = fs.readFileSync(path).toString();
-	contents = replacer(contents);
-
-	fs.writeFileSync(path, contents);
-}
-
-/**
  * Invokes the `task` and displays a spinner whilst it is active; upon completion, a tick is shown.
  * @param name Name of the task being run; this is shown next to the spinner.
  * @param task Task to run.
  */
-export async function stdoutSpinner<T = void>(name: string, task: () => Promise<T>) {
+export async function stdoutSpinner<T = void>(name: string, task: () => Promise<T> | T) {
 	let symbolIndex = 0;
 	const symbols = ["|", "/", "-", "\\"];
 

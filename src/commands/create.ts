@@ -5,11 +5,12 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
+import { createCopier } from "../file-copier.js";
 import i18n from "../i18n/index.js";
 import Manifest, { generateUUID } from "../manifest.js";
 import * as questions from "../questions.js";
 import { validateRequired } from "../questions.js";
-import { exit, rewriteFile, stdoutSpinner } from "../utils.js";
+import { exit, stdoutSpinner } from "../utils.js";
 import { enableDeveloperMode } from "./dev.js";
 import { linkToPlugin } from "./link.js";
 
@@ -123,11 +124,9 @@ async function writePlugin(options: Options) {
 	console.log();
 	console.log(i18n.create.steps.intro(options.name));
 
+	// Enable developer mode, and generate the template.
 	await stdoutSpinner(i18n.create.steps.developerMode, () => enableDeveloperMode({ quiet: true }));
-
-	// Copy the template and re-configure the files.
-	await stdoutSpinner(i18n.create.steps.copyFiles, () => copyFiles(options));
-	await stdoutSpinner(i18n.create.steps.updateConfig, () => localizeForUuid(options));
+	await stdoutSpinner(i18n.create.steps.copyFiles, () => renderTemplate(options));
 
 	const execOptions: ExecOptions = {
 		cwd: options.destination,
@@ -153,71 +152,26 @@ async function writePlugin(options: Options) {
 }
 
 /**
- * Copies the template files to the destination.
- * @param options Options provided by the user as part of the creation utility.
+ * Renders the template, copying the output to the destination directory.
+ * @param options Options used to render the template.
  */
-async function copyFiles(options: Options) {
-	const commandPath = path.dirname(fileURLToPath(import.meta.url));
-	const templatePath = path.resolve(commandPath, "../../template");
-
-	// Top-level.
-	copyDir(".vscode");
-	copyDir("src");
-	copyFile(".gitignore");
-	copyFile("package.json");
-	copyFile("package-lock.json");
-	copyFile("tsconfig.json");
-
-	// sdPlugin Folder.
-	copyDir(`${TEMPLATE_PLUGIN_UUID}.sdPlugin/imgs`, `${options.uuid}.sdPlugin/imgs`);
-	copyFile(`${TEMPLATE_PLUGIN_UUID}.sdPlugin/manifest.json`, `${options.uuid}.sdPlugin/manifest.json`);
-
-	/**
-	 * Copies the specified {@link relativeSource} from the template to the destination.
-	 * @param relativeSource Source file, relative to the root of the template.
-	 * @param relativeDest Optional destination file, relative to the root of the plugin.
-	 */
-	function copyFile(relativeSource: string, relativeDest = relativeSource) {
-		fs.cpSync(path.join(templatePath, relativeSource), path.join(options.destination, relativeDest));
-	}
-
-	/**
-	 * Copies the specified {@link relativeSource} recursively from the template to the destination.
-	 * @param relativeSource Source directory, relative to the root of the template.
-	 * @param relativeDest Optional destination directory, relative to the root of the plugin.
-	 */
-	function copyDir(relativeSource: string, relativeDest = relativeSource) {
-		fs.cpSync(path.join(templatePath, relativeSource), path.join(options.destination, relativeDest), {
-			recursive: true
-		});
-	}
-}
-
-/**
- * Configures the local files so that they're applicable to the plugin UUID.
- * @param options Options provided by the user as part of the creation utility.
- */
-async function localizeForUuid(options: Options) {
-	const actionUUID = `${options.uuid}.increment`;
-	const manifest = new Manifest(path.join(options.destination, `${options.uuid}.sdPlugin/manifest.json`));
-
-	manifest.Author = options.author;
-	manifest.Category = options.name;
-	manifest.Description = options.description;
-	manifest.Name = options.name;
-	manifest.UUID = options.uuid;
-	if (manifest.Actions) {
-		manifest.Actions[0].UUID = actionUUID;
-	}
-
-	manifest.writeFile();
-
-	rewriteFile(path.join(options.destination, "src/actions/increment-counter.ts"), (contents) => contents.replace(`${TEMPLATE_PLUGIN_UUID}.increment`, actionUUID));
-	rewriteFile(path.join(options.destination, "tsconfig.json"), (contents) => {
-		const tsconfig = JSON.parse(contents);
-		tsconfig.compilerOptions.outDir = `${options.uuid}.sdPlugin/bin`;
-		return JSON.stringify(tsconfig, undefined, "\t");
+function renderTemplate(options: Options) {
+	const template = createCopier({
+		dest: options.destination,
+		source: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../template"),
+		data: {
+			...options,
+			streamDeckPackage: process.env.STREAMDECK_PACKAGE || "^0.1.0-beta.0"
+		}
 	});
+
+	template.copy(".vscode");
+	template.copy(`${TEMPLATE_PLUGIN_UUID}.sdPlugin/imgs`, `${options.uuid}.sdPlugin/imgs`);
+	template.copy(`${TEMPLATE_PLUGIN_UUID}.sdPlugin/manifest.json.ejs`, `${options.uuid}.sdPlugin/manifest.json`);
+	template.copy("src");
+	template.copy(".gitignore");
+	template.copy("package.json.ejs");
+	template.copy("tsconfig.json.ejs");
 }
 
 /**

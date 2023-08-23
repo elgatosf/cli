@@ -29,12 +29,15 @@
 	"dependencies": {
 		"chalk": "^5.2.0",
 		"commander": "^10.0.1",
+		"dotenv": "^16.3.1",
+		"ejs": "^3.1.9",
 		"inquirer": "^9.2.6",
 		"rage-edit": "^1.2.0"
 	},
 	"devDependencies": {
 		"@trivago/prettier-plugin-sort-imports": "^4.1.1",
 		"@tsconfig/node20": "^1.0.0",
+		"@types/ejs": "^3.1.2",
 		"@types/inquirer": "^9.0.3",
 		"@types/node": "^20.1.2",
 		"@typescript-eslint/eslint-plugin": "^5.59.5",
