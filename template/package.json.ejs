@@ -1,13 +1,15 @@
 {
 	"scripts": {
-		"build": "tsc",
+		"build": "node ./scripts/build.mjs",
 		"watch": "nodemon --watch \"src/**\" --ext \"ts\" --exec \"npm run build\""
 	},
 	"devDependencies": {
 		"@tsconfig/node20": "^1.0.1",
-		"@types/node": "^20.1.4",
-		"nodemon": "^2.0.22",
-		"typescript": "^5.0.4"
+		"@types/node": "^20.5.4",
+		"@vercel/ncc": "^0.36.1",
+		"nodemon": "^3.0.1",
+		"terser": "^5.19.2",
+		"typescript": "^5.1.6"
 	},
 	"dependencies": {
 		"@elgato/streamdeck": <%- JSON.stringify(streamDeckPackage) %>
