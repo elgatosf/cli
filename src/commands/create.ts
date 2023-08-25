@@ -168,10 +168,10 @@ function renderTemplate(options: Options) {
 	template.copy(".vscode");
 	template.copy(`${TEMPLATE_PLUGIN_UUID}.sdPlugin/imgs`, `${options.uuid}.sdPlugin/imgs`);
 	template.copy(`${TEMPLATE_PLUGIN_UUID}.sdPlugin/manifest.json.ejs`, `${options.uuid}.sdPlugin/manifest.json`);
-	template.copy("scripts");
 	template.copy("src");
 	template.copy(".gitignore");
 	template.copy("package.json.ejs");
+	template.copy("rollup.config.mjs");
 	template.copy("tsconfig.json.ejs");
 }
 
