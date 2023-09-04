@@ -158,7 +158,7 @@ async function writePlugin(options: Options) {
 function renderTemplate(options: Options) {
 	const template = createCopier({
 		dest: options.destination,
-		source: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../template"),
+		source: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../template"),
 		data: {
 			...options,
 			streamDeckPackage: process.env.STREAMDECK_PACKAGE || "^0.1.0-beta.0"
