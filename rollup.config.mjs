@@ -21,7 +21,7 @@ const config = {
 	output: {
 		file: path.join(tsConfig.compilerOptions.outDir, "index.js"),
 		format: "esm",
-		sourcemap: true,
+		sourcemap: isWatching,
 		sourcemapPathTransform: (relativeSourcePath, sourcemapPath) => {
 			return url.pathToFileURL(path.resolve(path.dirname(sourcemapPath), relativeSourcePath)).href;
 		}
