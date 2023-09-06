@@ -9,6 +9,7 @@
 		"prettier"
 	],
 	"ignorePatterns": [
+		".github/",
 		"bin/",
 		"dist/",
 		"node_modules/",
@@ -52,6 +53,7 @@
 				}
 			}
 		],
+		"@typescript-eslint/explicit-function-return-type": "warn",
 		"@typescript-eslint/member-ordering": [
 			"warn",
 			{
@@ -117,6 +119,24 @@
 					}
 				],
 				"jsdoc/no-types": "off"
+			}
+		},
+		{
+			"files": [
+				"{src,tests}/**/__mocks__/*.ts",
+				"{src,tests}/**/__tests__/*test.ts"
+			],
+			"rules": {
+				"jsdoc/require-jsdoc": [
+					"warn",
+					{
+						"contexts": [
+							"MethodDefinition"
+						]
+					}
+				],
+				"@typescript-eslint/explicit-function-return-type": "off",
+				"@typescript-eslint/no-explicit-any": "off"
 			}
 		}
 	]
