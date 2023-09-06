@@ -27,11 +27,14 @@ program
 
 program
 	.command("restart")
+	.alias("start")
+	.description("Starts the plugin; if the plugin is already running, it is stopped first.")
 	.argument("<uuid>")
 	.action((uuid) => restart(uuid));
 
 program
 	.command("stop")
+	.description("Stops the plugin.")
 	.argument("<uuid>")
 	.action((uuid) => stop(uuid));
 
