@@ -9,7 +9,7 @@ import { join } from "node:path";
  */
 export function getPlugins(): PluginInfo[] {
 	return readdirSync(getPluginsPath(), { withFileTypes: true })
-		.filter((value: Dirent) => value.isDirectory() && value.name.endsWith(".sdPlugin"))
+		.filter((value: Dirent) => (value.isDirectory() || value.isSymbolicLink()) && value.name.endsWith(".sdPlugin"))
 		.map((value) => {
 			return {
 				path: value.path,
