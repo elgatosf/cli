@@ -1,8 +1,7 @@
 import chalk from "chalk";
-import { basename, dirname } from "path";
 
+import { run } from "../common/runner";
 import { getStreamDeckPath, isPluginInstalled, isStreamDeckRunning } from "../stream-deck";
-import { run } from "../utils";
 
 /**
  * Stops the first plugin that matches the given {@link uuid}
@@ -23,10 +22,6 @@ export async function stop(uuid: string): Promise<void> {
 	}
 
 	// Stop the plugin.
-	const appPath = getStreamDeckPath();
-	await run(basename(appPath), ["-s", uuid], {
-		cwd: dirname(appPath)
-	});
-
+	await run(`"${getStreamDeckPath()}"`, ["-s", uuid], { stderr: "ignore" });
 	console.log(chalk.green(`Successfully stopped ${uuid}`));
 }

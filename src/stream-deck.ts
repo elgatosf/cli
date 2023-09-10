@@ -46,7 +46,7 @@ export function isPluginInstalled(uuid: string): boolean {
  */
 export function getStreamDeckPath(): string {
 	if (os.platform() === "darwin") {
-		throw new Error("macOS coming soon.");
+		return "/Applications/Elgato Stream Deck.app/Contents/MacOS/Stream Deck";
 	} else {
 		return "C:\\Program Files\\Elgato\\StreamDeck\\StreamDeck.exe";
 	}
@@ -60,7 +60,8 @@ export async function isStreamDeckRunning(): Promise<boolean> {
 	const appPath = getStreamDeckPath();
 
 	if (os.platform() === "darwin") {
-		throw new Error("macOS coming soon.");
+		const processes = await find("name", "Elgato Stream Deck");
+		return processes.some((p) => p.cmd.startsWith(appPath));
 	} else {
 		const processes = await find("name", "StreamDeck.exe");
 		return processes.some((p) => p.cmd.startsWith(`"${appPath}"`));

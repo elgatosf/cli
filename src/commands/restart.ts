@@ -1,8 +1,7 @@
 import chalk from "chalk";
-import { basename, dirname } from "path";
 
+import { run } from "../common/runner";
 import { getStreamDeckPath, isPluginInstalled, isStreamDeckRunning } from "../stream-deck";
-import { run } from "../utils";
 
 /**
  * Restarts the first plugin that matches the given {@link uuid}
@@ -16,18 +15,16 @@ export async function restart(uuid: string): Promise<void> {
 		return;
 	}
 
+	const appPath = `"${getStreamDeckPath()}"`;
+
 	// When Stream Deck isn't running, start it.
 	if (!(await isStreamDeckRunning())) {
+		await run(appPath, [], { detached: true, stderr: "ignore" });
 		console.log(chalk.yellow("Stream Deck is not running. Starting Stream Deck."));
-		await run(`"${getStreamDeckPath()}"`, [], { detached: true });
 		return;
 	}
 
 	// Restart the plugin.
-	const appPath = getStreamDeckPath();
-	await run(basename(appPath), ["-r", uuid], {
-		cwd: dirname(appPath)
-	});
-
+	await run(appPath, ["-r", uuid], { stderr: "ignore" });
 	console.log(chalk.green(`Successfully restarted ${uuid}`));
 }
