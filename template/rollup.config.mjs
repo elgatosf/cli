@@ -33,7 +33,11 @@ const config = {
 			mapRoot: isWatching ? "./" : undefined
 		}),
 		commonjs(),
-		nodeResolve(),
+		nodeResolve({
+			browser: false,
+			exportConditions: ["node"],
+			preferBuiltins: true
+		}),
 		!isWatching &&
 			terser({
 				format: {
