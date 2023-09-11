@@ -35,8 +35,9 @@ const config = {
 		json(),
 		commonjs(),
 		nodeResolve({
-			preferBuiltins: true,
-			exportConditions: ["node"]
+			browser: false,
+			exportConditions: ["node"],
+			preferBuiltins: true
 		}),
 		!isWatching &&
 			terser({

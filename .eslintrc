@@ -118,7 +118,8 @@
 						"typed": false
 					}
 				],
-				"jsdoc/no-types": "off"
+				"jsdoc/no-types": "off",
+				"@typescript-eslint/explicit-function-return-type": "off"
 			}
 		},
 		{
