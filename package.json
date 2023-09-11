@@ -33,6 +33,7 @@
 		"ejs": "^3.1.9",
 		"find-process": "^1.4.7",
 		"inquirer": "^9.2.6",
+		"log-symbols": "^5.1.0",
 		"rage-edit": "^1.2.0"
 	},
 	"devDependencies": {
@@ -55,6 +56,6 @@
 		"prettier": "^2.8.8",
 		"rollup": "^3.28.1",
 		"tslib": "^2.6.2",
-		"typescript": "^5.0.4"
+		"typescript": "^5.2.2"
 	}
 }
