@@ -9,28 +9,15 @@ import { Readable } from "node:stream";
  * @returns The result of running the command. **NB.** when the command is detached, the result is always 0.
  */
 export function run(command: string, args: string[], options?: RunOptions): Promise<number> {
-	const opts: SpawnOptionsWithStdioTuple<StdioNull, StdioNull, StdioPipe> = {
-		...{
-			shell: true,
-			windowsHide: true
-		},
-		...options,
-		...{
-			stdio: ["ignore", "ignore", "pipe"]
-		}
-	};
+	if (options?.detached) {
+		return forget(command, args, options);
+	}
 
 	return new Promise((resolve, reject) => {
+		const opts = mergeOptions(options || {}, "pipe");
 		const child = child_process.spawn(command, args, opts);
 
-		// When the process is detached, we can't monitor the result, so return success
-		if (options?.detached) {
-			child.unref();
-			resolve(0);
-			return;
-		}
-
-		// Begin gathering the stderr in the event we receive an error code.
+		// Begin gathering the stderr, and wait for the child process to finish.
 		const stderr = stderrReader(child);
 		child.on("exit", (code: number) => {
 			if (code > 0) {
@@ -43,6 +30,41 @@ export function run(command: string, args: string[], options?: RunOptions): Prom
 			}
 		});
 	});
+}
+
+/**
+ * Spawns the command in a child process and detaches from the process.
+ * @param command Command to run.
+ * @param args Supporting arguments to be supplied to the {@link command}.
+ * @param options Options used to determine how the {@link command} should be run.
+ * @returns Always 0 as the command is run in isolation.
+ */
+function forget(command: string, args: string[], options: RunOptions): Promise<number> {
+	const opts = mergeOptions(options, "ignore");
+
+	const child = child_process.spawn(command, args, opts);
+	child.unref();
+
+	return Promise.resolve(0);
+}
+
+/**
+ * Merges the {@link options} with the default options required to spawn the child process.
+ * @param options Options supplied to the {@link run} function.
+ * @param stderr The desired stderr of the child process.
+ * @returns The merged options.
+ */
+function mergeOptions<T extends StdioNull | StdioPipe>(options: RunOptions, stderr: T): SpawnOptionsWithStdioTuple<StdioNull, StdioNull, T> {
+	return {
+		...{
+			shell: true,
+			windowsHide: true
+		},
+		...options,
+		...{
+			stdio: ["ignore", "ignore", stderr]
+		}
+	};
 }
 
 /**
