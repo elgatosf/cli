@@ -24,7 +24,7 @@ export function stop(uuid: string): Promise<void> {
 		}
 
 		// Stop the plugin.
-		await run(`"${getStreamDeckPath()}"`, ["-s", uuid], { stderr: "ignore" });
+		await run(`"${getStreamDeckPath()}"`, ["-s", uuid]);
 		success(`Stopped ${chalk.green(uuid)} successfully`);
 	});
 }

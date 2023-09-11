@@ -21,13 +21,13 @@ export function restart(uuid: string): Promise<void> {
 
 		// When Stream Deck isn't running, start it.
 		if (!(await isStreamDeckRunning())) {
-			await run(appPath, [], { detached: true, stderr: "ignore" });
+			await run(appPath, [], { detached: true });
 			info("Stream Deck is not running. Starting Stream Deck.");
 			return;
 		}
 
 		// Restart the plugin.
-		await run(appPath, ["-r", uuid], { stderr: "ignore" });
+		await run(appPath, ["-r", uuid]);
 		success(`Restarted ${chalk.green(uuid)} successfully`);
 	});
 }
