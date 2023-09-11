@@ -1,20 +1,19 @@
 import inquirer from "inquirer";
-import child_process, { ExecOptions } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { promisify } from "node:util";
 
-import { createCopier } from "../file-copier.js";
-import i18n from "../i18n/index.js";
-import Manifest, { generateUUID } from "../manifest.js";
-import * as questions from "../questions.js";
-import { validateRequired } from "../questions.js";
-import { exit, stdoutSpinner } from "../utils.js";
-import { enableDeveloperMode } from "./dev.js";
-import { linkToPlugin } from "./link.js";
+import { run } from "../common/runner";
+import { spin } from "../common/spinner";
+import { createCopier } from "../file-copier";
+import i18n from "../i18n/index";
+import Manifest, { generateUUID } from "../manifest";
+import * as questions from "../questions";
+import { validateRequired } from "../questions";
+import { exit } from "../utils";
+import { enableDeveloperMode } from "./dev";
+import { linkToPlugin } from "./link";
 
-const exec = promisify(child_process.exec);
 const TEMPLATE_PLUGIN_UUID = "com.elgato.template";
 
 /**
@@ -32,7 +31,7 @@ type Options = {
 /**
  * Launches the Stream Deck Plugin creation wizard, and guides users through creating a local development environment for creating plugins based on the template.
  */
-export async function creationWizard() {
+export async function creationWizard(): Promise<void> {
 	await validateDirIsEmpty(process.cwd());
 
 	showWelcome();
@@ -76,7 +75,7 @@ export async function creationWizard() {
 /**
  * Shows the welcome message.
  */
-function showWelcome() {
+function showWelcome(): void {
 	console.log(" ___ _                        ___         _   ");
 	console.log("/ __| |_ _ _ ___ __ _ _ __   |   \\ ___ __| |__");
 	console.log("\\__ \\  _| '_/ -_) _` | '  \\  | |) / -_) _| / /");
@@ -96,7 +95,7 @@ function showWelcome() {
  * Validates the specified `path` directory is empty; when it is not, the user is prompted to confirm the process, as it may result in data loss.
  * @param path Path to validate.
  */
-async function validateDirIsEmpty(path: string) {
+async function validateDirIsEmpty(path: string): Promise<void> {
 	if (fs.readdirSync(path).length != 0) {
 		console.log(i18n.create.dirNotEmptyWarning.title);
 		console.log(i18n.create.dirNotEmptyWarning.text);
@@ -120,25 +119,20 @@ async function validateDirIsEmpty(path: string) {
  * `npm run build`, and then the user is prompted to open their plugin in VS Code (if installed).
  * @param options Options provided by the user as part of the creation utility.
  */
-async function writePlugin(options: Options) {
+async function writePlugin(options: Options): Promise<void> {
 	console.log();
 	console.log(i18n.create.steps.intro(options.name));
 
 	// Enable developer mode, and generate the template.
-	await stdoutSpinner(i18n.create.steps.developerMode, () => enableDeveloperMode({ quiet: true }));
-	await stdoutSpinner(i18n.create.steps.copyFiles, () => renderTemplate(options));
-
-	const execOptions: ExecOptions = {
-		cwd: options.destination,
-		windowsHide: true
-	};
+	await spin(i18n.create.steps.developerMode, () => enableDeveloperMode({ quiet: true }));
+	await spin(i18n.create.steps.copyFiles, () => renderTemplate(options));
 
 	// Install npm dependencies; temporarily link to the local streamdeck package.
-	await stdoutSpinner(i18n.create.steps.dependencies, () => exec("npm i", execOptions));
+	await spin(i18n.create.steps.dependencies, () => run("npm", ["i"], { cwd: options.destination }));
 
 	// Build the plugin locally.
-	await stdoutSpinner(i18n.create.steps.building, () => exec("npm run build", execOptions));
-	await stdoutSpinner(i18n.create.steps.finalizing, () =>
+	await spin(i18n.create.steps.building, () => run("npm", ["run", "build"], { cwd: options.destination }));
+	await spin(i18n.create.steps.finalizing, () =>
 		linkToPlugin({
 			path: path.join(options.destination, `${options.uuid}.sdPlugin`),
 			quiet: true
@@ -155,7 +149,7 @@ async function writePlugin(options: Options) {
  * Renders the template, copying the output to the destination directory.
  * @param options Options used to render the template.
  */
-function renderTemplate(options: Options) {
+function renderTemplate(options: Options): void {
 	const template = createCopier({
 		dest: options.destination,
 		source: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../template"),
@@ -179,7 +173,7 @@ function renderTemplate(options: Options) {
  * Determines if the user has VS Code installed, and if so, prompts them to open the plugin.
  * @param options Options provided by the user as part of the creation utility.
  */
-async function tryOpenVSCode(options: Options) {
+async function tryOpenVSCode(options: Options): Promise<void> {
 	const paths = process.env.PATH?.split(":") ?? [];
 	if (!paths.some((p) => p.includes("Microsoft VS Code"))) {
 		return;
@@ -194,6 +188,6 @@ async function tryOpenVSCode(options: Options) {
 	});
 
 	if (vsCode.confirm) {
-		exec("code ./ --goto src/plugin.ts", { cwd: options.destination });
+		run("code", ["./", "--goto", "src/plugin.ts"], { cwd: options.destination });
 	}
 }

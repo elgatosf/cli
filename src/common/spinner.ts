@@ -6,7 +6,7 @@ import logSymbols from "log-symbols";
  * @param task Task that the spinner represents.
  * @param options Options that define how the spinner should be rendered.
  */
-export async function spin(text: string, task: (spinner: Spinner) => Promise<void> | void, options?: SpinnerOptions): Promise<void> {
+export async function spin(text: string, task: (spinner: Spinner) => Promise<number | void> | void, options?: SpinnerOptions): Promise<void> {
 	const spinner = new Spinner(text, options || { indentSize: 0 });
 
 	try {
