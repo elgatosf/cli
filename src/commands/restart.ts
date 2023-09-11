@@ -28,6 +28,6 @@ export function restart(uuid: string): Promise<void> {
 
 		// Restart the plugin.
 		await run(appPath, ["-r", uuid]);
-		success(`Restarted ${chalk.green(uuid)} successfully`);
+		success(`Restarted ${chalk.green(uuid)}`);
 	});
 }
