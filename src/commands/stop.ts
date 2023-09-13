@@ -1,7 +1,7 @@
 import chalk from "chalk";
 
+import { spin } from "../common/feedback";
 import { run } from "../common/runner";
-import { spin } from "../common/spinner";
 import { getStreamDeckPath, isPluginInstalled, isStreamDeckRunning } from "../stream-deck";
 
 /**
