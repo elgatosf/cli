@@ -58,7 +58,7 @@ export const link = command<LinkOptions>(
 /**
  * Options available to {@link link}.
  */
-export type LinkOptions = {
+type LinkOptions = {
 	/**
 	 * Path to the plugin.
 	 */

@@ -11,7 +11,7 @@ import Manifest, { generateUUID } from "../manifest";
 import * as questions from "../questions";
 import { validateRequired } from "../questions";
 import { exit } from "../utils";
-import { enableDeveloperMode } from "./dev";
+import { setDeveloperMode } from "./dev";
 import { link } from "./link";
 
 const TEMPLATE_PLUGIN_UUID = "com.elgato.template";
@@ -124,7 +124,7 @@ async function writePlugin(options: Options): Promise<void> {
 	console.log(i18n.create.steps.intro(options.name));
 
 	// Enable developer mode, and generate the template.
-	await spin(i18n.create.steps.developerMode, () => enableDeveloperMode({ quiet: true }));
+	await spin(i18n.create.steps.developerMode, () => setDeveloperMode({ quiet: true }));
 	await spin(i18n.create.steps.copyFiles, () => renderTemplate(options));
 
 	// Install npm dependencies; temporarily link to the local streamdeck package.

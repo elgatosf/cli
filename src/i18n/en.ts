@@ -38,13 +38,6 @@ const resources: Resources = {
 			text: "This utility will walk you through creating a local development environment for a plugin.",
 			title: `Welcome to the ${chalk.green("Stream Deck Plugin")} creation wizard.`
 		}
-	},
-	dev: {
-		description: "Enable Stream Deck Plugin development.",
-		failed: "Failed to enable Stream Deck developer mode",
-		macOSErrorCode: (status) => `Encountered error code: ${status}`,
-		success: "Successfully enabled Stream Deck developer mode.",
-		unsupportedOS: "Unsupported operating system."
 	}
 };
 

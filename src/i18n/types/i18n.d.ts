@@ -38,11 +38,4 @@ declare type Resources = {
 			title: string;
 		};
 	};
-	dev: {
-		description: string;
-		failed: string;
-		macOSErrorCode: (status: number | null) => string;
-		success: string;
-		unsupportedOS: string;
-	};
 };
