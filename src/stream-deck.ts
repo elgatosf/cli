@@ -1,21 +1,25 @@
 import find from "find-process";
-import { Dirent, readdirSync } from "node:fs";
+import { Dirent, readdirSync, readlinkSync } from "node:fs";
 import os from "node:os";
-import { join } from "node:path";
+import { basename, join } from "node:path";
+
+const PLUGIN_SUFFIX = ".sdPlugin";
 
 /**
  * Gets the list of installed plugins.
  * @returns List of plugins, including their path and UUID.
  */
 export function getPlugins(): PluginInfo[] {
-	return readdirSync(getPluginsPath(), { withFileTypes: true })
-		.filter((value: Dirent) => (value.isDirectory() || value.isSymbolicLink()) && value.name.endsWith(".sdPlugin"))
-		.map((value) => {
-			return {
-				path: value.path,
-				uuid: value.name.slice(0, -9)
-			};
-		});
+	return readdirSync(getPluginsPath(), { withFileTypes: true }).reduce<PluginInfo[]>((plugins, entry) => {
+		if (entry.isDirectory() || entry.isSymbolicLink()) {
+			const uuid = getPluginId(entry.name);
+			if (uuid) {
+				plugins.push(new PluginInfo(entry, uuid));
+			}
+		}
+
+		return plugins;
+	}, []);
 }
 
 /**
@@ -69,16 +73,47 @@ export async function isStreamDeckRunning(): Promise<boolean> {
 }
 
 /**
+ * Attempts to parse the {@link path} to determine the plugin's UUID.
+ * @param path Path that represents a plugin; this should end with `.sdPlugin`.
+ * @returns The plugin's UUID; otherwise `undefined`.
+ */
+export function getPluginId(path: string): string | undefined {
+	const name = basename(path);
+	return name.endsWith(PLUGIN_SUFFIX) ? name.slice(0, -9) : undefined;
+}
+
+/**
  * Provides information about an installed plugin.
  */
-type PluginInfo = {
+class PluginInfo {
 	/**
-	 * Path to the plugin.
+	 * Path where the plugin is installed.
 	 */
-	path: string;
+	public readonly path;
 
 	/**
-	 * Unique-identifier of the plugin.
+	 * Private backing field for {@link PluginInfo.sourcePath}.
 	 */
-	uuid: string;
-};
+	private _sourcePath: string | null | undefined = undefined;
+
+	/**
+	 * Initializes a new instance of the {@link PluginInfo} class.
+	 * @param entry The directory entry of the plugin.
+	 * @param uuid Unique identifier of the plugin.
+	 */
+	constructor(private readonly entry: Dirent, public readonly uuid: string) {
+		this.path = join(this.entry.path, this.entry.name);
+	}
+
+	/**
+	 * Gets the source path of the plugin, when the installation path is a symbolic link; otherwise `null`.
+	 * @returns The source path; otherwise `null`.
+	 */
+	public get sourcePath(): string | null {
+		if (this._sourcePath === undefined) {
+			this._sourcePath = this.entry.isSymbolicLink() ? readlinkSync(this.path) : null;
+		}
+
+		return this._sourcePath;
+	}
+}

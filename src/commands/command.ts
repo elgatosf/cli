@@ -15,10 +15,9 @@ export function command<T>(defaultOptions: Required<T>, commandFn: CommandDelega
 		};
 
 		const feedback = opts.quiet ? new QuietFeedback() : new Feedback();
-		const logger = new ConsoleWriter(opts.quiet);
 
 		try {
-			await commandFn(opts, feedback, logger);
+			await commandFn(opts, feedback);
 			if (feedback.isSpinning) {
 				feedback.success();
 			}
@@ -35,7 +34,7 @@ export function command<T>(defaultOptions: Required<T>, commandFn: CommandDelega
 /**
  * Delegate function that is capable of executing the command.
  */
-type CommandDelegate<T> = (options: Required<GlobalOptions> & Required<T>, feedback: Feedback, logger: ConsoleWriter) => Promise<void> | void;
+type CommandDelegate<T> = (options: Required<GlobalOptions> & Required<T>, feedback: Feedback) => Promise<void> | void;
 
 /**
  * Global options that apply to all commands.
@@ -46,43 +45,3 @@ type GlobalOptions = {
 	 */
 	quiet?: boolean;
 };
-
-/**
- * Provides a logger capable of writing to the console selectively based on whether a command is being executed in quiet-mode.
- */
-class ConsoleWriter {
-	/**
-	 * Initializes a new instance of the {@link ConsoleWriter} class.
-	 * @param errorOnly Determines whether only {@link ConsoleWriter.error} messages should be logged.
-	 */
-	constructor(private readonly errorOnly: boolean) {}
-
-	/**
-	 * Logs the errors {@link messages}.
-	 * @param messages Messages to log.
-	 */
-	public error(...messages: string[]): void {
-		this.write(...messages);
-	}
-
-	/**
-	 * Logs the informational {@link messages}.
-	 * @param messages Messages to log.
-	 */
-	public log(...messages: string[]): void {
-		this.errorOnly ? this : this.write(...messages);
-	}
-
-	/**
-	 * Writes the specified messages to the console.
-	 * @param messages Messages to log.
-	 */
-	private write(...messages: string[]): void {
-		for (const msg of messages) {
-			console.log();
-			console.log(msg);
-		}
-
-		console.log();
-	}
-}

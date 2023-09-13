@@ -3,8 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { spin } from "../common/feedback";
 import { run } from "../common/runner";
-import { spin } from "../common/spinner";
 import { createCopier } from "../file-copier";
 import i18n from "../i18n/index";
 import Manifest, { generateUUID } from "../manifest";
@@ -12,7 +12,7 @@ import * as questions from "../questions";
 import { validateRequired } from "../questions";
 import { exit } from "../utils";
 import { enableDeveloperMode } from "./dev";
-import { linkToPlugin } from "./link";
+import { link } from "./link";
 
 const TEMPLATE_PLUGIN_UUID = "com.elgato.template";
 
@@ -133,7 +133,7 @@ async function writePlugin(options: Options): Promise<void> {
 	// Build the plugin locally.
 	await spin(i18n.create.steps.building, () => run("npm", ["run", "build"], { cwd: options.destination }));
 	await spin(i18n.create.steps.finalizing, () =>
-		linkToPlugin({
+		link({
 			path: path.join(options.destination, `${options.uuid}.sdPlugin`),
 			quiet: true
 		})

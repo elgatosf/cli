@@ -45,20 +45,4 @@ declare type Resources = {
 		success: string;
 		unsupportedOS: string;
 	};
-	link: {
-		aborted: string;
-		description: string;
-		existingDirectoryOrFile: (uuid?: string) => string;
-		existingLink: (uuid?: string) => string;
-		new: string;
-		old: string;
-		questions: {
-			confirmOverwrite: string;
-			overwrite: string;
-			redirect: string;
-		};
-		setUuidSuccess: (uuid?: string) => string;
-		success: (uuid?: string, cwd: string) => string;
-		uuidMustBeSet: string;
-	};
 };

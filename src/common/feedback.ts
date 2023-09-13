@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import logSymbols from "log-symbols";
 
 /**
@@ -57,7 +58,7 @@ export class Feedback {
 	/**
 	 * Feedback text to display next to the spinner / status.
 	 */
-	private text = "";
+	private message = "";
 
 	/**
 	 * Identifies the timer responsible for displaying the spinning symbol.
@@ -70,13 +71,6 @@ export class Feedback {
 	 */
 	constructor(options?: FeedbackOptions) {
 		this.indent = " ".repeat((options || { indentSize: 0 }).indentSize);
-
-		// Retain context on destructuring.
-		this.error = this.error.bind(this);
-		this.info = this.info.bind(this);
-		this.spin = this.spin.bind(this);
-		this.success = this.success.bind(this);
-		this.warn = this.warn.bind(this);
 	}
 
 	/**
@@ -88,55 +82,66 @@ export class Feedback {
 	}
 
 	/**
-	 * Display the {@link text} as an error message, and stops any current interactive feedback (spinners).
-	 * @param text Optional text to display.
+	 * Display the {@link message} as an error message, and stops any current interactive feedback (spinners).
+	 * @param message Optional text to display.
+	 * @returns An error reporter capable of outputting more detailed information.
 	 */
-	public error(text: string = this.text): void {
-		this.stop({ symbol: logSymbols.error, text });
-	}
+	public error = (message: string = this.message): ErrorReporter => {
+		this.stop({ symbol: logSymbols.error, text: message });
+		return new ErrorReporter();
+	};
 
 	/**
-	 * Display the {@link text} as an informational message, and stops any current interactive feedback (spinners).
-	 * @param text Optional text to display.
+	 * Display the {@link message} as an informational message, and stops any current interactive feedback (spinners).
+	 * @param message Optional text to display.
 	 */
-	public info(text: string = this.text): void {
-		this.stop({ symbol: logSymbols.info, text });
-	}
+	public info = (message: string = this.message): void => {
+		this.stop({ symbol: logSymbols.info, text: message });
+	};
 
 	/**
-	 * Displays an interactive spinner and the {@link text}.
-	 * @param text Text to show next to the spinner.
+	 * Logs the specified {@link message} to the console.
+	 * @param message Message to write.
 	 */
-	public spin(text: string): void {
-		if (this.timerId) {
-			// Set the text being shown next to the spinner.
-			this.text = text;
-		} else {
-			// Setup symbol interval.
-			this.text = text;
+	public log = (message: string): void => {
+		if (this.isSpinning) {
+			process.stdout.cursorTo(0);
+			process.stdout.clearLine(1);
+		}
+
+		console.log(message);
+	};
+
+	/**
+	 * Displays an interactive spinner and the {@link message}.
+	 * @param message Text to show next to the spinner.
+	 */
+	public spin = (message: string): void => {
+		this.message = message;
+		if (!this.timerId) {
 			this.timerId = setInterval(() => {
 				process.stdout.clearLine(1); // Prevent flickering
 				process.stdout.cursorTo(0);
-				process.stdout.write(`${this.indent}${Feedback.SYMBOLS[++this.index % Feedback.SYMBOLS.length]} ${this.text}`);
+				process.stdout.write(`${this.indent}${Feedback.SYMBOLS[++this.index % Feedback.SYMBOLS.length]} ${this.message}`);
 			}, 150);
 		}
-	}
+	};
 
 	/**
-	 * Display the {@link text} as a success message, and stops any current interactive feedback (spinners).
-	 * @param text Optional text to display.
+	 * Display the {@link message} as a success message, and stops any current interactive feedback (spinners).
+	 * @param message Optional text to display.
 	 */
-	public success(text: string = this.text): void {
-		this.stop({ symbol: logSymbols.success, text });
-	}
+	public success = (message: string = this.message): void => {
+		this.stop({ symbol: logSymbols.success, text: message });
+	};
 
 	/**
-	 * Display the {@link text} as a warning message, and stops any current interactive feedback (spinners).
-	 * @param text Optional text to display.
+	 * Display the {@link message} as a warning message, and stops any current interactive feedback (spinners).
+	 * @param message Optional text to display.
 	 */
-	public warn(text: string = this.text): void {
-		this.stop({ symbol: logSymbols.warning, text });
-	}
+	public warn = (message: string = this.message): void => {
+		this.stop({ symbol: logSymbols.warning, text: message });
+	};
 
 	/**
 	 * Stops the spinner, and displays the feedback message.
@@ -167,16 +172,50 @@ export class QuietFeedback extends Feedback {
 	constructor(options?: FeedbackOptions) {
 		super(options);
 
-		this.info = QuietFeedback.noop;
-		this.spin = QuietFeedback.noop;
-		this.success = QuietFeedback.noop;
+		const noop = (): void => {
+			/* do nothing */
+		};
+
+		this.info = noop;
+		this.log = noop;
+		this.spin = noop;
+		this.success = noop;
+	}
+}
+
+/**
+ * Provides logging and exiting facilities as part of reporting an error.
+ */
+class ErrorReporter {
+	/**
+	 * Determines whether a message has been logged; the first log is yellow.
+	 */
+	private hasMessageBeenLogged = false;
+
+	/**
+	 * Exits the process.
+	 * @param code Optional exit code.
+	 */
+	public exit(code?: number): never {
+		process.exit(code);
 	}
 
 	/**
-	 * Represents a no-operation function that can overwrite an existing function so that it does nothing.
+	 * Logs a message to the console; if this is the first message as part of the reporter, the message will be highlighted in yellow.
+	 * @param message Message to log.
+	 * @returns This instance for chaining.
 	 */
-	private static noop(): void {
-		// Do nothing, aka a no-operation [noop] function.
+	public log(message: string): this {
+		console.log();
+
+		if (this.hasMessageBeenLogged) {
+			console.log(message);
+		} else {
+			console.log(chalk.yellow(message));
+		}
+
+		this.hasMessageBeenLogged = true;
+		return this;
 	}
 }
 

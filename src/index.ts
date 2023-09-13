@@ -2,7 +2,7 @@ import { program } from "commander";
 
 import { creationWizard } from "./commands/create.js";
 import { enableDeveloperMode } from "./commands/dev.js";
-import { linkToPlugin } from "./commands/link.js";
+import { link } from "./commands/link.js";
 import { restart } from "./commands/restart.js";
 import { stop } from "./commands/stop.js";
 import { configureEnv } from "./env.js";
@@ -22,8 +22,8 @@ program
 
 program
 	.command("link")
-	.description(i18n.link.description)
-	.action(() => linkToPlugin());
+	.description("Creates a symbolic-link between the Stream Deck plugins folder, and the development environment.")
+	.action(() => link());
 
 program
 	.command("restart")
