@@ -3,6 +3,18 @@ import fs from "node:fs";
 import { dirname, extname, resolve } from "path";
 
 /**
+ * Creates a new {@link FileCopier}.
+ * @param options The source and destination paths.
+ * @returns The {@link FileCopier}.
+ */
+export function createCopier(options: Options): FileCopier {
+	return new FileCopier({
+		data: {},
+		...options
+	});
+}
+
+/**
  * File copier capable of copying, and rendering, files and directories from a source, to a destination.
  */
 class FileCopier {
@@ -38,7 +50,7 @@ class FileCopier {
 	 */
 	private copyDir({ source, dest }: FileOrDirectoryPath): void {
 		const templates: Options[] = [];
-		const filter = (source: string, dest: string) => {
+		const filter = (source: string, dest: string): boolean => {
 			if (fs.lstatSync(source).isFile() && extname(source) === ".ejs") {
 				templates.push({ source, dest, data: this.options.data });
 				return false;
@@ -76,6 +88,16 @@ class FileCopier {
 }
 
 /**
+ * Options used to copy and to render EJS template file or directory.
+ */
+type Options = FileOrDirectoryPath & {
+	/**
+	 * The data to be injected into the templates.
+	 */
+	data?: ejs.Data;
+};
+
+/**
  * Provides a source and destination path to a file or directory.
  */
 type FileOrDirectoryPath = {
@@ -89,25 +111,3 @@ type FileOrDirectoryPath = {
 	 */
 	source: string;
 };
-
-/**
- * Options used to copy and to render EJS template file or directory.
- */
-type Options = FileOrDirectoryPath & {
-	/**
-	 * The data to be injected into the templates.
-	 */
-	data?: ejs.Data;
-};
-
-/**
- * Creates a new {@link FileCopier}.
- * @param options The source and destination paths.
- * @returns The {@link FileCopier}.
- */
-export function createCopier(options: Options) {
-	return new FileCopier({
-		data: {},
-		...options
-	});
-}
