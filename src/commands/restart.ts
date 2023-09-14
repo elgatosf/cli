@@ -1,33 +1,39 @@
 import chalk from "chalk";
 
-import { spin } from "../common/feedback";
 import { run } from "../common/runner";
 import { getStreamDeckPath, isPluginInstalled, isStreamDeckRunning } from "../stream-deck";
+import { command } from "./command";
 
 /**
- * Restarts the first plugin that matches the given {@link uuid}
- * @param uuid Unique-identifier that identifies the plugin.
- * @returns Promise resolved when the command has been executed.
+ * Restarts the first plugin that matches the given {@link RestartOptions.uuid}.
  */
-export function restart(uuid: string): Promise<void> {
-	return spin(`Restarting ${uuid}`, async ({ info, success, warn }) => {
-		// Check we have a plugin installed that matches the uuid.
-		if (!isPluginInstalled(uuid)) {
-			warn(`Plugin not found ${chalk.yellow(uuid)}`);
-			return;
-		}
+export const restart = command<RestartOptions>(async ({ uuid }, feedback) => {
+	feedback.spin(`Restarting ${uuid}`);
 
-		const appPath = `"${getStreamDeckPath()}"`;
+	// Check we have a plugin installed that matches the uuid.
+	if (!isPluginInstalled(uuid)) {
+		return feedback.error("Restarting failed").log(`Plugin not found: ${uuid}`).exit(1);
+	}
 
-		// When Stream Deck isn't running, start it.
-		if (!(await isStreamDeckRunning())) {
-			await run(appPath, [], { detached: true });
-			info("Stream Deck is not running. Starting Stream Deck.");
-			return;
-		}
+	const appPath = `"${getStreamDeckPath()}"`;
 
-		// Restart the plugin.
-		await run(appPath, ["-r", uuid]);
-		success(`Restarted ${chalk.green(uuid)}`);
-	});
-}
+	// When Stream Deck isn't running, start it.
+	if (!(await isStreamDeckRunning())) {
+		await run(appPath, [], { detached: true });
+		return feedback.info("Stream Deck is not running. Starting Stream Deck.");
+	}
+
+	// Restart the plugin.
+	await run(appPath, ["-r", uuid]);
+	feedback.success(`Restarted ${chalk.green(uuid)}`);
+});
+
+/**
+ * Options available to {@link restart}.
+ */
+type RestartOptions = {
+	/**
+	 * Identifies the plugin.
+	 */
+	uuid: string;
+};

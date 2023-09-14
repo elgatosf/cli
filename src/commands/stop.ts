@@ -1,30 +1,36 @@
 import chalk from "chalk";
 
-import { spin } from "../common/feedback";
 import { run } from "../common/runner";
 import { getStreamDeckPath, isPluginInstalled, isStreamDeckRunning } from "../stream-deck";
+import { command } from "./command";
 
 /**
- * Stops the first plugin that matches the given {@link uuid}
- * @param uuid Unique-identifier that identifies the plugin.
- * @returns Promise resolved when the command has been executed.
+ * Stops the first plugin that matches the given {@link StopOptions.uuid}.
  */
-export function stop(uuid: string): Promise<void> {
-	return spin(`Stopping ${uuid}`, async ({ info, success, warn }) => {
-		// Check we have a plugin installed that matches the uuid.
-		if (!isPluginInstalled(uuid)) {
-			warn(`Plugin not found ${chalk.yellow(uuid)}`);
-			return;
-		}
+export const stop = command<StopOptions>(async ({ uuid }, feedback) => {
+	feedback.spin(`Stopping ${uuid}`);
 
-		// When Stream Deck isn't running, warn the user.
-		if (!(await isStreamDeckRunning())) {
-			info("Stream Deck is not running.");
-			return;
-		}
+	// Check we have a plugin installed that matches the uuid.
+	if (!isPluginInstalled(uuid)) {
+		return feedback.error("Stopping failed").log(`Plugin not found: ${uuid}`).exit(1);
+	}
 
-		// Stop the plugin.
-		await run(`"${getStreamDeckPath()}"`, ["-s", uuid]);
-		success(`Stopped ${chalk.green(uuid)}`);
-	});
-}
+	// When Stream Deck isn't running, warn the user.
+	if (!(await isStreamDeckRunning())) {
+		return feedback.info("Stream Deck is not running.");
+	}
+
+	// Stop the plugin.
+	await run(`"${getStreamDeckPath()}"`, ["-s", uuid]);
+	feedback.success(`Stopped ${chalk.green(uuid)}`);
+});
+
+/**
+ * Options available to {@link stop}.
+ */
+type StopOptions = {
+	/**
+	 * Identifies the plugin.
+	 */
+	uuid: string;
+};

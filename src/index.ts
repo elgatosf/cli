@@ -32,13 +32,13 @@ program
 	.alias("r")
 	.description("Starts the plugin; if the plugin is already running, it is stopped first.")
 	.argument("<uuid>")
-	.action((uuid) => restart(uuid));
+	.action((uuid: string) => restart({ uuid }));
 
 program
 	.command("stop")
 	.alias("s")
 	.description("Stops the plugin.")
 	.argument("<uuid>")
-	.action((uuid) => stop(uuid));
+	.action((uuid: string) => stop({ uuid }));
 
 program.parse();
