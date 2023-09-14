@@ -2,8 +2,8 @@ import chalk from "chalk";
 import { lstatSync, symlinkSync } from "node:fs";
 import { basename, resolve } from "node:path";
 
-import { getPluginId, getPlugins, getPluginsPath } from "../stream-deck.js";
-import { command } from "./command.js";
+import { command } from "../common/command";
+import { getPluginId, getPlugins, getPluginsPath } from "../stream-deck";
 
 /**
  * Attempts to create a symbolic-link for the given path within the Stream Deck plugin's folder; this will effectively install the plugin to Stream Deck.

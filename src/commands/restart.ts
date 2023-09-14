@@ -1,8 +1,8 @@
 import chalk from "chalk";
 
+import { command } from "../common/command";
 import { run } from "../common/runner";
 import { getStreamDeckPath, isPluginInstalled, isStreamDeckRunning } from "../stream-deck";
-import { command } from "./command";
 
 /**
  * Restarts the first plugin that matches the given {@link RestartOptions.uuid}.

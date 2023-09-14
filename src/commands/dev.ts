@@ -2,7 +2,7 @@ import childProcess from "node:child_process";
 import os from "node:os";
 import { Registry } from "rage-edit";
 
-import { command } from "./command";
+import { command } from "../common/command";
 
 /**
  * Sets developer mode, enabling / disabling the local development of Stream Deck plugins.

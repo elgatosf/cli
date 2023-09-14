@@ -1,5 +1,5 @@
 /* eslint-disable jsdoc/check-param-names */
-import { Feedback, QuietFeedback } from "../common/feedback";
+import { Feedback, QuietFeedback } from "./feedback";
 
 // eslint-disable-next-line jsdoc/require-param
 /**
