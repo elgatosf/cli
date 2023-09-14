@@ -1,9 +1,7 @@
 import { program } from "commander";
 
-import { link, setDeveloperMode } from "./commands";
+import { link, restart, setDeveloperMode, stop } from "./commands";
 import { creationWizard } from "./commands/create.js";
-import { restart } from "./commands/restart.js";
-import { stop } from "./commands/stop.js";
 import { configureEnv } from "./env.js";
 
 configureEnv();
