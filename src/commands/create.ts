@@ -4,8 +4,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { spin } from "../common/feedback";
+import { createCopier } from "../common/file-copier";
 import { run } from "../common/runner";
-import { createCopier } from "../file-copier";
 import i18n from "../i18n/index";
 import Manifest, { generateUUID } from "../manifest";
 import * as questions from "../questions";
