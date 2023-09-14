@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import inquirer from "inquirer";
 import fs from "node:fs";
 import path from "node:path";
@@ -6,27 +7,12 @@ import { fileURLToPath } from "node:url";
 import { spin } from "../common/feedback";
 import { createCopier } from "../common/file-copier";
 import { run } from "../common/runner";
-import i18n from "../i18n/index";
-import Manifest, { generateUUID } from "../manifest";
-import * as questions from "../questions";
-import { validateRequired } from "../questions";
+import { generatePluginId, isValidPluginId } from "../stream-deck";
 import { exit } from "../utils";
 import { setDeveloperMode } from "./dev";
 import { link } from "./link";
 
 const TEMPLATE_PLUGIN_UUID = "com.elgato.template";
-
-/**
- * Options available to {@link creationWizard}.
- */
-type Options = {
-	[K in keyof Pick<Manifest, "Author" | "Description" | "Name" | "UUID"> as Lowercase<K>]-?: Manifest[K];
-} & {
-	/**
-	 * Destination where the plugin is being created.
-	 */
-	destination: string;
-};
 
 /**
  * Launches the Stream Deck Plugin creation wizard, and guides users through creating a local development environment for creating plugins based on the template.
@@ -35,23 +21,30 @@ export async function creationWizard(): Promise<void> {
 	await validateDirIsEmpty(process.cwd());
 
 	showWelcome();
-	const options = await inquirer.prompt<Options>([
+	const options = await inquirer.prompt<CreateOptions>([
 		{
 			name: "author",
-			message: i18n.create.questions.author,
-			type: "input",
-			validate: validateRequired(i18n.create.questions.authorRequired)
+			message: "Author:",
+			validate: required("Please enter the author."),
+			type: "input"
 		},
 		{
 			name: "name",
-			message: i18n.create.questions.name,
-			type: "input",
-			validate: validateRequired(i18n.create.questions.nameRequired)
+			message: "Plugin Name:",
+			validate: required("Please enter the name of the plugin."),
+			type: "input"
 		},
-		questions.uuid(({ author, name }: Options) => generateUUID(author, name)),
+		{
+			name: "uuid",
+			message: "Plugin UUID:",
+			default: ({ author, name }: CreateOptions) => generatePluginId(author, name),
+			validate: (uuid: string): boolean | string =>
+				isValidPluginId(uuid) ? true : "UUID can only contain lowercase alphanumeric characters (a-z, 0-9), hyphens (-), underscores (_), or periods (.).",
+			type: "input"
+		},
 		{
 			name: "description",
-			message: i18n.create.questions.description,
+			message: "Description:",
 			type: "input"
 		}
 	]);
@@ -59,7 +52,7 @@ export async function creationWizard(): Promise<void> {
 	console.log();
 	const info = await inquirer.prompt({
 		name: "isCorrect",
-		message: i18n.create.questions.confirmInfo,
+		message: "Create Stream Deck plugin from information above?",
 		default: true,
 		type: "confirm"
 	});
@@ -68,7 +61,7 @@ export async function creationWizard(): Promise<void> {
 		options.destination = process.cwd();
 		await writePlugin(options);
 	} else {
-		exit(i18n.create.aborted);
+		exit("Aborted");
 	}
 }
 
@@ -82,12 +75,12 @@ function showWelcome(): void {
 	console.log("|___/\\__|_| \\___\\__,_|_|_|_| |___/\\___\\__|_\\_\\");
 
 	console.log();
-	console.log(i18n.create.welcome.title);
+	console.log(`Welcome to the ${chalk.green("Stream Deck Plugin")} creation wizard.`);
 	console.log();
-	console.log(i18n.create.welcome.text);
-	console.log(i18n.create.welcome.moreInfo);
+	console.log("This utility will walk you through creating a local development environment for a plugin.");
+	console.log(`For more information on building plugins see ${chalk.blue("https://docs.elgato.com")}.`);
 	console.log();
-	console.log(i18n.create.welcome.howToQuit);
+	console.log(chalk.grey("Press ^C at any time to quit."));
 	console.log();
 }
 
@@ -97,19 +90,19 @@ function showWelcome(): void {
  */
 async function validateDirIsEmpty(path: string): Promise<void> {
 	if (fs.readdirSync(path).length != 0) {
-		console.log(i18n.create.dirNotEmptyWarning.title);
-		console.log(i18n.create.dirNotEmptyWarning.text);
+		console.log(chalk.yellow("Warning - Directory is not empty."));
+		console.log("This creation tool will write files to the current directory.");
 		console.log();
 
 		const overwrite = await inquirer.prompt({
 			name: "confirm",
-			message: i18n.create.dirNotEmptyWarning.confirm,
+			message: `Continuing may result in ${chalk.yellow("data loss")}, are you sure you want to continue?`,
 			default: false,
 			type: "confirm"
 		});
 
 		if (!overwrite.confirm) {
-			exit(i18n.create.aborted);
+			exit("Aborted");
 		}
 	}
 }
@@ -119,20 +112,20 @@ async function validateDirIsEmpty(path: string): Promise<void> {
  * `npm run build`, and then the user is prompted to open their plugin in VS Code (if installed).
  * @param options Options provided by the user as part of the creation utility.
  */
-async function writePlugin(options: Options): Promise<void> {
+async function writePlugin(options: CreateOptions): Promise<void> {
 	console.log();
-	console.log(i18n.create.steps.intro(options.name));
+	console.log(`Creating ${chalk.blue(options.name)}...`);
 
 	// Enable developer mode, and generate the template.
-	await spin(i18n.create.steps.developerMode, () => setDeveloperMode({ quiet: true }));
-	await spin(i18n.create.steps.copyFiles, () => renderTemplate(options));
+	await spin("Enabling developer mode", () => setDeveloperMode({ quiet: true }));
+	await spin("Generating plugin", () => renderTemplate(options));
 
 	// Install npm dependencies; temporarily link to the local streamdeck package.
-	await spin(i18n.create.steps.dependencies, () => run("npm", ["i"], { cwd: options.destination }));
+	await spin("Installing dependencies", () => run("npm", ["i"], { cwd: options.destination }));
 
 	// Build the plugin locally.
-	await spin(i18n.create.steps.building, () => run("npm", ["run", "build"], { cwd: options.destination }));
-	await spin(i18n.create.steps.finalizing, () =>
+	await spin("Building plugin", () => run("npm", ["run", "build"], { cwd: options.destination }));
+	await spin("Finalizing setup", () =>
 		link({
 			path: path.join(options.destination, `${options.uuid}.sdPlugin`),
 			quiet: true
@@ -140,7 +133,7 @@ async function writePlugin(options: Options): Promise<void> {
 	);
 
 	console.log();
-	console.log(i18n.create.steps.success);
+	console.log(chalk.green("Successfully created plugin!"));
 
 	await tryOpenVSCode(options);
 }
@@ -149,7 +142,7 @@ async function writePlugin(options: Options): Promise<void> {
  * Renders the template, copying the output to the destination directory.
  * @param options Options used to render the template.
  */
-function renderTemplate(options: Options): void {
+function renderTemplate(options: CreateOptions): void {
 	const template = createCopier({
 		dest: options.destination,
 		source: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../template"),
@@ -173,7 +166,7 @@ function renderTemplate(options: Options): void {
  * Determines if the user has VS Code installed, and if so, prompts them to open the plugin.
  * @param options Options provided by the user as part of the creation utility.
  */
-async function tryOpenVSCode(options: Options): Promise<void> {
+async function tryOpenVSCode(options: CreateOptions): Promise<void> {
 	const paths = process.env.PATH?.split(":") ?? [];
 	if (!paths.some((p) => p.includes("Microsoft VS Code"))) {
 		return;
@@ -182,7 +175,7 @@ async function tryOpenVSCode(options: Options): Promise<void> {
 	console.log();
 	const vsCode = await inquirer.prompt({
 		name: "confirm",
-		message: i18n.create.openWithVSCode,
+		message: "Would you like to open the plugin in VS Code?",
 		default: true,
 		type: "confirm"
 	});
@@ -191,3 +184,48 @@ async function tryOpenVSCode(options: Options): Promise<void> {
 		run("code", ["./", "--goto", "src/plugin.ts"], { cwd: options.destination });
 	}
 }
+
+/**
+ * Gets a function that accepts a single value; when that value is null, empty, or whitespace, the {@link error} is returned.
+ * @param error Error message to display when a value was not specified.
+ * @returns Function that can be used to validate an question's answer.
+ */
+function required(error: string) {
+	return (value: unknown): boolean | string => {
+		if (value && value?.toString().replaceAll(" ", "") != "") {
+			return true;
+		}
+
+		return error;
+	};
+}
+
+/**
+ * Options available to {@link creationWizard}.
+ */
+type CreateOptions = {
+	/**
+	 * Author of the plugin; this can be a user, or an organization.
+	 */
+	author: string;
+
+	/**
+	 * General description of what the plugin does.
+	 */
+	description: string;
+
+	/**
+	 * Destination where the plugin is being created.
+	 */
+	destination: string;
+
+	/**
+	 * Name of the plugin; this is displayed to user's in the Marketplace, and is used to easily identify the plugin.
+	 */
+	name: string;
+
+	/**
+	 * Plugin's unique identifier.
+	 */
+	uuid: string;
+};

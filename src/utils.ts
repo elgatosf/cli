@@ -1,7 +1,5 @@
 import chalk from "chalk";
 
-import i18n from "./i18n/index.js";
-
 /**
  * Exits the process after displaying the specified {@link message}.
  * @param message Message to display prior to existing.
@@ -45,7 +43,7 @@ export async function stdoutSpinner<T = void>(name: string, task: () => Promise<
 		finalize(chalk.green("✔"));
 	} catch (err) {
 		finalize(chalk.red("✖"));
-		exit(i18n.common.taskFailed, err);
+		exit("Task failed", err);
 	}
 
 	/**
