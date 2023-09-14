@@ -8,9 +8,6 @@ import { command } from "./command";
  * Sets developer mode, enabling / disabling the local development of Stream Deck plugins.
  */
 export const setDeveloperMode = command<DeveloperModeOptions>(
-	{
-		disable: false
-	},
 	async (options, feedback) => {
 		feedback.spin(`${options.disable ? "Disabling" : "Enabling"} developer mode`);
 
@@ -22,6 +19,9 @@ export const setDeveloperMode = command<DeveloperModeOptions>(
 		}
 
 		feedback.success(`Developer mode ${options.disable ? "disabled" : "enabled"}`);
+	},
+	{
+		disable: false
 	}
 );
 

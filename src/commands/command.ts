@@ -2,11 +2,11 @@ import { Feedback, QuietFeedback } from "../common/feedback";
 
 /**
  * Wraps a command delegate; when invoked all options are provided, and the feedback and logger are constructed based on {@link GlobalOptions.quiet} global option.
- * @param defaultOptions Fallback options supplied to the command when optional-options are not specified by the caller.
  * @param commandFn The command function to execute.
+ * @param defaultOptions Fallback options supplied to the command when optional-options are not specified by the caller.
  * @returns Wrapped command.
  */
-export function command<T>(defaultOptions: Required<T>, commandFn: CommandDelegate<T>): (options?: GlobalOptions & T) => void {
+export function command<T>(commandFn: CommandDelegate<T>, defaultOptions: Required<T>): (options?: GlobalOptions & T) => void {
 	return async (options?: T) => {
 		const opts = {
 			...{ quiet: false },

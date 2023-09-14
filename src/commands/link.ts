@@ -9,9 +9,6 @@ import { command } from "./command.js";
  * Attempts to create a symbolic-link for the given path within the Stream Deck plugin's folder; this will effectively install the plugin to Stream Deck.
  */
 export const link = command<LinkOptions>(
-	{
-		path: process.cwd()
-	},
 	(options, feedback) => {
 		feedback.spin("Linking plugin");
 
@@ -52,6 +49,9 @@ export const link = command<LinkOptions>(
 
 		symlinkSync(resolve(options.path), resolve(getPluginsPath(), basename(options.path)), "junction");
 		return feedback.success("Linked successfully");
+	},
+	{
+		path: process.cwd()
 	}
 );
 
