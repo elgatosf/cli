@@ -6,11 +6,11 @@
 		"outDir": "bin/"
 	},
 	"include": [
-		"src"
+		"src",
+		"rollup.config.ts"
 	],
 	"exclude": [
 		"bin",
-		"dist",
 		"node_modules",
 		"template"
 	]

@@ -6,6 +6,7 @@ import typescript from "@rollup/plugin-typescript";
 import fs from "node:fs";
 import path from "node:path";
 import url from "node:url";
+import { RollupOptions } from "rollup";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const isWatching = !!process.env.ROLLUP_WATCH;
@@ -13,16 +14,13 @@ const tsConfig = JSON.parse(fs.readFileSync(path.resolve(__dirname, "./tsconfig.
 
 prepareOutDir(tsConfig.compilerOptions.outDir);
 
-/**
- * @type {import('rollup').RollupOptions}
- */
-const config = {
+const config: RollupOptions = {
 	input: "src/index.ts",
 	output: {
 		banner: "#!/usr/bin/env node",
 		file: path.join(tsConfig.compilerOptions.outDir, "streamdeck.mjs"),
 		sourcemap: isWatching,
-		sourcemapPathTransform: (relativeSourcePath, sourcemapPath) => {
+		sourcemapPathTransform: (relativeSourcePath: string, sourcemapPath: string): string => {
 			return url.pathToFileURL(path.resolve(path.dirname(sourcemapPath), relativeSourcePath)).href;
 		}
 	},
@@ -54,9 +52,9 @@ export default config;
 
 /**
  * Validates the output directory is situated within the current working directory; upon passing validation, the directory is cleaned before build.
- * @param {string} outDir The output directory.
+ * @param outDir The output directory.
  */
-function prepareOutDir(outDir) {
+function prepareOutDir(outDir: string): void {
 	if (outDir === undefined) {
 		throw new Error("outDir must be specified within the TypeScript config file.");
 	}

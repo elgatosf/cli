@@ -11,8 +11,8 @@
 	],
 	"type": "module",
 	"scripts": {
-		"build": "rollup -c",
-		"watch": "rollup -c -w",
+		"build": "rollup --config rollup.config.ts --configPlugin typescript",
+		"watch": "rollup --config rollup.config.ts --configPlugin typescript --watch",
 		"lint": "eslint . --ext .ts --max-warnings 0",
 		"lint:fix": "prettier --config .prettierrc \"./src/**/*.ts\" --write"
 	},
