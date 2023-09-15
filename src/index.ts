@@ -7,20 +7,17 @@ configureEnv();
 
 program
 	.command("create")
-	.alias("c")
 	.description("Wizard that guides you through setting up a Stream Deck plugin.")
 	.action(() => create());
 
 program
 	.command("dev")
-	.alias("d")
 	.description("Enables / disables local development of Stream Deck plugins.")
 	.option("-d|--disable", "Disables developer mode", false)
 	.action(({ disable }) => setDeveloperMode({ disable }));
 
 program
 	.command("link")
-	.alias("l")
 	.description("Creates a symbolic-link to the current working directory, installing it to the Stream Deck as a plugin.")
 	.action(() => link());
 
