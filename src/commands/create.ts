@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { command } from "../common/command";
 import { Feedback, spin } from "../common/feedback";
 import { createCopier } from "../common/file-copier";
+import { invalidCharacters, isSafeBaseName } from "../common/path";
 import { run } from "../common/runner";
 import { generatePluginId, isValidPluginId } from "../stream-deck";
 import { setDeveloperMode } from "./dev";
@@ -18,17 +19,20 @@ const TEMPLATE_PLUGIN_UUID = "com.elgato.template";
  * Guides the user through a creation wizard, scaffolding a Stream Deck plugin.
  */
 export const create = command(async (options, feedback) => {
-	const destination = process.cwd();
-	await validateDirIsEmpty(destination, feedback);
-
+	// Show the welcome, and gather all of the required input from the user.
 	showWelcome(feedback);
 	const pluginInfo = await promptForPluginInfo();
+	let destination = await getDestination(pluginInfo.uuid.split(".")[2] || "", feedback);
 
-	feedback.log();
-	if (!(await isPluginInfoCorrect())) {
+	// Prompt the user to confirm the information.
+	if (!(await isPluginInfoCorrect(feedback))) {
 		return feedback.info("Aborted").exit();
 	}
 
+	// One final check of the destination before beginning - this ensures it wasn't created whilst waiting for confirmation.
+	destination = await getDestination(path.basename(destination), feedback);
+
+	// Begin.
 	feedback.log();
 	feedback.log(`Creating ${chalk.blue(pluginInfo.name)}...`);
 
@@ -107,10 +111,54 @@ async function promptForPluginInfo(): Promise<PluginInfo> {
 }
 
 /**
+ * Gets the destination where the plugin will be generated.
+ * @param dirName The default name of the directory.
+ * @param feedback Feedback handler.
+ * @returns The destination, as a full path.
+ */
+async function getDestination(dirName: string, feedback: Feedback): Promise<string> {
+	// Validate the default directory name; when invalid, prompt for another.
+	const validation = validate(dirName);
+	if (validation !== true) {
+		feedback.log();
+		feedback.log(validation);
+		const { directory } = await inquirer.prompt({
+			name: "directory",
+			message: "Directory:",
+			validate,
+			type: "input"
+		});
+
+		dirName = directory;
+	}
+
+	return path.join(process.cwd(), dirName);
+
+	/**
+	 * Validates the specified {@link value} is a valid directory name, and the directory does not exist.
+	 * @param value Value to validate.
+	 * @returns `true` when the directory name is valid, and the directory does not exist; otherwise a `string` representing the error.
+	 */
+	function validate(value: string | undefined): boolean | string {
+		if (value === undefined || value.trim() === "") {
+			return "Please specify a directory name.";
+		} else if (!isSafeBaseName(value)) {
+			return `Directory name cannot contain ${invalidCharacters.join(" ")} and must not begin with a period (.).`;
+		} else if (fs.existsSync(path.join(process.cwd(), value))) {
+			return `Directory ${chalk.yellow(value)} already exists. Please specify a different directory name.`;
+		}
+
+		return true;
+	}
+}
+
+/**
  * Prompts the user to confirm they're happy with the input information.
+ * @param feedback Feedback handler.
  * @returns `true` when the user is happy with the information; otherwise `false`.
  */
-async function isPluginInfoCorrect(): Promise<boolean> {
+async function isPluginInfoCorrect(feedback: Feedback): Promise<boolean> {
+	feedback.log();
 	return (
 		await inquirer.prompt({
 			name: "confirm",
@@ -119,30 +167,6 @@ async function isPluginInfoCorrect(): Promise<boolean> {
 			type: "confirm"
 		})
 	).confirm;
-}
-
-/**
- * Validates the specified `path` directory is empty; when it is not, the user is prompted to confirm the process, as it may result in data loss.
- * @param path Path to validate.
- * @param feedback Feedback handler.
- */
-async function validateDirIsEmpty(path: string, feedback: Feedback): Promise<void> {
-	if (fs.readdirSync(path).length != 0) {
-		console.log(chalk.yellow("Warning - Directory is not empty."));
-		console.log("This creation tool will write files to the current directory.");
-		console.log();
-
-		const overwrite = await inquirer.prompt({
-			name: "confirm",
-			message: `Continuing may result in ${chalk.yellow("data loss")}, are you sure you want to continue?`,
-			default: false,
-			type: "confirm"
-		});
-
-		if (!overwrite.confirm) {
-			feedback.info("Aborted").exit();
-		}
-	}
 }
 
 /**

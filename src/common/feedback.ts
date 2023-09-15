@@ -58,7 +58,7 @@ export class Feedback {
 	/**
 	 * Feedback text to display next to the spinner / status.
 	 */
-	private message = "";
+	private message: unknown = "";
 
 	/**
 	 * Identifies the timer responsible for displaying the spinning symbol.
@@ -86,7 +86,7 @@ export class Feedback {
 	 * @param message Optional text to display.
 	 * @returns An error reporter capable of outputting more detailed information.
 	 */
-	public error = (message: string = this.message): ErrorReporter => {
+	public error = (message: unknown = this.message): ErrorReporter => {
 		this.stop({ symbol: logSymbols.error, text: message });
 		return new ErrorReporter();
 	};
@@ -104,7 +104,7 @@ export class Feedback {
 	 * @param message Optional text to display.
 	 * @returns This instance for chaining.
 	 */
-	public info = (message: string = this.message): this => {
+	public info = (message: unknown = this.message): this => {
 		return this.stop({ symbol: logSymbols.info, text: message });
 	};
 
@@ -113,7 +113,7 @@ export class Feedback {
 	 * @param message Message to write.
 	 * @returns This instance for chaining.
 	 */
-	public log = (message?: string): this => {
+	public log = (message?: unknown): this => {
 		if (this.isSpinning) {
 			process.stdout.cursorTo(0);
 			process.stdout.clearLine(1);
@@ -132,7 +132,7 @@ export class Feedback {
 	 * Displays an interactive spinner and the {@link message}.
 	 * @param message Text to show next to the spinner.
 	 */
-	public spin = (message: string): void => {
+	public spin = (message: unknown): void => {
 		this.message = message;
 		if (!this.timerId) {
 			this.timerId = setInterval(() => {
@@ -147,7 +147,7 @@ export class Feedback {
 	 * Display the {@link message} as a success message, and stops any current interactive feedback (spinners).
 	 * @param message Optional text to display.
 	 */
-	public success = (message: string = this.message): void => {
+	public success = (message: unknown = this.message): void => {
 		this.stop({ symbol: logSymbols.success, text: message });
 	};
 
@@ -156,7 +156,7 @@ export class Feedback {
 	 * @param message Optional text to display.
 	 * @returns This instance for chaining.
 	 */
-	public warn = (message: string = this.message): this => {
+	public warn = (message: unknown = this.message): this => {
 		return this.stop({ symbol: logSymbols.warning, text: message });
 	};
 
@@ -225,7 +225,7 @@ class ErrorReporter {
 	 * @param message Message to log.
 	 * @returns This instance for chaining.
 	 */
-	public log(message: string): this {
+	public log(message: unknown): this {
 		console.log();
 
 		if (this.hasMessageBeenLogged) {
@@ -251,5 +251,5 @@ type Message = {
 	/**
 	 * Text shown next to the symbol.
 	 */
-	text: string;
+	text: unknown;
 };

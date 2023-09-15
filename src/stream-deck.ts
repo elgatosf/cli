@@ -90,8 +90,8 @@ export function getPluginId(path: string): string | undefined {
  */
 export function generatePluginId(author: string | undefined, name: string | undefined): string | undefined {
 	const sections = {
-		author: formatSection(author),
-		name: formatSection(name)
+		author: getSafeValue(author),
+		name: getSafeValue(name)
 	};
 
 	if (sections.author === undefined || sections.name === undefined) {
@@ -99,24 +99,24 @@ export function generatePluginId(author: string | undefined, name: string | unde
 	}
 
 	return `com.${sections.author}.${sections.name}`;
+}
 
-	/**
-	 * Attempts to format the specified `value` as a section of the plugin's UUID; when the `value` results in an empty string, `undefined` is returned.
-	 * @param value Value to parse, and make UUID safe.
-	 * @returns Value that is safe for a UUID section; otherwise `undefined`.
-	 */
-	function formatSection(value: string | undefined): string | undefined {
-		if (value === undefined) {
-			return undefined;
-		}
-
-		const safeValue = value
-			.toLowerCase()
-			.replaceAll(" ", "-")
-			.replaceAll(/[^\-a-z0-9_]/g, "");
-
-		return safeValue !== "" ? safeValue : undefined;
+/**
+ * Attempts to format the specified `value` to ensure it is safe for a plugin's identifier. When the `value` results in an empty string, `undefined` is returned.
+ * @param value Value to parse, and make UUID safe.
+ * @returns Value that is safe for a UUID section; otherwise `undefined`.
+ */
+export function getSafeValue(value: string | undefined): string | undefined {
+	if (value === undefined) {
+		return undefined;
 	}
+
+	const safeValue = value
+		.toLowerCase()
+		.replaceAll(" ", "-")
+		.replaceAll(/[^\-a-z0-9_]/g, "");
+
+	return safeValue !== "" ? safeValue : undefined;
 }
 
 /**
@@ -129,7 +129,7 @@ export function isValidPluginId(uuid: string | undefined): boolean {
 		return false;
 	}
 
-	return /^([a-z0-9\-_.]+)$/.test(uuid);
+	return /^([a-z0-9\-_]*[a-z0-9][a-z0-9\-_]*\.){2}[a-z0-9\-_]*[a-z0-9][a-z0-9\-_]*$/.test(uuid);
 }
 
 /**
