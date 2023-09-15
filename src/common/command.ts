@@ -8,7 +8,7 @@ import { Feedback, QuietFeedback } from "./feedback";
  * @param defaultOptions Fallback options supplied to the command when optional-options are not specified by the caller.
  * @returns The command.
  */
-export function command<T>(
+export function command<T = void>(
 	fn: (options: Options<T>, feedback: Feedback) => Promise<void> | void,
 	...[defaultOptions]: OptionalWhenEmpty<PickOptional<T>, never, Required<PickOptional<T>>>
 ): (...[options]: OptionalWhenEmpty<PickRequired<T>, GlobalOptions & T>) => void {

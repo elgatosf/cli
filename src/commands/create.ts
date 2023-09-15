@@ -4,24 +4,80 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { spin } from "../common/feedback";
+import { command } from "../common/command";
+import { Feedback, spin } from "../common/feedback";
 import { createCopier } from "../common/file-copier";
 import { run } from "../common/runner";
 import { generatePluginId, isValidPluginId } from "../stream-deck";
-import { exit } from "../utils";
 import { setDeveloperMode } from "./dev";
 import { link } from "./link";
 
 const TEMPLATE_PLUGIN_UUID = "com.elgato.template";
 
 /**
- * Launches the Stream Deck Plugin creation wizard, and guides users through creating a local development environment for creating plugins based on the template.
+ * Guides the user through a creation wizard, scaffolding a Stream Deck plugin.
  */
-export async function creationWizard(): Promise<void> {
-	await validateDirIsEmpty(process.cwd());
+export const create = command(async (options, feedback) => {
+	const destination = process.cwd();
+	await validateDirIsEmpty(destination, feedback);
 
-	showWelcome();
-	const options = await inquirer.prompt<CreateOptions>([
+	showWelcome(feedback);
+	const pluginInfo = await promptForPluginInfo();
+
+	feedback.log();
+	if (!(await isPluginInfoCorrect())) {
+		return feedback.info("Aborted").exit();
+	}
+
+	feedback.log();
+	feedback.log(`Creating ${chalk.blue(pluginInfo.name)}...`);
+
+	// Enable developer mode, and generate the plugin from the template.
+	await spin("Enabling developer mode", () => setDeveloperMode({ quiet: true }));
+	await spin("Generating plugin", () => renderTemplate(destination, pluginInfo));
+
+	// Install npm dependencies and build the plugin.
+	await spin("Installing dependencies", () => run("npm", ["i"], { cwd: destination }));
+	await spin("Building plugin", () => run("npm", ["run", "build"], { cwd: destination }));
+
+	// Link the plugin to Stream Deck.
+	await spin("Finalizing setup", () =>
+		link({
+			path: path.join(destination, `${pluginInfo.uuid}.sdPlugin`),
+			quiet: true
+		})
+	);
+
+	feedback.log().log(chalk.green("Successfully created plugin!"));
+	await tryOpenVSCode(destination);
+});
+
+/**
+ * Shows the welcome message.
+ * @param feedback Feedback where the welcome message will be shown.
+ */
+function showWelcome(feedback: Feedback): void {
+	feedback
+		.log(" ___ _                        ___         _   ")
+		.log("/ __| |_ _ _ ___ __ _ _ __   |   \\ ___ __| |__")
+		.log("\\__ \\  _| '_/ -_) _` | '  \\  | |) / -_) _| / /")
+		.log("|___/\\__|_| \\___\\__,_|_|_|_| |___/\\___\\__|_\\_\\")
+		.log()
+		.log(`Welcome to the ${chalk.green("Stream Deck Plugin")} creation wizard.`)
+		.log()
+		.log("This utility will walk you through creating a local development environment for a plugin.")
+		.log(`For more information on building plugins see ${chalk.blue("https://docs.elgato.com")}.`)
+		.log()
+		.log(chalk.grey("Press ^C at any time to quit."))
+		.log();
+}
+
+/**
+ * Prompts the user for the plugin information.
+ * @returns User input that provides required information to build a plugin.
+ */
+async function promptForPluginInfo(): Promise<PluginInfo> {
+	return await inquirer.prompt<PluginInfo>([
 		{
 			name: "author",
 			message: "Author:",
@@ -37,7 +93,7 @@ export async function creationWizard(): Promise<void> {
 		{
 			name: "uuid",
 			message: "Plugin UUID:",
-			default: ({ author, name }: CreateOptions) => generatePluginId(author, name),
+			default: ({ author, name }: PluginInfo): string | undefined => generatePluginId(author, name),
 			validate: (uuid: string): boolean | string =>
 				isValidPluginId(uuid) ? true : "UUID can only contain lowercase alphanumeric characters (a-z, 0-9), hyphens (-), underscores (_), or periods (.).",
 			type: "input"
@@ -48,47 +104,29 @@ export async function creationWizard(): Promise<void> {
 			type: "input"
 		}
 	]);
-
-	console.log();
-	const info = await inquirer.prompt({
-		name: "isCorrect",
-		message: "Create Stream Deck plugin from information above?",
-		default: true,
-		type: "confirm"
-	});
-
-	if (info.isCorrect) {
-		options.destination = process.cwd();
-		await writePlugin(options);
-	} else {
-		exit("Aborted");
-	}
 }
 
 /**
- * Shows the welcome message.
+ * Prompts the user to confirm they're happy with the input information.
+ * @returns `true` when the user is happy with the information; otherwise `false`.
  */
-function showWelcome(): void {
-	console.log(" ___ _                        ___         _   ");
-	console.log("/ __| |_ _ _ ___ __ _ _ __   |   \\ ___ __| |__");
-	console.log("\\__ \\  _| '_/ -_) _` | '  \\  | |) / -_) _| / /");
-	console.log("|___/\\__|_| \\___\\__,_|_|_|_| |___/\\___\\__|_\\_\\");
-
-	console.log();
-	console.log(`Welcome to the ${chalk.green("Stream Deck Plugin")} creation wizard.`);
-	console.log();
-	console.log("This utility will walk you through creating a local development environment for a plugin.");
-	console.log(`For more information on building plugins see ${chalk.blue("https://docs.elgato.com")}.`);
-	console.log();
-	console.log(chalk.grey("Press ^C at any time to quit."));
-	console.log();
+async function isPluginInfoCorrect(): Promise<boolean> {
+	return (
+		await inquirer.prompt({
+			name: "confirm",
+			message: "Create Stream Deck plugin from information above?",
+			default: true,
+			type: "confirm"
+		})
+	).confirm;
 }
 
 /**
  * Validates the specified `path` directory is empty; when it is not, the user is prompted to confirm the process, as it may result in data loss.
  * @param path Path to validate.
+ * @param feedback Feedback handler.
  */
-async function validateDirIsEmpty(path: string): Promise<void> {
+async function validateDirIsEmpty(path: string, feedback: Feedback): Promise<void> {
 	if (fs.readdirSync(path).length != 0) {
 		console.log(chalk.yellow("Warning - Directory is not empty."));
 		console.log("This creation tool will write files to the current directory.");
@@ -102,59 +140,29 @@ async function validateDirIsEmpty(path: string): Promise<void> {
 		});
 
 		if (!overwrite.confirm) {
-			exit("Aborted");
+			feedback.info("Aborted").exit();
 		}
 	}
 }
 
 /**
- * Creates a plugin from the template, transforming the manifest with the provided {@link options} from the user. After the plugin is created the environment is setup, e.g. `npm i`,
- * `npm run build`, and then the user is prompted to open their plugin in VS Code (if installed).
- * @param options Options provided by the user as part of the creation utility.
- */
-async function writePlugin(options: CreateOptions): Promise<void> {
-	console.log();
-	console.log(`Creating ${chalk.blue(options.name)}...`);
-
-	// Enable developer mode, and generate the template.
-	await spin("Enabling developer mode", () => setDeveloperMode({ quiet: true }));
-	await spin("Generating plugin", () => renderTemplate(options));
-
-	// Install npm dependencies; temporarily link to the local streamdeck package.
-	await spin("Installing dependencies", () => run("npm", ["i"], { cwd: options.destination }));
-
-	// Build the plugin locally.
-	await spin("Building plugin", () => run("npm", ["run", "build"], { cwd: options.destination }));
-	await spin("Finalizing setup", () =>
-		link({
-			path: path.join(options.destination, `${options.uuid}.sdPlugin`),
-			quiet: true
-		})
-	);
-
-	console.log();
-	console.log(chalk.green("Successfully created plugin!"));
-
-	await tryOpenVSCode(options);
-}
-
-/**
  * Renders the template, copying the output to the destination directory.
- * @param options Options used to render the template.
+ * @param destination Destination where the plugin was created.
+ * @param pluginInfo Information about the plugin.
  */
-function renderTemplate(options: CreateOptions): void {
+function renderTemplate(destination: string, pluginInfo: PluginInfo): void {
 	const template = createCopier({
-		dest: options.destination,
+		dest: destination,
 		source: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../template"),
 		data: {
-			...options,
+			...pluginInfo,
 			streamDeckPackage: process.env.STREAMDECK_PACKAGE || "^0.1.0-beta.0"
 		}
 	});
 
 	template.copy(".vscode");
-	template.copy(`${TEMPLATE_PLUGIN_UUID}.sdPlugin/imgs`, `${options.uuid}.sdPlugin/imgs`);
-	template.copy(`${TEMPLATE_PLUGIN_UUID}.sdPlugin/manifest.json.ejs`, `${options.uuid}.sdPlugin/manifest.json`);
+	template.copy(`${TEMPLATE_PLUGIN_UUID}.sdPlugin/imgs`, `${pluginInfo.uuid}.sdPlugin/imgs`);
+	template.copy(`${TEMPLATE_PLUGIN_UUID}.sdPlugin/manifest.json.ejs`, `${pluginInfo.uuid}.sdPlugin/manifest.json`);
 	template.copy("src");
 	template.copy(".gitignore");
 	template.copy("package.json.ejs");
@@ -164,9 +172,9 @@ function renderTemplate(options: CreateOptions): void {
 
 /**
  * Determines if the user has VS Code installed, and if so, prompts them to open the plugin.
- * @param options Options provided by the user as part of the creation utility.
+ * @param destination Destination where the plugin was created.
  */
-async function tryOpenVSCode(options: CreateOptions): Promise<void> {
+async function tryOpenVSCode(destination: string): Promise<void> {
 	const paths = process.env.PATH?.split(":") ?? [];
 	if (!paths.some((p) => p.includes("Microsoft VS Code"))) {
 		return;
@@ -181,7 +189,7 @@ async function tryOpenVSCode(options: CreateOptions): Promise<void> {
 	});
 
 	if (vsCode.confirm) {
-		run("code", ["./", "--goto", "src/plugin.ts"], { cwd: options.destination });
+		run("code", ["./", "--goto", "src/plugin.ts"], { cwd: destination });
 	}
 }
 
@@ -201,9 +209,9 @@ function required(error: string) {
 }
 
 /**
- * Options available to {@link creationWizard}.
+ * Provides information about the plugin.
  */
-type CreateOptions = {
+type PluginInfo = {
 	/**
 	 * Author of the plugin; this can be a user, or an organization.
 	 */
@@ -213,11 +221,6 @@ type CreateOptions = {
 	 * General description of what the plugin does.
 	 */
 	description: string;
-
-	/**
-	 * Destination where the plugin is being created.
-	 */
-	destination: string;
 
 	/**
 	 * Name of the plugin; this is displayed to user's in the Marketplace, and is used to easily identify the plugin.

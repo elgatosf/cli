@@ -92,24 +92,40 @@ export class Feedback {
 	};
 
 	/**
+	 * Exits the process.
+	 * @param code Optional exit code.
+	 */
+	public exit(code?: number): never {
+		process.exit(code);
+	}
+
+	/**
 	 * Display the {@link message} as an informational message, and stops any current interactive feedback (spinners).
 	 * @param message Optional text to display.
+	 * @returns This instance for chaining.
 	 */
-	public info = (message: string = this.message): void => {
-		this.stop({ symbol: logSymbols.info, text: message });
+	public info = (message: string = this.message): this => {
+		return this.stop({ symbol: logSymbols.info, text: message });
 	};
 
 	/**
 	 * Logs the specified {@link message} to the console.
 	 * @param message Message to write.
+	 * @returns This instance for chaining.
 	 */
-	public log = (message: string): void => {
+	public log = (message?: string): this => {
 		if (this.isSpinning) {
 			process.stdout.cursorTo(0);
 			process.stdout.clearLine(1);
 		}
 
-		console.log(message);
+		if (message === undefined) {
+			console.log();
+		} else {
+			console.log(message);
+		}
+
+		return this;
 	};
 
 	/**
@@ -138,16 +154,18 @@ export class Feedback {
 	/**
 	 * Display the {@link message} as a warning message, and stops any current interactive feedback (spinners).
 	 * @param message Optional text to display.
+	 * @returns This instance for chaining.
 	 */
-	public warn = (message: string = this.message): void => {
-		this.stop({ symbol: logSymbols.warning, text: message });
+	public warn = (message: string = this.message): this => {
+		return this.stop({ symbol: logSymbols.warning, text: message });
 	};
 
 	/**
 	 * Stops the spinner, and displays the feedback message.
 	 * @param message Message to display.
+	 * @returns This instance for chaining.
 	 */
-	private stop(message: Message): void {
+	private stop(message: Message): this {
 		if (this.timerId) {
 			clearInterval(this.timerId);
 			this.timerId = undefined;
@@ -158,6 +176,8 @@ export class Feedback {
 		} else {
 			console.log(`${this.indent}${message.symbol} ${message.text}`);
 		}
+
+		return this;
 	}
 }
 
@@ -176,8 +196,8 @@ export class QuietFeedback extends Feedback {
 			/* do nothing */
 		};
 
-		this.info = noop;
-		this.log = noop;
+		this.info = (): this => this;
+		this.log = (): this => this;
 		this.spin = noop;
 		this.success = noop;
 	}

@@ -1,8 +1,7 @@
 import { program } from "commander";
 
-import { link, restart, setDeveloperMode, stop } from "./commands";
-import { creationWizard } from "./commands/create.js";
-import { configureEnv } from "./env.js";
+import { create, link, restart, setDeveloperMode, stop } from "./commands";
+import { configureEnv } from "./env";
 
 configureEnv();
 
@@ -10,7 +9,7 @@ program
 	.command("create")
 	.alias("c")
 	.description("Wizard that guides you through setting up a Stream Deck plugin.")
-	.action(() => creationWizard());
+	.action(() => create());
 
 program
 	.command("dev")

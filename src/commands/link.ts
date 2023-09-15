@@ -17,7 +17,7 @@ export const link = command<LinkOptions>(
 			return feedback
 				.error("Linking failed")
 				.log(`Directory not found: ${basename(options.path)}`)
-				.exit();
+				.exit(1);
 		}
 
 		// Validate the directory name is the correct format.
@@ -30,7 +30,7 @@ export const link = command<LinkOptions>(
 					'Name should represent a reverse DNS format and have a suffix of ".sdPlugin". Name must only contain lowercase alphanumeric characters (a-z, 0-9), hyphens (-), underscores (_), and periods (.).'
 				)
 				.log(`Examples: ${chalk.green("com.elgato.wave-link.sdPlugin")}, ${chalk.green("tv.twitch.studio.sdPlugin")}`)
-				.exit();
+				.exit(1);
 		}
 
 		// Check if there is a conflict with an already installed plugin.
@@ -43,7 +43,7 @@ export const link = command<LinkOptions>(
 					.error("Linking failed")
 					.log(`Plugin already installed: ${uuid}`)
 					.log(`Another plugin with this identifier is already installed. Please uninstall the plugin, or rename the directory being linked, and try again.`)
-					.exit();
+					.exit(1);
 			}
 		}
 

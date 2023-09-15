@@ -20,7 +20,7 @@ export const restart = command<RestartOptions>(async ({ uuid }, feedback) => {
 	// When Stream Deck isn't running, start it.
 	if (!(await isStreamDeckRunning())) {
 		await run(appPath, [], { detached: true });
-		return feedback.info("Stream Deck is not running. Starting Stream Deck.");
+		return feedback.info("Stream Deck is not running. Starting Stream Deck.").exit();
 	}
 
 	// Restart the plugin.
