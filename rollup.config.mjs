@@ -19,8 +19,8 @@ prepareOutDir(tsConfig.compilerOptions.outDir);
 const config = {
 	input: "src/index.ts",
 	output: {
-		file: path.join(tsConfig.compilerOptions.outDir, "index.js"),
-		format: "esm",
+		banner: "#!/usr/bin/env node",
+		file: path.join(tsConfig.compilerOptions.outDir, "streamdeck.mjs"),
 		sourcemap: isWatching,
 		sourcemapPathTransform: (relativeSourcePath, sourcemapPath) => {
 			return url.pathToFileURL(path.resolve(path.dirname(sourcemapPath), relativeSourcePath)).href;
@@ -33,7 +33,9 @@ const config = {
 			mapRoot: isWatching ? "./" : undefined
 		}),
 		json(),
-		commonjs(),
+		commonjs({
+			sourceMap: false
+		}),
 		nodeResolve({
 			browser: false,
 			exportConditions: ["node"],
