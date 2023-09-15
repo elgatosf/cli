@@ -32,7 +32,9 @@ const config = {
 			inlineSources: isWatching,
 			mapRoot: isWatching ? "./" : undefined
 		}),
-		commonjs(),
+		commonjs({
+			sourceMap: false
+		}),
 		nodeResolve({
 			browser: false,
 			exportConditions: ["node"],

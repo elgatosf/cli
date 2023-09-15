@@ -1,7 +1,8 @@
 {
 	"extends": "@tsconfig/node20/tsconfig.json",
 	"compilerOptions": {
-		"moduleResolution": "Node",
+		"module": "ESNext",
+		"moduleResolution": "Bundler",
 		"outDir": "<%- uuid %>.sdPlugin/bin"
 	},
 	"include": [
