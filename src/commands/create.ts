@@ -9,6 +9,7 @@ import { Feedback, spin } from "../common/feedback";
 import { createCopier } from "../common/file-copier";
 import { invalidCharacters, isSafeBaseName } from "../common/path";
 import { run } from "../common/runner";
+import { getConfig } from "../config";
 import { generatePluginId, isValidPluginId } from "../stream-deck";
 import { setDeveloperMode } from "./dev";
 import { link } from "./link";
@@ -175,12 +176,13 @@ async function isPluginInfoCorrect(feedback: Feedback): Promise<boolean> {
  * @param pluginInfo Information about the plugin.
  */
 function renderTemplate(destination: string, pluginInfo: PluginInfo): void {
+	const config = getConfig();
 	const template = createCopier({
 		dest: destination,
 		source: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../template"),
 		data: {
 			...pluginInfo,
-			streamDeckPackage: process.env.STREAMDECK_PACKAGE || "^0.1.0-beta.0"
+			streamDeckPackage: config.create.mode === "dev" && config.dev.streamDeck ? config.dev.streamDeck : config.create.streamDeck
 		}
 	});
 

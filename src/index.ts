@@ -1,14 +1,37 @@
 import { program } from "commander";
 
-import { create, link, restart, setDeveloperMode, stop } from "./commands";
-import { configureEnv } from "./env";
-
-configureEnv();
+import { config, create, link, restart, setDeveloperMode, stop } from "./commands";
 
 program
 	.command("create")
 	.description("Wizard that guides you through setting up a Stream Deck plugin.")
 	.action(() => create());
+
+const configCommand = program.command("config").description("Manage local configuration.");
+
+configCommand
+	.command("set")
+	.description("Sets each of the configuration keys to their provided value.")
+	.argument("<key>=<value>")
+	.argument("[<key>=<value>...]")
+	.action((entry: string, entries: string[]) => config.set({ entry, entries }));
+
+configCommand
+	.command("unset")
+	.description("Resets each of the configuration keys to their default values.")
+	.argument("<key>")
+	.argument("[<key>...]")
+	.action((key: string, keys: string[]) => config.unset({ key, keys: keys }));
+
+configCommand
+	.command("list")
+	.description("Lists all configuration.")
+	.action(() => config.list());
+
+configCommand
+	.command("reset")
+	.description("Resets all configuration.")
+	.action(() => config.reset());
 
 program
 	.command("dev")
