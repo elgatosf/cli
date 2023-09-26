@@ -10,7 +10,7 @@ import { createCopier } from "../common/file-copier";
 import { invalidCharacters, isSafeBaseName } from "../common/path";
 import { run } from "../common/runner";
 import { getConfig } from "../config";
-import { generatePluginId, isValidPluginId } from "../stream-deck";
+import { generatePluginId, getPlugins, isValidPluginId } from "../stream-deck";
 import { setDeveloperMode } from "./dev";
 import { link } from "./link";
 
@@ -23,15 +23,15 @@ export const create = command(async (options, feedback) => {
 	// Show the welcome, and gather all of the required input from the user.
 	showWelcome(feedback);
 	const pluginInfo = await promptForPluginInfo();
-	let destination = await getDestination(pluginInfo.uuid.split(".")[2] || "", feedback);
+	const destination = await validateDestination(pluginInfo.uuid.split(".")[2] || "", feedback);
 
 	// Prompt the user to confirm the information.
 	if (!(await isPluginInfoCorrect(feedback))) {
 		return feedback.info("Aborted").exit();
 	}
 
-	// One final check of the destination before beginning - this ensures it wasn't created whilst waiting for confirmation.
-	destination = await getDestination(path.basename(destination), feedback);
+	// Run final pre-checks.
+	validateFinalPreChecks(pluginInfo, destination, feedback);
 
 	// Begin.
 	feedback.log();
@@ -99,8 +99,17 @@ async function promptForPluginInfo(): Promise<PluginInfo> {
 			name: "uuid",
 			message: "Plugin UUID:",
 			default: ({ author, name }: PluginInfo): string | undefined => generatePluginId(author, name),
-			validate: (uuid: string): boolean | string =>
-				isValidPluginId(uuid) ? true : "UUID can only contain lowercase alphanumeric characters (a-z, 0-9), hyphens (-), underscores (_), or periods (.).",
+			validate: (uuid: string): boolean | string => {
+				if (!isValidPluginId(uuid)) {
+					return "UUID can only contain lowercase alphanumeric characters (a-z, 0-9), hyphens (-), underscores (_), or periods (.).";
+				}
+
+				if (getPlugins().some((p) => p.uuid === uuid)) {
+					return "Another plugin with this UUID is already installed.";
+				}
+
+				return true;
+			},
 			type: "input"
 		},
 		{
@@ -112,12 +121,12 @@ async function promptForPluginInfo(): Promise<PluginInfo> {
 }
 
 /**
- * Gets the destination where the plugin will be generated.
+ * Validates the destination where the plugin will be generated.
  * @param dirName The default name of the directory.
  * @param feedback Feedback handler.
  * @returns The destination, as a full path.
  */
-async function getDestination(dirName: string, feedback: Feedback): Promise<string> {
+async function validateDestination(dirName: string, feedback: Feedback): Promise<string> {
 	// Validate the default directory name; when invalid, prompt for another.
 	const validation = validate(dirName);
 	if (validation !== true) {
@@ -150,6 +159,24 @@ async function getDestination(dirName: string, feedback: Feedback): Promise<stri
 		}
 
 		return true;
+	}
+}
+
+/**
+ * Validates the final pre-checks prior to a plugin being scaffolded.
+ * @param param0 The plugin information.
+ * @param param0.uuid Unique identifier that identifies the plugin.
+ * @param destination Destination where the plugin will be scaffolded.
+ * @param feedback Feedback handler.
+ * @returns Returns when the pre-checks pass validation.
+ */
+function validateFinalPreChecks({ uuid }: PluginInfo, destination: string, feedback: Feedback): never | void {
+	if (getPlugins().some((p) => p.uuid === uuid)) {
+		return feedback.error(`Another plugin with the UUID ${chalk.yellow(uuid)} is already installed.`).exit(1);
+	}
+
+	if (fs.existsSync(destination)) {
+		return feedback.error(`Directory ${chalk.yellow(destination)} already exists.`).exit(1);
 	}
 }
 

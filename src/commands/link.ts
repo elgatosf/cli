@@ -42,7 +42,7 @@ export const link = command<LinkOptions>(
 				return feedback
 					.error("Linking failed")
 					.log(`Plugin already installed: ${uuid}`)
-					.log(`Another plugin with this identifier is already installed. Please uninstall the plugin, or rename the directory being linked, and try again.`)
+					.log(`Another plugin with this UUID is already installed. Please uninstall the plugin, or rename the directory being linked, and try again.`)
 					.exit(1);
 			}
 		}
