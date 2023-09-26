@@ -90,9 +90,9 @@ export function updateConfig(updater: (config: object, defaultConfig: Config) =>
 export function getFilePath(): string {
 	if (platform() === "win32") {
 		const appData = process.env.APPDATA ?? join(homedir(), "AppData/Roaming");
-		return join(appData, "Elgato/CLI/config.json");
+		return join(appData, "Elgato/MakerCLI/config.json");
 	} else {
-		throw new Error("todo: add macOS support for getConfigFilePath");
+		return join(homedir(), ".config/com.elgato/maker-cli/config.json");
 	}
 }
 
