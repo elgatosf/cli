@@ -1,4 +1,6 @@
 /* eslint-disable jsdoc/check-param-names */
+import _ from "lodash";
+
 import { Feedback, QuietFeedback } from "./feedback";
 
 // eslint-disable-next-line jsdoc/require-param
@@ -13,12 +15,7 @@ export function command<T = void>(
 	...[defaultOptions]: OptionalWhenEmpty<PickOptional<T>, never, Required<PickOptional<T>>>
 ): (...[options]: OptionalWhenEmpty<PickRequired<T>, GlobalOptions & T>) => void {
 	return async (...[options]: OptionalWhenEmpty<PickRequired<T>, GlobalOptions & T>) => {
-		const opts = {
-			...{ quiet: false },
-			...(defaultOptions as Required<PickOptional<T>>),
-			...(options as GlobalOptions & PickRequired<T>)
-		};
-
+		const opts = _.merge({ quiet: false }, defaultOptions as Required<PickOptional<T>>, options as GlobalOptions & PickRequired<T>);
 		const feedback = opts.quiet ? new QuietFeedback() : new Feedback();
 
 		try {

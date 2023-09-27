@@ -13,6 +13,7 @@ export const link = command<LinkOptions>(
 		feedback.spin("Linking plugin");
 
 		// Validate the path is a directory that exists.
+		options.path = resolve(options.path);
 		if (lstatSync(options.path, { throwIfNoEntry: false })?.isDirectory() !== true) {
 			return feedback
 				.error("Linking failed")

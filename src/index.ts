@@ -41,8 +41,9 @@ program
 
 program
 	.command("link")
+	.argument("[path]", "Path of the plugin to link.")
 	.description("Creates a symbolic-link to the current working directory, installing it to the Stream Deck as a plugin.")
-	.action(() => link());
+	.action((path) => link({ path }));
 
 program
 	.command("restart")
