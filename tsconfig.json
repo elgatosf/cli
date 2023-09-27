@@ -2,8 +2,7 @@
 	"extends": "@tsconfig/node20/tsconfig.json",
 	"compilerOptions": {
 		"module": "ESNext",
-		"moduleResolution": "Node",
-		"outDir": "bin/"
+		"moduleResolution": "Node"
 	},
 	"include": [
 		"src",
