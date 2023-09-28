@@ -7,20 +7,20 @@ import logSymbols from "log-symbols";
 const SPIN_SYMBOLS = ["|", "/", "-", "\\"];
 
 /**
- * Creates a new, or retrieves the active, {@link ConsoleStdOut}.
+ * Creates a new {@link ConsoleStdOut}.
  * @returns The {@link ConsoleStdOut}.
  */
-export function createStdOut(): StdOut {
+export function createConsole(): StdOut {
 	return new ConsoleStdOut({
 		level: MessageLevel.LOG
 	});
 }
 
 /**
- * Creates a {@link ConsoleStdOut} that is only capable of outputting important messages.
+ * Creates a new {@link ConsoleStdOut} that is only capable of outputting important messages.
  * @returns The {@link ConsoleStdOut}.
  */
-export function createQuietStdOut(): StdOut {
+export function createQuietConsole(): StdOut {
 	return new ConsoleStdOut({
 		level: MessageLevel.WARN
 	});

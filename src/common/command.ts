@@ -1,7 +1,7 @@
 /* eslint-disable jsdoc/check-param-names */
 import _ from "lodash";
 
-import { createQuietStdOut, createStdOut, StdOut } from "./stdout";
+import { createConsole, createQuietConsole, StdOut } from "./stdout";
 
 // eslint-disable-next-line jsdoc/require-param
 /**
@@ -16,7 +16,7 @@ export function command<T = void>(
 ): (...[options]: OptionalWhenEmpty<PickRequired<T>, GlobalOptions & T>) => void {
 	return async (...[options]: OptionalWhenEmpty<PickRequired<T>, GlobalOptions & T>) => {
 		const opts = _.merge({ quiet: false }, defaultOptions as Required<PickOptional<T>>, options as GlobalOptions & PickRequired<T>);
-		const output = opts.quiet ? createQuietStdOut() : createStdOut();
+		const output = opts.quiet ? createQuietConsole() : createConsole();
 
 		try {
 			await fn(opts, output);
