@@ -237,7 +237,7 @@ class ConsoleStdOut {
 		if (this.options.reduceMotion) {
 			write("-");
 		} else {
-			this.timerId = setInterval(() => write(`${SPIN_SYMBOLS[++this.index % SPIN_SYMBOLS.length]} ${message}`), 150);
+			this.timerId = setInterval(() => write(SPIN_SYMBOLS[++this.index % SPIN_SYMBOLS.length]), 150);
 		}
 
 		this._isLoading = true;
