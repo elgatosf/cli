@@ -3,7 +3,7 @@ import { existsSync, rmSync } from "fs";
 import _ from "lodash";
 
 import { command } from "../common/command";
-import { getFilePath, getLocalConfig, updateConfig } from "../config";
+import { defaultConfig, getFilePath, getLocalConfig, updateConfig } from "../config";
 
 /**
  * Lists the configuration.
@@ -64,9 +64,10 @@ export const set = command<SetOptions>((options, output) => {
 		[options.entry].concat(options.entries).forEach((entry) => {
 			const [path, value] = entry.split("=");
 
-			// Only update values that aren't objects.
-			if (typeof _.get(defaultConfig, path) !== "object") {
-				_.set(config, path, value);
+			if (value === undefined) {
+				output.warn(`Ignoring undefined value for key ${chalk.yellow(path)}`);
+			} else if (typeof _.get(defaultConfig, path) !== "object") {
+				_.set(config, path, cast(value, path));
 				changed = true;
 			} else {
 				output.warn(`Ignoring invalid key ${chalk.yellow(path)}`);
@@ -101,6 +102,20 @@ export const unset = command<UnsetOptions>((options, output) => {
 		output.success("Updated configuration");
 	}
 });
+
+/**
+ * Attempts cast the specified {@link value} to the correct type. **NB.** only `boolean` are supported as custom types.
+ * @param value The value.
+ * @param path Path the {@link value} represents.
+ * @returns Casted value.
+ */
+function cast(value: string, path: string): unknown {
+	if (typeof _.get(defaultConfig, path) === "boolean") {
+		return value.toLowerCase() === "true" || value === "1";
+	} else {
+		return value;
+	}
+}
 
 /**
  * Options available to {@link unset}.

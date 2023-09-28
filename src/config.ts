@@ -10,14 +10,18 @@ import { DeepPartial } from "./utils";
 
 let __config: Config | undefined = undefined;
 
-const DEFAULT_CONFIG: Config = Object.freeze({
+/**
+ * Default configuration.
+ */
+export const defaultConfig: Config = Object.freeze({
 	create: {
-		mode: "npm",
+		mode: "npm" as const,
 		streamDeck: "0.1.0-beta.1"
 	},
 	dev: {
 		streamDeck: undefined
-	}
+	},
+	reduceMotion: false
 });
 
 /**
@@ -25,7 +29,7 @@ const DEFAULT_CONFIG: Config = Object.freeze({
  * @returns The configuration.
  */
 export function getConfig(): Config {
-	return __config || (__config = _.merge({}, DEFAULT_CONFIG, getLocalConfig() || {}));
+	return __config || (__config = _.merge({}, defaultConfig, getLocalConfig() || {}));
 }
 
 /**
@@ -65,7 +69,7 @@ export function updateConfig(updater: (config: object, defaultConfig: Config) =>
 	const localConfig = getLocalConfig() || {};
 
 	// Invoke the updater.
-	updater(localConfig, DEFAULT_CONFIG);
+	updater(localConfig, defaultConfig);
 	validate(localConfig);
 
 	// Write the local configuration.
@@ -77,9 +81,9 @@ export function updateConfig(updater: (config: object, defaultConfig: Config) =>
 
 	// Update the in-memory configuration.
 	if (__config === undefined) {
-		__config = _.merge({}, DEFAULT_CONFIG, localConfig || {});
+		__config = _.merge({}, defaultConfig, localConfig || {});
 	} else {
-		_.merge(__config, DEFAULT_CONFIG, localConfig);
+		_.merge(__config, defaultConfig, localConfig);
 	}
 }
 
@@ -111,7 +115,7 @@ function exitWithError(message: string, errors?: string[]): never {
 
 	console.log();
 	console.log(`Run ${chalk.blue("streamdeck config clear")} to reset configuration, or repair the configuration file manually.`);
-	console.log(`${getFilePath()}.`);
+	console.log(getFilePath());
 
 	process.exit(1);
 }
@@ -137,6 +141,9 @@ const validateSchema = new Ajv({ allErrors: true }).compile({
 					type: "string"
 				}
 			}
+		},
+		reduceMotion: {
+			type: "boolean"
 		}
 	}
 } satisfies JTDSchemaType<DeepPartial<Config>>);
@@ -187,4 +194,9 @@ export type Config = {
 		 */
 		streamDeck?: string;
 	};
+
+	/**
+	 * Determines whether the standard output stream should display non-essential motion, e.g. spinning bars.
+	 */
+	reduceMotion: boolean;
 };

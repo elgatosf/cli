@@ -8,11 +8,13 @@ const SPIN_SYMBOLS = ["|", "/", "-", "\\"];
 
 /**
  * Creates a new {@link ConsoleStdOut}.
+ * @param reduceMotion Determines whether the standard output stream should display non-essential motion, e.g. spinning bars.
  * @returns The {@link ConsoleStdOut}.
  */
-export function createConsole(): StdOut {
+export function createConsole(reduceMotion: boolean): StdOut {
 	return new ConsoleStdOut({
-		level: MessageLevel.LOG
+		level: MessageLevel.LOG,
+		reduceMotion
 	});
 }
 
@@ -22,7 +24,8 @@ export function createConsole(): StdOut {
  */
 export function createQuietConsole(): StdOut {
 	return new ConsoleStdOut({
-		level: MessageLevel.WARN
+		level: MessageLevel.WARN,
+		reduceMotion: true
 	});
 }
 
@@ -34,6 +37,11 @@ type ConsoleStdOutOptions = {
 	 * The minimum {@link MessageLevel} to write.
 	 */
 	level: MessageLevel;
+
+	/**
+	 * Determines whether the standard output stream should display non-essential motion, e.g. spinning bars.
+	 */
+	reduceMotion: boolean;
 };
 
 /**
@@ -45,6 +53,11 @@ export type StdOut = ConsoleStdOut;
  * Provides interactive console writer that writes to the stdout, including a spinner and status results.
  */
 class ConsoleStdOut {
+	/**
+	 * Private backing field for {@link ConsoleStdOut.isLoading}.
+	 */
+	private _isLoading = false;
+
 	/**
 	 * Current symbol index.
 	 */
@@ -67,11 +80,11 @@ class ConsoleStdOut {
 	constructor(private readonly options: ConsoleStdOutOptions) {}
 
 	/**
-	 * Gets a value that determines whether the feedback is actively spinning ({@link ConsoleStdOut.spin}).
+	 * Gets a value that determines whether there is active loading-feedback, e.g. spinning ({@link ConsoleStdOut.spin}) due to a task running.
 	 * @returns `true` when the feedback is spinning; otherwise `false`.
 	 */
-	public get isSpinning(): boolean {
-		return this.timerId !== undefined;
+	public get isLoading(): boolean {
+		return this._isLoading;
 	}
 
 	/**
@@ -111,7 +124,8 @@ class ConsoleStdOut {
 			return this;
 		}
 
-		if (this.isSpinning) {
+		// When interactive, the loading message should always be the last message.
+		if (this.isLoading) {
 			process.stdout.cursorTo(0);
 			process.stdout.clearLine(1);
 		}
@@ -120,6 +134,11 @@ class ConsoleStdOut {
 			console.log();
 		} else {
 			console.log(message);
+		}
+
+		// When loading, we must check if we can rely on the timer to re-write the message. When reduce motion is active, re-write the message ourselves.
+		if (this.isLoading && this.options.reduceMotion) {
+			process.stdout.write(`- ${this.message}`);
 		}
 
 		return this;
@@ -147,7 +166,7 @@ class ConsoleStdOut {
 		this.message = message;
 
 		// Confirm we can spin.
-		if (this.options.level < MessageLevel.LOG || this.isSpinning) {
+		if (this.options.level < MessageLevel.LOG || (this.isLoading && !this.options.reduceMotion)) {
 			return;
 		}
 
@@ -159,12 +178,12 @@ class ConsoleStdOut {
 				this.startSpinner(message);
 				await task(this);
 
-				if (this.isSpinning) {
-					this.success(message);
+				if (this.isLoading) {
+					this.success();
 				}
 			} catch (err) {
-				if (this.isSpinning) {
-					this.error(message);
+				if (this.isLoading) {
+					this.error();
 				}
 
 				throw err;
@@ -215,11 +234,23 @@ class ConsoleStdOut {
 	 * @param message Message associated with the spinner
 	 */
 	private startSpinner(message: string): void {
-		this.timerId = setInterval(() => {
+		if (this.options.reduceMotion) {
+			write("-");
+		} else {
+			this.timerId = setInterval(() => write(`${SPIN_SYMBOLS[++this.index % SPIN_SYMBOLS.length]} ${message}`), 150);
+		}
+
+		this._isLoading = true;
+
+		/**
+		 * Writes the message to the output.
+		 * @param symbol Symbol to write.
+		 */
+		function write(symbol: string): void {
 			process.stdout.clearLine(1); // Prevent flickering
 			process.stdout.cursorTo(0);
-			process.stdout.write(`${SPIN_SYMBOLS[++this.index % SPIN_SYMBOLS.length]} ${message}`);
-		}, 150);
+			process.stdout.write(`${symbol} ${message}`);
+		}
 	}
 
 	/**
@@ -230,14 +261,17 @@ class ConsoleStdOut {
 	 * @returns This instance for chaining.
 	 */
 	private stopAndWrite({ level, text }: Message): this {
-		if (this.timerId) {
-			clearInterval(this.timerId);
-			this.timerId = undefined;
+		if (this._isLoading) {
+			if (this.timerId) {
+				clearInterval(this.timerId);
+				this.timerId = undefined;
+			}
 
 			process.stdout.cursorTo(0);
 			process.stdout.clearLine(1);
 		}
 
+		this._isLoading = false;
 		if (level <= this.options.level) {
 			console.log(`${this.getSymbol(level)} ${text}`);
 		}
