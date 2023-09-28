@@ -38,7 +38,8 @@ export const link = command<LinkOptions>(
 		const existing = getPlugins().find((p) => p.uuid === uuid);
 		if (existing) {
 			if (existing.sourcePath !== null && resolve(existing.sourcePath) === resolve(options.path)) {
-				return feedback.success("Linked successfully");
+				feedback.success("Linked successfully");
+				return;
 			} else {
 				return feedback
 					.error("Linking failed")
@@ -49,7 +50,7 @@ export const link = command<LinkOptions>(
 		}
 
 		symlinkSync(resolve(options.path), resolve(getPluginsPath(), basename(options.path)), "junction");
-		return feedback.success("Linked successfully");
+		feedback.success("Linked successfully");
 	},
 	{
 		path: process.cwd()

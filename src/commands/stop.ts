@@ -7,22 +7,22 @@ import { getStreamDeckPath, isPluginInstalled, isStreamDeckRunning } from "../st
 /**
  * Stops the first plugin that matches the given {@link StopOptions.uuid}.
  */
-export const stop = command<StopOptions>(async ({ uuid }, feedback) => {
-	feedback.spin(`Stopping ${uuid}`);
+export const stop = command<StopOptions>(async ({ uuid }, output) => {
+	output.spin(`Stopping ${uuid}`);
 
 	// Check we have a plugin installed that matches the uuid.
 	if (!isPluginInstalled(uuid)) {
-		return feedback.error("Stopping failed").log(`Plugin not found: ${uuid}`).exit(1);
+		return output.error("Stopping failed").log(`Plugin not found: ${uuid}`).exit(1);
 	}
 
 	// When Stream Deck isn't running, warn the user.
 	if (!(await isStreamDeckRunning())) {
-		return feedback.info("Stream Deck is not running.").exit();
+		return output.info("Stream Deck is not running.").exit();
 	}
 
 	// Stop the plugin.
 	await run(`"${getStreamDeckPath()}"`, ["-s", uuid]);
-	feedback.success(`Stopped ${chalk.green(uuid)}`);
+	output.success(`Stopped ${chalk.green(uuid)}`);
 });
 
 /**

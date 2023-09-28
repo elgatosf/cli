@@ -8,7 +8,7 @@ import { getFilePath, getLocalConfig, updateConfig } from "../config";
 /**
  * Lists the configuration.
  */
-export const list = command((options, feedback) => {
+export const list = command((options, output) => {
 	const format = (value: unknown): string => {
 		switch (typeof value) {
 			case "boolean":
@@ -26,18 +26,18 @@ export const list = command((options, feedback) => {
 	const log = (value: unknown, key = "", indent = -2): void => {
 		if (value instanceof Object) {
 			if (key !== "") {
-				feedback.log(`${" ".repeat(indent)}${key}:`);
+				output.log(`${" ".repeat(indent)}${key}:`);
 			}
 
 			Object.entries(value).forEach(([key, value]) => log(value, key, indent + 2));
 		} else {
-			feedback.log(`${" ".repeat(indent)}${key}: ${format(value)}`);
+			output.log(`${" ".repeat(indent)}${key}: ${format(value)}`);
 		}
 	};
 
 	const config = getLocalConfig();
 	if (config === undefined) {
-		feedback.info("No local configuration found.");
+		output.info("No local configuration found.");
 	} else {
 		log(config);
 	}
@@ -46,19 +46,19 @@ export const list = command((options, feedback) => {
 /**
  * Resets the local configuration.
  */
-export const reset = command((options, feedback) => {
+export const reset = command((options, output) => {
 	const filePath = getFilePath();
 	if (existsSync(filePath)) {
 		rmSync(filePath);
 	}
 
-	feedback.success("Configuration cleared");
+	output.success("Configuration cleared");
 });
 
 /**
  * Sets the configuration for the collection of entries.
  */
-export const set = command<SetOptions>((options, feedback) => {
+export const set = command<SetOptions>((options, output) => {
 	let changed = false;
 	updateConfig((config, defaultConfig) => {
 		[options.entry].concat(options.entries).forEach((entry) => {
@@ -69,7 +69,7 @@ export const set = command<SetOptions>((options, feedback) => {
 				_.set(config, path, value);
 				changed = true;
 			} else {
-				feedback.warn(`Ignoring invalid key ${chalk.yellow(path)}`);
+				output.warn(`Ignoring invalid key ${chalk.yellow(path)}`);
 			}
 		});
 
@@ -77,14 +77,14 @@ export const set = command<SetOptions>((options, feedback) => {
 	});
 
 	if (changed) {
-		feedback.success("Updated configuration");
+		output.success("Updated configuration");
 	}
 });
 
 /**
  * Un-sets the configuration entries for the specified keys, resetting to their default values.
  */
-export const unset = command<UnsetOptions>((options, feedback) => {
+export const unset = command<UnsetOptions>((options, output) => {
 	let changed = false;
 	updateConfig((config, defaultConfig) => {
 		new Set<string>(options.keys.concat([options.key])).forEach((path) => {
@@ -92,13 +92,13 @@ export const unset = command<UnsetOptions>((options, feedback) => {
 				_.unset(config, path);
 				changed = true;
 			} else {
-				feedback.warn(`Ignoring invalid key ${chalk.yellow(path)}`);
+				output.warn(`Ignoring invalid key ${chalk.yellow(path)}`);
 			}
 		});
 	});
 
 	if (changed) {
-		feedback.success("Updated configuration");
+		output.success("Updated configuration");
 	}
 });
 

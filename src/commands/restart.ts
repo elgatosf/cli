@@ -7,12 +7,12 @@ import { getStreamDeckPath, isPluginInstalled, isStreamDeckRunning } from "../st
 /**
  * Restarts the first plugin that matches the given {@link RestartOptions.uuid}.
  */
-export const restart = command<RestartOptions>(async ({ uuid }, feedback) => {
-	feedback.spin(`Restarting ${uuid}`);
+export const restart = command<RestartOptions>(async ({ uuid }, output) => {
+	output.spin(`Restarting ${uuid}`);
 
 	// Check we have a plugin installed that matches the uuid.
 	if (!isPluginInstalled(uuid)) {
-		return feedback.error("Restarting failed").log(`Plugin not found: ${uuid}`).exit(1);
+		return output.error("Restarting failed").log(`Plugin not found: ${uuid}`).exit(1);
 	}
 
 	const appPath = `"${getStreamDeckPath()}"`;
@@ -20,12 +20,12 @@ export const restart = command<RestartOptions>(async ({ uuid }, feedback) => {
 	// When Stream Deck isn't running, start it.
 	if (!(await isStreamDeckRunning())) {
 		await run(appPath, [], { detached: true });
-		return feedback.info("Stream Deck is not running. Starting Stream Deck.").exit();
+		return output.info("Stream Deck is not running. Starting Stream Deck.").exit();
 	}
 
 	// Restart the plugin.
 	await run(appPath, ["-r", uuid]);
-	feedback.success(`Restarted ${chalk.green(uuid)}`);
+	output.success(`Restarted ${chalk.green(uuid)}`);
 });
 
 /**

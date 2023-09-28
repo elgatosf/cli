@@ -8,8 +8,8 @@ import { command } from "../common/command";
  * Sets developer mode, enabling / disabling the local development of Stream Deck plugins.
  */
 export const setDeveloperMode = command<DeveloperModeOptions>(
-	async (options, feedback) => {
-		feedback.spin(`${options.disable ? "Disabling" : "Enabling"} developer mode`);
+	async (options, output) => {
+		output.spin(`${options.disable ? "Disabling" : "Enabling"} developer mode`);
 
 		const flagName = "developer_mode";
 		if (os.platform() === "darwin") {
@@ -18,7 +18,7 @@ export const setDeveloperMode = command<DeveloperModeOptions>(
 			Registry.set("HKEY_CURRENT_USER\\Software\\Elgato Systems GmbH\\StreamDeck", flagName, options.disable ? 0 : 1);
 		}
 
-		feedback.success(`Developer mode ${options.disable ? "disabled" : "enabled"}`);
+		output.success(`Developer mode ${options.disable ? "disabled" : "enabled"}`);
 	},
 	{
 		disable: false

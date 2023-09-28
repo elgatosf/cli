@@ -5,10 +5,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { command } from "../common/command";
-import { Feedback, spin } from "../common/feedback";
 import { createCopier } from "../common/file-copier";
 import { invalidCharacters, isSafeBaseName } from "../common/path";
 import { run } from "../common/runner";
+import { StdOut } from "../common/stdout";
 import { getConfig } from "../config";
 import { generatePluginId, getPlugins, isValidPluginId } from "../stream-deck";
 import { setDeveloperMode } from "./dev";
@@ -19,50 +19,50 @@ const TEMPLATE_PLUGIN_UUID = "com.elgato.template";
 /**
  * Guides the user through a creation wizard, scaffolding a Stream Deck plugin.
  */
-export const create = command(async (options, feedback) => {
+export const create = command(async (options, stdout) => {
 	// Show the welcome, and gather all of the required input from the user.
-	showWelcome(feedback);
+	showWelcome(stdout);
 	const pluginInfo = await promptForPluginInfo();
-	const destination = await validateDestination(pluginInfo.uuid.split(".")[2] || "", feedback);
+	const destination = await validateDestination(pluginInfo.uuid.split(".")[2] || "", stdout);
 
 	// Prompt the user to confirm the information.
-	if (!(await isPluginInfoCorrect(feedback))) {
-		return feedback.info("Aborted").exit();
+	if (!(await isPluginInfoCorrect(stdout))) {
+		return stdout.info("Aborted").exit();
 	}
 
 	// Run final pre-checks.
-	validateFinalPreChecks(pluginInfo, destination, feedback);
+	validateFinalPreChecks(pluginInfo, destination, stdout);
 
 	// Begin.
-	feedback.log();
-	feedback.log(`Creating ${chalk.blue(pluginInfo.name)}...`);
+	stdout.log();
+	stdout.log(`Creating ${chalk.blue(pluginInfo.name)}...`);
 
 	// Enable developer mode, and generate the plugin from the template.
-	await spin("Enabling developer mode", () => setDeveloperMode({ quiet: true }));
-	await spin("Generating plugin", () => renderTemplate(destination, pluginInfo));
+	await stdout.spin("Enabling developer mode", () => setDeveloperMode({ quiet: true }));
+	await stdout.spin("Generating plugin", () => renderTemplate(destination, pluginInfo));
 
 	// Install npm dependencies and build the plugin.
-	await spin("Installing dependencies", () => run("npm", ["i"], { cwd: destination }));
-	await spin("Building plugin", () => run("npm", ["run", "build"], { cwd: destination }));
+	await stdout.spin("Installing dependencies", () => run("npm", ["i"], { cwd: destination }));
+	await stdout.spin("Building plugin", () => run("npm", ["run", "build"], { cwd: destination }));
 
 	// Link the plugin to Stream Deck.
-	await spin("Finalizing setup", () =>
+	await stdout.spin("Finalizing setup", () =>
 		link({
 			path: path.join(destination, `${pluginInfo.uuid}.sdPlugin`),
 			quiet: true
 		})
 	);
 
-	feedback.log().log(chalk.green("Successfully created plugin!"));
-	await tryOpenVSCode(destination);
+	stdout.log().log(chalk.green("Successfully created plugin!"));
+	await tryOpenVSCode(destination, stdout);
 });
 
 /**
  * Shows the welcome message.
- * @param feedback Feedback where the welcome message will be shown.
+ * @param stdout The stream where messages, and termination results, will be output.
  */
-function showWelcome(feedback: Feedback): void {
-	feedback
+function showWelcome(stdout: StdOut): void {
+	stdout
 		.log(" ___ _                        ___         _   ")
 		.log("/ __| |_ _ _ ___ __ _ _ __   |   \\ ___ __| |__")
 		.log("\\__ \\  _| '_/ -_) _` | '  \\  | |) / -_) _| / /")
@@ -70,7 +70,7 @@ function showWelcome(feedback: Feedback): void {
 		.log()
 		.log(`Welcome to the ${chalk.green("Stream Deck Plugin")} creation wizard.`)
 		.log()
-		.log("This utility will walk you through creating a local development environment for a plugin.")
+		.log("This utility will guide you through creating a local development environment for a plugin.")
 		.log(`For more information on building plugins see ${chalk.blue("https://docs.elgato.com")}.`)
 		.log()
 		.log(chalk.grey("Press ^C at any time to quit."))
@@ -123,15 +123,15 @@ async function promptForPluginInfo(): Promise<PluginInfo> {
 /**
  * Validates the destination where the plugin will be generated.
  * @param dirName The default name of the directory.
- * @param feedback Feedback handler.
+ * @param stdout The stream where messages, and termination results, will be output.
  * @returns The destination, as a full path.
  */
-async function validateDestination(dirName: string, feedback: Feedback): Promise<string> {
+async function validateDestination(dirName: string, stdout: StdOut): Promise<string> {
 	// Validate the default directory name; when invalid, prompt for another.
 	const validation = validate(dirName);
 	if (validation !== true) {
-		feedback.log();
-		feedback.log(validation);
+		stdout.log();
+		stdout.log(validation);
 		const { directory } = await inquirer.prompt({
 			name: "directory",
 			message: "Directory:",
@@ -167,26 +167,26 @@ async function validateDestination(dirName: string, feedback: Feedback): Promise
  * @param param0 The plugin information.
  * @param param0.uuid Unique identifier that identifies the plugin.
  * @param destination Destination where the plugin will be scaffolded.
- * @param feedback Feedback handler.
+ * @param stdout The stream where messages, and termination results, will be output.
  * @returns Returns when the pre-checks pass validation.
  */
-function validateFinalPreChecks({ uuid }: PluginInfo, destination: string, feedback: Feedback): never | void {
+function validateFinalPreChecks({ uuid }: PluginInfo, destination: string, stdout: StdOut): never | void {
 	if (getPlugins().some((p) => p.uuid === uuid)) {
-		return feedback.error(`Another plugin with the UUID ${chalk.yellow(uuid)} is already installed.`).exit(1);
+		return stdout.error(`Another plugin with the UUID ${chalk.yellow(uuid)} is already installed.`).exit(1);
 	}
 
 	if (fs.existsSync(destination)) {
-		return feedback.error(`Directory ${chalk.yellow(destination)} already exists.`).exit(1);
+		return stdout.error(`Directory ${chalk.yellow(destination)} already exists.`).exit(1);
 	}
 }
 
 /**
  * Prompts the user to confirm they're happy with the input information.
- * @param feedback Feedback handler.
+ * @param stdout The stream where messages, and termination results, will be output.
  * @returns `true` when the user is happy with the information; otherwise `false`.
  */
-async function isPluginInfoCorrect(feedback: Feedback): Promise<boolean> {
-	feedback.log();
+async function isPluginInfoCorrect(stdout: StdOut): Promise<boolean> {
+	stdout.log();
 	return (
 		await inquirer.prompt({
 			name: "confirm",
@@ -226,14 +226,15 @@ function renderTemplate(destination: string, pluginInfo: PluginInfo): void {
 /**
  * Determines if the user has VS Code installed, and if so, prompts them to open the plugin.
  * @param destination Destination where the plugin was created.
+ * @param stdout The stream where messages, and termination results, will be output.
  */
-async function tryOpenVSCode(destination: string): Promise<void> {
+async function tryOpenVSCode(destination: string, stdout: StdOut): Promise<void> {
 	const paths = process.env.PATH?.split(":") ?? [];
 	if (!paths.some((p) => p.includes("Microsoft VS Code"))) {
 		return;
 	}
 
-	console.log();
+	stdout.log();
 	const vsCode = await inquirer.prompt({
 		name: "confirm",
 		message: "Would you like to open the plugin in VS Code?",
