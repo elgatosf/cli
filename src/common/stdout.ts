@@ -166,8 +166,13 @@ class ConsoleStdOut {
 		this.message = message;
 
 		// Confirm we can spin.
-		if (this.options.level < MessageLevel.LOG || (this.isLoading && !this.options.reduceMotion)) {
+		if (this.options.level < MessageLevel.LOG) {
 			return;
+		}
+
+		// Ensure only a single operation displays live-feedback.
+		if (this.isLoading) {
+			throw new Error("An operation is already occupying the busy indicator.");
 		}
 
 		// Start the spinner; when there is a task, we should wait for it.
