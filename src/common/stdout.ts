@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import isInteractive from "is-interactive";
 import logSymbols from "log-symbols";
 
 /**
@@ -12,9 +13,11 @@ const SPIN_SYMBOLS = ["|", "/", "-", "\\"];
  * @returns The {@link ConsoleStdOut}.
  */
 export function createConsole(reduceMotion: boolean): StdOut {
+	const interactive = isInteractive();
 	return new ConsoleStdOut({
+		interactive,
 		level: MessageLevel.LOG,
-		reduceMotion
+		reduceMotion: reduceMotion || !interactive
 	});
 }
 
@@ -24,6 +27,7 @@ export function createConsole(reduceMotion: boolean): StdOut {
  */
 export function createQuietConsole(): StdOut {
 	return new ConsoleStdOut({
+		interactive: false,
 		level: MessageLevel.WARN,
 		reduceMotion: true
 	});
@@ -33,6 +37,11 @@ export function createQuietConsole(): StdOut {
  * Options associated with a {@link ConsoleStdOut}.
  */
 type ConsoleStdOutOptions = {
+	/**
+	 * Determines whether the standard output stream is interactive.
+	 */
+	interactive: boolean;
+
 	/**
 	 * The minimum {@link MessageLevel} to write.
 	 */
@@ -125,7 +134,7 @@ class ConsoleStdOut {
 		}
 
 		// When interactive, the loading message should always be the last message.
-		if (this.isLoading) {
+		if (this.isLoading && this.options.interactive) {
 			process.stdout.cursorTo(0);
 			process.stdout.clearLine(1);
 		}
@@ -137,7 +146,7 @@ class ConsoleStdOut {
 		}
 
 		// When loading, we must check if we can rely on the timer to re-write the message. When reduce motion is active, re-write the message ourselves.
-		if (this.isLoading && this.options.reduceMotion) {
+		if (this.isLoading && this.options.reduceMotion && this.options.interactive) {
 			process.stdout.write(`- ${this.message}`);
 		}
 
@@ -163,8 +172,6 @@ class ConsoleStdOut {
 	 * @returns A promise fulfilled when the {@link task} completes.
 	 */
 	public async spin(message: string, task?: (writer: ConsoleStdOut) => Promise<number | void> | void): Promise<void> {
-		this.message = message;
-
 		// Confirm we can spin.
 		if (this.options.level < MessageLevel.LOG) {
 			return;
@@ -176,11 +183,12 @@ class ConsoleStdOut {
 		}
 
 		// Start the spinner; when there is a task, we should wait for it.
+		this.message = message;
 		if (task === undefined) {
-			this.startSpinner(message);
+			this.startSpinner();
 		} else {
 			try {
-				this.startSpinner(message);
+				this.startSpinner();
 				await task(this);
 
 				if (this.isLoading) {
@@ -236,26 +244,23 @@ class ConsoleStdOut {
 
 	/**
 	 * Starts the spinner.
-	 * @param message Message associated with the spinner
 	 */
-	private startSpinner(message: string): void {
+	private startSpinner(): void {
+		const write = (symbol: string): void => {
+			process.stdout.clearLine(1); // Prevent flickering
+			process.stdout.cursorTo(0);
+			process.stdout.write(`${symbol} ${this.message}`);
+		};
+
 		if (this.options.reduceMotion) {
 			write("-");
-		} else {
+		} else if (this.options.interactive) {
 			this.timerId = setInterval(() => write(SPIN_SYMBOLS[++this.index % SPIN_SYMBOLS.length]), 150);
+		} else {
+			console.log(`- ${this.message}`);
 		}
 
 		this._isLoading = true;
-
-		/**
-		 * Writes the message to the output.
-		 * @param symbol Symbol to write.
-		 */
-		function write(symbol: string): void {
-			process.stdout.clearLine(1); // Prevent flickering
-			process.stdout.cursorTo(0);
-			process.stdout.write(`${symbol} ${message}`);
-		}
 	}
 
 	/**
@@ -272,8 +277,10 @@ class ConsoleStdOut {
 				this.timerId = undefined;
 			}
 
-			process.stdout.cursorTo(0);
-			process.stdout.clearLine(1);
+			if (this.options.interactive) {
+				process.stdout.cursorTo(0);
+				process.stdout.clearLine(1);
+			}
 		}
 
 		this._isLoading = false;
