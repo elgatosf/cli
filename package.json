@@ -68,18 +68,5 @@
 		"rollup": "^3.29.4",
 		"tslib": "^2.6.2",
 		"typescript": "^5.2.2"
-	},
-	"bundleDependencies": [
-		"ajv",
-		"chalk",
-		"commander",
-		"dotenv",
-		"ejs",
-		"find-process",
-		"inquirer",
-		"is-interactive",
-		"lodash",
-		"log-symbols",
-		"rage-edit"
-	]
+	}
 }
