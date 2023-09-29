@@ -23,18 +23,25 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/elgatosf/node-streamdeck-cli.git"
+		"url": "git+https://github.com/elgatosf/cli.git"
 	},
 	"keywords": [
+		"elgato",
 		"stream-deck",
-		"node",
-		"cli"
+		"plugin",
+		"cli",
+		"marketplace",
+		"maker"
 	],
-	"author": "Elgato",
-	"bugs": {
-		"url": "https://github.com/elgatosf/node-streamdeck-cli/issues"
+	"author": {
+		"name": "Elgato",
+		"url": "https://www.elgato.com"
 	},
-	"homepage": "https://github.com/elgatosf/node-streamdeck-cli#readme",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/elgatosf/cli/issues"
+	},
+	"homepage": "https://github.com/elgatosf/cli#readme",
 	"devDependencies": {
 		"@rollup/plugin-commonjs": "^25.0.4",
 		"@rollup/plugin-json": "^6.0.0",
