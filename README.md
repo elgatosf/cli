@@ -68,7 +68,7 @@ The creation wizard will guide you through creating Stream Deck plugins with our
 #### See Also
 
 - [dev](#%EF%B8%8F-dev)
-- [link](#-stop)
+- [link](#-link)
 
 ## 🔗 link
 
@@ -189,7 +189,7 @@ Resets all configuration keys to their default values.
 streamdeck config list
 ```
 
-Lists the defined configuration, eg. values defined using [set](#set).
+Lists the defined configuration, eg. values defined using [config set](#set).
 
 ### Configuration
 
