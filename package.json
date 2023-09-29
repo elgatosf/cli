@@ -7,7 +7,7 @@
 		"sd": "bin/streamdeck.mjs"
 	},
 	"files": [
-		"bin/**/*.mjs",
+		"bin/streamdeck.mjs",
 		"template"
 	],
 	"type": "module",
@@ -18,7 +18,8 @@
 		"build": "rollup --config rollup.config.ts --configPlugin typescript",
 		"watch": "rollup --config rollup.config.ts --configPlugin typescript --watch",
 		"lint": "eslint . --ext .ts --max-warnings 0",
-		"lint:fix": "prettier --config .prettierrc \"./src/**/*.ts\" --write"
+		"lint:fix": "prettier --config .prettierrc \"./src/**/*.ts\" --write",
+		"preversion": "npm run build && npm run lint"
 	},
 	"repository": {
 		"type": "git",
