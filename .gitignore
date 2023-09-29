@@ -3,6 +3,3 @@ node_modules/
 
 # Build output
 bin/
-
-# Misc
-.env
