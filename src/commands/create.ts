@@ -120,6 +120,7 @@ async function promptForPluginInfo(): Promise<PluginInfo> {
 		{
 			name: "description",
 			message: "Description:",
+			validate: required("Please enter a brief description of what the plugin will do."),
 			type: "input"
 		}
 	]);
