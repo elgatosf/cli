@@ -16,6 +16,11 @@ import { link } from "./link";
 
 const TEMPLATE_PLUGIN_UUID = "com.elgato.template";
 
+// Defines the production dependencies to be used when creating plugins.
+const npm = {
+	streamDeck: "0.1.0-beta.1"
+};
+
 /**
  * Guides the user through a creation wizard, scaffolding a Stream Deck plugin.
  */
@@ -209,7 +214,7 @@ function renderTemplate(destination: string, pluginInfo: PluginInfo): void {
 		source: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../template"),
 		data: {
 			...pluginInfo,
-			streamDeckPackage: config.create.mode === "dev" && config.dev.streamDeck ? config.dev.streamDeck : config.create.streamDeck
+			streamDeckPackage: config.create.mode === "dev" && config.npm.streamDeck ? config.npm.streamDeck : npm.streamDeck
 		}
 	});
 

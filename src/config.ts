@@ -15,10 +15,9 @@ let __config: Config | undefined = undefined;
  */
 export const defaultConfig: Config = Object.freeze({
 	create: {
-		mode: "npm" as const,
-		streamDeck: "0.1.0-beta.1"
+		mode: "prod" as const
 	},
-	dev: {
+	npm: {
 		streamDeck: undefined
 	},
 	reduceMotion: false
@@ -128,14 +127,11 @@ const validateSchema = new Ajv({ allErrors: true }).compile({
 		create: {
 			optionalProperties: {
 				mode: {
-					enum: ["dev", "npm"]
-				},
-				streamDeck: {
-					type: "string"
+					enum: ["dev", "prod"]
 				}
 			}
 		},
-		dev: {
+		npm: {
 			optionalProperties: {
 				streamDeck: {
 					type: "string"
@@ -175,22 +171,17 @@ export type Config = {
 	 */
 	create: {
 		/**
-		 * Preferred dependency method; when `dev`, {@link Config.dev} dependencies are used.
+		 * Defines the creation mode. When `dev`, {@link Config.npm} dependencies are used.
 		 */
-		mode: "dev" | "npm";
-
-		/**
-		 * NPM version of `@elgato/streamdeck` to use when creating a plugin.
-		 */
-		streamDeck: string;
+		mode: "dev" | "prod";
 	};
 
 	/**
-	 * Defines the preferred dependencies to use when developing / debugging.
+	 * Defines the preferred npm dependencies to use when developing.
 	 */
-	dev: {
+	npm: {
 		/**
-		 * Path to the local version of the `@elgato/streamdeck` dependency to be used when developing.
+		 * Local path or npm version of the `@elgato/streamdeck` dependency to be used when developing.
 		 */
 		streamDeck?: string;
 	};

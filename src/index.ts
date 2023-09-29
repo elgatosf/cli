@@ -4,10 +4,36 @@ import { config, create, link, restart, setDeveloperMode, stop } from "./command
 
 program
 	.command("create")
-	.description("Wizard that guides you through setting up a Stream Deck plugin.")
+	.description("Stream Deck plugin creation wizard.")
 	.action(() => create());
 
-const configCommand = program.command("config").description("Manage local configuration.");
+program
+	.command("link")
+	.argument("[path]", "Path of the plugin to link.")
+	.description("Links the plugin to Stream Deck.")
+	.action((path) => link({ path }));
+
+program
+	.command("restart")
+	.alias("r")
+	.description("Starts the plugin in Stream Deck; if the plugin is already running, it is stopped first.")
+	.argument("<uuid>")
+	.action((uuid: string) => restart({ uuid }));
+
+program
+	.command("stop")
+	.alias("s")
+	.description("Stops the plugin in Stream Deck.")
+	.argument("<uuid>")
+	.action((uuid: string) => stop({ uuid }));
+
+program
+	.command("dev")
+	.description("Enables developer mode.")
+	.option("-d|--disable", "Disables developer mode", false)
+	.action(({ disable }) => setDeveloperMode({ disable }));
+
+const configCommand = program.command("config").description("Manage the local configuration.");
 
 configCommand
 	.command("set")
@@ -32,31 +58,5 @@ configCommand
 	.command("reset")
 	.description("Resets all configuration.")
 	.action(() => config.reset());
-
-program
-	.command("dev")
-	.description("Enables / disables local development of Stream Deck plugins.")
-	.option("-d|--disable", "Disables developer mode", false)
-	.action(({ disable }) => setDeveloperMode({ disable }));
-
-program
-	.command("link")
-	.argument("[path]", "Path of the plugin to link.")
-	.description("Creates a symbolic-link to the current working directory, installing it to the Stream Deck as a plugin.")
-	.action((path) => link({ path }));
-
-program
-	.command("restart")
-	.alias("r")
-	.description("Starts the plugin; if the plugin is already running, it is stopped first.")
-	.argument("<uuid>")
-	.action((uuid: string) => restart({ uuid }));
-
-program
-	.command("stop")
-	.alias("s")
-	.description("Stops the plugin.")
-	.argument("<uuid>")
-	.action((uuid: string) => stop({ uuid }));
 
 program.parse();

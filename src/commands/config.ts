@@ -12,7 +12,6 @@ export const list = command((options, output) => {
 	const format = (value: unknown): string => {
 		switch (typeof value) {
 			case "boolean":
-				return chalk.blue(value);
 			case "bigint":
 			case "number":
 				return chalk.yellow(value);
