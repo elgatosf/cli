@@ -1,0 +1,46 @@
+{
+	"Name": <%- JSON.stringify(name) %>,
+	"Version": "0.1.0",
+	"Author": <%- JSON.stringify(author) %>,
+	"Actions": [
+		{
+			"Name": "Counter",
+			"UUID": "<%- uuid %>.increment",
+			"Icon": "imgs/actions/counter/icon",
+			"Tooltip": "Displays a count, which increments by one on press.",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/counter/key",
+					"TitleAlignment": "middle"
+				}
+			]
+		}
+	],
+	"Category": <%- JSON.stringify(name) %>,
+	"CategoryIcon": "imgs/plugin/category-icon",
+	"CodePath": "bin/plugin.js",
+	"Description": <%- JSON.stringify(description) %>,
+	"Icon": "imgs/plugin/marketplace",
+	"SDKVersion": 2,
+	"Software": {
+		"MinimumVersion": "6.3"
+	},
+	"OS": [
+		{
+			"Platform": "mac",
+			"MinimumVersion": "10.15"
+		},
+		{
+			"Platform": "windows",
+			"MinimumVersion": "10"
+		}
+	],
+	"Nodejs": {
+		"Version": "20",
+		"Debug": "enabled"
+	},
+	"UUID": <%- JSON.stringify(uuid) %>
+}

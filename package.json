@@ -1,0 +1,79 @@
+{
+	"name": "@elgato/cli",
+	"version": "0.1.0-beta.0",
+	"description": "The official CLI for building Node.js Stream Deck plugins.",
+	"bin": {
+		"streamdeck": "bin/streamdeck.mjs",
+		"sd": "bin/streamdeck.mjs"
+	},
+	"files": [
+		"bin/streamdeck.mjs",
+		"template"
+	],
+	"type": "module",
+	"engines": {
+		"node": "^20.1.0"
+	},
+	"scripts": {
+		"build": "rollup --config rollup.config.ts --configPlugin typescript",
+		"watch": "rollup --config rollup.config.ts --configPlugin typescript --watch",
+		"lint": "eslint . --ext .ts --max-warnings 0",
+		"lint:fix": "prettier --config .prettierrc \"./src/**/*.ts\" --write",
+		"preversion": "npm run build && npm run lint"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/elgatosf/cli.git"
+	},
+	"keywords": [
+		"elgato",
+		"stream-deck",
+		"plugin",
+		"cli",
+		"marketplace",
+		"maker"
+	],
+	"author": {
+		"name": "Elgato",
+		"url": "https://www.elgato.com"
+	},
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/elgatosf/cli/issues"
+	},
+	"homepage": "https://github.com/elgatosf/cli#readme",
+	"devDependencies": {
+		"@rollup/plugin-commonjs": "^25.0.4",
+		"@rollup/plugin-json": "^6.0.0",
+		"@rollup/plugin-node-resolve": "^15.2.1",
+		"@rollup/plugin-terser": "^0.4.3",
+		"@rollup/plugin-typescript": "^11.1.4",
+		"@trivago/prettier-plugin-sort-imports": "^4.2.0",
+		"@tsconfig/node20": "^20.1.2",
+		"@types/ejs": "^3.1.3",
+		"@types/inquirer": "^9.0.3",
+		"@types/lodash": "^4.14.199",
+		"@types/node": "20.1.7",
+		"@typescript-eslint/eslint-plugin": "^6.7.3",
+		"@typescript-eslint/parser": "^6.7.3",
+		"ajv": "^8.12.0",
+		"chalk": "^5.3.0",
+		"commander": "^11.0.0",
+		"dotenv": "^16.3.1",
+		"ejs": "^3.1.9",
+		"eslint": "^8.50.0",
+		"eslint-config-prettier": "^9.0.0",
+		"eslint-plugin-jsdoc": "^46.8.2",
+		"eslint-plugin-prettier": "^5.0.0",
+		"find-process": "^1.4.7",
+		"inquirer": "^9.2.11",
+		"is-interactive": "^2.0.0",
+		"lodash": "^4.17.21",
+		"log-symbols": "^5.1.0",
+		"prettier": "^3.0.3",
+		"rage-edit": "^1.2.0",
+		"rollup": "^3.29.4",
+		"tslib": "^2.6.2",
+		"typescript": "^5.2.2"
+	}
+}

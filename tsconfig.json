@@ -1,0 +1,16 @@
+{
+	"extends": "@tsconfig/node20/tsconfig.json",
+	"compilerOptions": {
+		"module": "ESNext",
+		"moduleResolution": "Node"
+	},
+	"include": [
+		"src",
+		"rollup.config.ts"
+	],
+	"exclude": [
+		"bin",
+		"node_modules",
+		"template"
+	]
+}
