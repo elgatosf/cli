@@ -11,6 +11,10 @@
 
 # Change Log
 
+## 0.1.0-beta.1, 0.1.0-beta.2
+
+🐞 Fix `.gitignore` file missing from templates.
+
 ## 0.1.0-beta.0
 
 ### New
