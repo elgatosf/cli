@@ -223,7 +223,7 @@ function renderTemplate(destination: string, pluginInfo: PluginInfo): void {
 	template.copy(`${TEMPLATE_PLUGIN_UUID}.sdPlugin/imgs`, `${pluginInfo.uuid}.sdPlugin/imgs`);
 	template.copy(`${TEMPLATE_PLUGIN_UUID}.sdPlugin/manifest.json.ejs`, `${pluginInfo.uuid}.sdPlugin/manifest.json`);
 	template.copy("src");
-	template.copy(".gitignore");
+	template.copy("_.gitignore", ".gitignore");
 	template.copy("package.json.ejs");
 	template.copy("rollup.config.mjs");
 	template.copy("tsconfig.json.ejs");

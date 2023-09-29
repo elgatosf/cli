@@ -3,3 +3,7 @@ node_modules/
 
 # Build output
 bin/
+
+# Template files
+template/com.*.sdPlugin/bin
+template/com.*.sdPlugin/logs

@@ -8,8 +8,7 @@
 	},
 	"files": [
 		"bin/streamdeck.mjs",
-		"template",
-		"template/.gitignore"
+		"template"
 	],
 	"type": "module",
 	"engines": {
