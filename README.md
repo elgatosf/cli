@@ -191,7 +191,7 @@ Lists the defined configuration, eg. values defined using [set](#set).
 
 ### Configuration
 
-##### `create.mode`
+#### create.mode
 
 - Default: `prod`
 - Type: `prod` or `dev`
@@ -200,14 +200,14 @@ Lists the defined configuration, eg. values defined using [set](#set).
 
 Specifies the npm version of `@elgato/streamdeck` to use when creating a Stream Deck plugin via [create](#%EF%B8%8F-create).
 
-##### `npm.streamDeck`
+#### npm.streamDeck
 
 - Default: `undefined`
 - Type: String
 
 The development npm version of `@elgato/streamdeck` to use when creating a Stream Deck plugin via [create](#%EF%B8%8F-create). The value can be a version or local path.
 
-##### `reduceMotion`
+#### reduceMotion
 
 - Default: `false`
 - Type: Boolean
