@@ -34,6 +34,10 @@ Commands:
   dev [options]     Enables developer mode.
   config            Manage the local configuration.
   help [command]    display help for command
+
+Alias:
+  streamdeck
+  sd
 ```
 
 ## Commands
@@ -88,6 +92,8 @@ Starts the plugin in Stream Deck; if the plugin is already running, it is stoppe
 
 ```
 streamdeck restart <uuid>
+
+alias: r
 ```
 
 ### Description
@@ -106,6 +112,8 @@ Stops the plugin in Stream Deck.
 
 ```
 streamdeck stop <uuid>
+
+alias: s
 ```
 
 ### Description
