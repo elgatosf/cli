@@ -1,5 +1,7 @@
 <p align="center">
-	<img src="./assets/banner.png">
+	<a href="https://docs.elgato.com/sdk" title="Read the Stream Deck SDK documentation" alt="Stream Deck SDK">
+		<img src="./assets/banner.png">
+	</a>
 </p>
 <div align="center">
 
