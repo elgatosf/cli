@@ -1,6 +1,6 @@
 # Node.js
-node_modules
+node_modules/
 
 # Stream Deck files
-com.*.sdPlugin/bin
-com.*.sdPlugin/logs
+*.sdPlugin/bin
+*.sdPlugin/logs
