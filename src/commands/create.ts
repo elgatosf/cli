@@ -46,17 +46,10 @@ export const create = command(async (options, stdout) => {
 	await stdout.spin("Enabling developer mode", () => setDeveloperMode({ quiet: true }));
 	await stdout.spin("Generating plugin", () => renderTemplate(destination, pluginInfo));
 
-	// Install npm dependencies and build the plugin.
+	// Install npm dependencies, build the plugin, and finalize the setup.
 	await stdout.spin("Installing dependencies", () => run("npm", ["i"], { cwd: destination }));
 	await stdout.spin("Building plugin", () => run("npm", ["run", "build"], { cwd: destination }));
-
-	// Link the plugin to Stream Deck.
-	await stdout.spin("Finalizing setup", () =>
-		link({
-			path: path.join(destination, `${pluginInfo.uuid}.sdPlugin`),
-			quiet: true
-		})
-	);
+	await stdout.spin("Finalizing setup", () => finalize(destination, pluginInfo));
 
 	stdout.log().log(chalk.green("Successfully created plugin!"));
 	await tryOpenVSCode(destination, stdout);
@@ -204,29 +197,61 @@ async function isPluginInfoCorrect(stdout: StdOut): Promise<boolean> {
 }
 
 /**
+ * Gets the path to the directory whereby the output is being generated from.
+ * @returns The directory of the template being used.
+ */
+function getTemplateSource(): string {
+	return path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../template");
+}
+
+/**
  * Renders the template, copying the output to the destination directory.
  * @param destination Destination where the plugin was created.
  * @param pluginInfo Information about the plugin.
  */
-function renderTemplate(destination: string, pluginInfo: PluginInfo): void {
+async function renderTemplate(destination: string, pluginInfo: PluginInfo): Promise<void> {
 	const config = getConfig();
 	const template = createCopier({
 		dest: destination,
-		source: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../template"),
+		source: getTemplateSource(),
 		data: {
 			...pluginInfo,
+			isPreBuild: true,
 			streamDeckPackage: config.create.mode === "dev" && config.npm.streamDeck ? config.npm.streamDeck : npm.streamDeck
 		}
 	});
 
-	template.copy(".vscode");
-	template.copy(`${TEMPLATE_PLUGIN_UUID}.sdPlugin/imgs`, `${pluginInfo.uuid}.sdPlugin/imgs`);
-	template.copy(`${TEMPLATE_PLUGIN_UUID}.sdPlugin/manifest.json.ejs`, `${pluginInfo.uuid}.sdPlugin/manifest.json`);
-	template.copy("src");
-	template.copy("_.gitignore", ".gitignore");
-	template.copy("package.json.ejs");
-	template.copy("rollup.config.mjs");
-	template.copy("tsconfig.json.ejs");
+	await Promise.allSettled([
+		template.copy(".vscode"),
+		template.copy(`${TEMPLATE_PLUGIN_UUID}.sdPlugin/imgs`, `${pluginInfo.uuid}.sdPlugin/imgs`),
+		template.copy(`${TEMPLATE_PLUGIN_UUID}.sdPlugin/manifest.json.ejs`, `${pluginInfo.uuid}.sdPlugin/manifest.json`),
+		template.copy("src"),
+		template.copy("_.gitignore", ".gitignore"),
+		template.copy("package.json.ejs"),
+		template.copy("rollup.config.mjs.ejs"),
+		template.copy("tsconfig.json.ejs")
+	]);
+}
+
+/**
+ * Finalizes the creation of the plugin.
+ * @param destination Destination where the plugin was created.
+ * @param pluginInfo Information about the plugin.
+ */
+async function finalize(destination: string, pluginInfo: PluginInfo): Promise<void> {
+	await createCopier({
+		dest: destination,
+		source: getTemplateSource(),
+		data: {
+			...pluginInfo,
+			isPreBuild: false
+		}
+	}).copy("rollup.config.mjs.ejs");
+
+	link({
+		path: path.join(destination, `${pluginInfo.uuid}.sdPlugin`),
+		quiet: true
+	});
 }
 
 /**
