@@ -19,7 +19,9 @@ const config = {
 		}
 	},
 	plugins: [
-		typescript(),
+		typescript({
+			mapRoot: isWatching ? "./" : undefined
+		}),
 		nodeResolve({
 			browser: false,
 			exportConditions: ["node"],
