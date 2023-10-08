@@ -13,33 +13,23 @@ const isWatching = !!process.env.ROLLUP_WATCH;
 const config = {
 	input: "src/plugin.ts",
 	output: {
-		dir: "<%- uuid %>.sdPlugin/bin",
-		format: "cjs",
+		file: "<%- uuid %>.sdPlugin/bin/plugin.js",
 		sourcemap: isWatching,
 		sourcemapPathTransform: (relativeSourcePath, sourcemapPath) => {
 			return url.pathToFileURL(path.resolve(path.dirname(sourcemapPath), relativeSourcePath)).href;
 		}
 	},
 	plugins: [
-		typescript({
-			sourceMap: isWatching,
-			inlineSources: isWatching,
-			mapRoot: isWatching ? "./" : undefined
-		}),
-		commonjs({
-			sourceMap: false
-		}),
-		nodeResolve({
-			browser: false,
-			exportConditions: ["node"],
-			preferBuiltins: true
-		}),
-		!isWatching &&
-			terser({
-				format: {
-					comments: false
-				}
-			})
+		typescript(),
+		commonjs(),
+		nodeResolve(),
+		!isWatching && terser(),
+		{
+			name: "emit-module-package-file",
+			generateBundle() {
+				this.emitFile({ fileName: "package.json", source: `{"type":"module"}`, type: "asset" });
+			}
+		}
 	]
 };
 <% if (isPreBuild) { %>
