@@ -20,15 +20,9 @@ const config: RollupOptions = {
 		}
 	},
 	plugins: [
-		typescript({
-			sourceMap: isWatching,
-			inlineSources: isWatching,
-			mapRoot: isWatching ? "./" : undefined
-		}),
+		typescript(),
 		json(),
-		commonjs({
-			sourceMap: false
-		}),
+		commonjs(),
 		nodeResolve({
 			browser: false,
 			exportConditions: ["node"],
