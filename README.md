@@ -5,7 +5,7 @@
 </p>
 <div align="center">
 
-# Maker CLI
+# Maker CLI (Beta)
 
 [![Maker CLI npm package](https://img.shields.io/npm/v/%40elgato/cli?logo=npm&logoColor=white)](https://www.npmjs.com/package/@elgato/cli)
 [![SDK documentation](https://img.shields.io/badge/Documentation-2ea043?labelColor=grey&logo=gitbook&logoColor=white)](https://docs.elgato.com/sdk)
@@ -192,22 +192,6 @@ streamdeck config list
 Lists the defined configuration, eg. values defined using [config set](#set).
 
 ### Configuration
-
-#### create.mode
-
-- Default: `prod`
-- Type: `prod` or `dev`
-  - `prod`, the latest supported published version.
-  - `dev`, the version defined within `npm.streamDeck`.
-
-Specifies the npm version of `@elgato/streamdeck` to use when creating a Stream Deck plugin via [create](#%EF%B8%8F-create).
-
-#### npm.streamDeck
-
-- Default: `undefined`
-- Type: String
-
-The development npm version of `@elgato/streamdeck` to use when creating a Stream Deck plugin via [create](#%EF%B8%8F-create). The value can be a version or local path.
 
 #### reduceMotion
 

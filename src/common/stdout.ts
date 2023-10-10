@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import isInteractive from "is-interactive";
 import logSymbols from "log-symbols";
+import { getConfig } from "../config";
 
 /**
  * Symbols that denote a spinner.
@@ -9,15 +10,14 @@ const SPIN_SYMBOLS = ["|", "/", "-", "\\"];
 
 /**
  * Creates a new {@link ConsoleStdOut}.
- * @param reduceMotion Determines whether the standard output stream should display non-essential motion, e.g. spinning bars.
  * @returns The {@link ConsoleStdOut}.
  */
-export function createConsole(reduceMotion: boolean): StdOut {
+export function createConsole(): StdOut {
 	const interactive = isInteractive();
 	return new ConsoleStdOut({
 		interactive,
 		level: MessageLevel.LOG,
-		reduceMotion: reduceMotion || !interactive
+		reduceMotion: interactive ? undefined : false
 	});
 }
 
@@ -50,7 +50,7 @@ type ConsoleStdOutOptions = {
 	/**
 	 * Determines whether the standard output stream should display non-essential motion, e.g. spinning bars.
 	 */
-	reduceMotion: boolean;
+	reduceMotion?: boolean;
 };
 
 /**
@@ -68,14 +68,19 @@ class ConsoleStdOut {
 	private _isLoading = false;
 
 	/**
-	 * Current symbol index.
+	 * Private backing field for {@link ConsoleStdOut.reduceMotion}.
 	 */
-	private index = -1;
+	private _reduceMotion?: boolean;
 
 	/**
 	 * The active message associated with the task denoted by the spinner.
 	 */
 	private message = "";
+
+	/**
+	 * Options associated with this instance.
+	 */
+	private readonly options: Omit<ConsoleStdOutOptions, "reduceMotion">;
 
 	/**
 	 * Identifies the timer responsible for displaying the spinning symbol.
@@ -86,7 +91,10 @@ class ConsoleStdOut {
 	 * Initializes a new instance of the {@link ConsoleStdOut} class.
 	 * @param options Options associated with this instance.
 	 */
-	constructor(private readonly options: ConsoleStdOutOptions) {}
+	constructor(options: ConsoleStdOutOptions) {
+		this.options = options;
+		this._reduceMotion = options.reduceMotion;
+	}
 
 	/**
 	 * Gets a value that determines whether there is active loading-feedback, e.g. spinning ({@link ConsoleStdOut.spin}) due to a task running.
@@ -94,6 +102,18 @@ class ConsoleStdOut {
 	 */
 	public get isLoading(): boolean {
 		return this._isLoading;
+	}
+
+	/**
+	 * Determines whether the standard output stream should display non-essential motion, e.g. spinning bars.
+	 * @returns `true` when the output should have reduced motion; otherwise `false`.
+	 */
+	private get reduceMotion(): boolean {
+		if (this._reduceMotion === undefined) {
+			this._reduceMotion = getConfig().reduceMotion;
+		}
+
+		return this._reduceMotion;
 	}
 
 	/**
@@ -146,7 +166,7 @@ class ConsoleStdOut {
 		}
 
 		// When loading, we must check if we can rely on the timer to re-write the message. When reduce motion is active, re-write the message ourselves.
-		if (this.isLoading && this.options.reduceMotion && this.options.interactive) {
+		if (this.isLoading && this.reduceMotion && this.options.interactive) {
 			process.stdout.write(`- ${this.message}`);
 		}
 
@@ -252,10 +272,11 @@ class ConsoleStdOut {
 			process.stdout.write(`${symbol} ${this.message}`);
 		};
 
-		if (this.options.reduceMotion) {
+		if (this.reduceMotion) {
 			write("-");
 		} else if (this.options.interactive) {
-			this.timerId = setInterval(() => write(SPIN_SYMBOLS[++this.index % SPIN_SYMBOLS.length]), 150);
+			let index = -1;
+			this.timerId = setInterval(() => write(SPIN_SYMBOLS[++index % SPIN_SYMBOLS.length]), 150);
 		} else {
 			console.log(`- ${this.message}`);
 		}

@@ -113,8 +113,9 @@ function exitWithError(message: string, errors?: string[]): never {
 	}
 
 	console.log();
-	console.log(`Run ${chalk.blue("streamdeck config clear")} to reset configuration, or repair the configuration file manually.`);
 	console.log(getFilePath());
+	console.log();
+	console.log(`Please repair the configuration file or run ${chalk.cyan("streamdeck config reset")} to reset all configuration values.`);
 
 	process.exit(1);
 }
