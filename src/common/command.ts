@@ -39,7 +39,7 @@ export function command<T = void>(
 /**
  * Global options that apply to all commands.
  */
-type GlobalOptions = {
+export type GlobalOptions = {
 	/**
 	 * When `true`, only errors and warnings will be output. When successful, the command will be quiet.
 	 */
