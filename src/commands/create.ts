@@ -2,11 +2,10 @@ import chalk from "chalk";
 import inquirer from "inquirer";
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 import { command } from "../common/command";
 import { createCopier } from "../common/file-copier";
-import { invalidCharacters, isSafeBaseName } from "../common/path";
+import { invalidCharacters, isSafeBaseName, relative } from "../common/path";
 import { run } from "../common/runner";
 import { StdOut } from "../common/stdout";
 import { getConfig } from "../config";
@@ -15,11 +14,6 @@ import { setDeveloperMode } from "./dev";
 import { link } from "./link";
 
 const TEMPLATE_PLUGIN_UUID = "com.elgato.template";
-
-// Defines the production dependencies to be used when creating plugins.
-const npm = {
-	streamDeck: "0.1.0-beta.1"
-};
 
 /**
  * Guides the user through a creation wizard, scaffolding a Stream Deck plugin.
@@ -197,30 +191,35 @@ async function isPluginInfoCorrect(stdout: StdOut): Promise<boolean> {
 }
 
 /**
- * Gets the path to the directory whereby the output is being generated from.
- * @returns The directory of the template being used.
+ * Creates a template renderer capable of copying template files to a destination, and rendering them with supporting data.
+ * @param destination Destination where the plugin is being created.
+ * @param pluginInfo Information about the plugin.
+ * @param options Supporting data supplied to the renderer.
+ * @returns The file copier capable of rendering the template.
  */
-function getTemplateSource(): string {
-	return path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../template");
+function createTemplateRenderer(destination: string, pluginInfo: PluginInfo, options = { isPreBuild: true }): ReturnType<typeof createCopier> {
+	const config = getConfig();
+	return createCopier({
+		dest: destination,
+		source: relative("../template"),
+		data: {
+			...pluginInfo,
+			...options,
+			npm: {
+				cli: config.npm.cli.version,
+				streamDeck: config.npm.streamDeck.version
+			}
+		}
+	});
 }
 
 /**
  * Renders the template, copying the output to the destination directory.
- * @param destination Destination where the plugin was created.
+ * @param destination Destination where the plugin is being created.
  * @param pluginInfo Information about the plugin.
  */
 async function renderTemplate(destination: string, pluginInfo: PluginInfo): Promise<void> {
-	const config = getConfig();
-	const template = createCopier({
-		dest: destination,
-		source: getTemplateSource(),
-		data: {
-			...pluginInfo,
-			isPreBuild: true,
-			streamDeckPackage: config.create.mode === "dev" && config.npm.streamDeck ? config.npm.streamDeck : npm.streamDeck
-		}
-	});
-
+	const template = createTemplateRenderer(destination, pluginInfo);
 	await Promise.allSettled([
 		template.copy(".vscode"),
 		template.copy(`${TEMPLATE_PLUGIN_UUID}.sdPlugin/imgs`, `${pluginInfo.uuid}.sdPlugin/imgs`),
@@ -235,18 +234,11 @@ async function renderTemplate(destination: string, pluginInfo: PluginInfo): Prom
 
 /**
  * Finalizes the creation of the plugin.
- * @param destination Destination where the plugin was created.
+ * @param destination Destination where the plugin is being created.
  * @param pluginInfo Information about the plugin.
  */
 async function finalize(destination: string, pluginInfo: PluginInfo): Promise<void> {
-	await createCopier({
-		dest: destination,
-		source: getTemplateSource(),
-		data: {
-			...pluginInfo,
-			isPreBuild: false
-		}
-	}).copy("rollup.config.mjs.ejs");
+	createTemplateRenderer(destination, pluginInfo, { isPreBuild: false }).copy("rollup.config.mjs.ejs");
 
 	link({
 		path: path.join(destination, `${pluginInfo.uuid}.sdPlugin`),
@@ -256,7 +248,7 @@ async function finalize(destination: string, pluginInfo: PluginInfo): Promise<vo
 
 /**
  * Determines if the user has VS Code installed, and if so, prompts them to open the plugin.
- * @param destination Destination where the plugin was created.
+ * @param destination Destination where the plugin is being created.
  * @param stdout The stream where messages, and termination results, will be output.
  */
 async function tryOpenVSCode(destination: string, stdout: StdOut): Promise<void> {
