@@ -17,7 +17,7 @@ export function createConsole(): StdOut {
 	return new ConsoleStdOut({
 		interactive,
 		level: MessageLevel.LOG,
-		reduceMotion: interactive ? undefined : false
+		reduceMotion: !interactive ? true : undefined
 	});
 }
 
