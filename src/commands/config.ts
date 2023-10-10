@@ -2,7 +2,8 @@ import chalk from "chalk";
 import { existsSync, rmSync } from "fs";
 import _ from "lodash";
 
-import { command } from "../common/command";
+import { GlobalOptions, command } from "../common/command";
+import { createConsole, createQuietConsole } from "../common/stdout";
 import { defaultConfig, getFilePath, getLocalConfig, updateConfig } from "../config";
 
 /**
@@ -44,15 +45,17 @@ export const list = command((options, output) => {
 
 /**
  * Resets the local configuration.
+ * @param options Options associated with the
+ * @param output Output whereby the result will be sent.
  */
-export const reset = command((options, output) => {
+export function reset(options: GlobalOptions = { quiet: false }, output = options.quiet ? createQuietConsole() : createConsole(false)): void {
 	const filePath = getFilePath();
 	if (existsSync(filePath)) {
 		rmSync(filePath);
 	}
 
 	output.success("Configuration cleared");
-});
+}
 
 /**
  * Sets the configuration for the collection of entries.
