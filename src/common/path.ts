@@ -1,3 +1,5 @@
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 /**
  * Validates the specified {@link value} represents a valid directory name.
  * @param value Value to validate.
@@ -16,6 +18,15 @@ export function isSafeBaseName(value: string): boolean {
 
 	// Check the name does not contain an invalid character.
 	return !invalidCharacters.some((invalid) => value.includes(invalid));
+}
+
+/**
+ * Resolves the specified {@link path} relatives to the entry point.
+ * @param path Path being resolved.
+ * @returns The resolve path relative to the entry point.
+ */
+export function relative(path: string): string {
+	return resolve(dirname(fileURLToPath(import.meta.url)), path);
 }
 
 /**

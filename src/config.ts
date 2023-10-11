@@ -6,6 +6,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir, platform } from "node:os";
 import { dirname, join } from "node:path";
 
+import { relative } from "./common/path";
 import { DeepPartial } from "./utils";
 
 let __config: Config | undefined = undefined;
@@ -14,11 +15,15 @@ let __config: Config | undefined = undefined;
  * Default configuration.
  */
 export const defaultConfig: Config = Object.freeze({
-	create: {
-		mode: "prod" as const
-	},
 	npm: {
-		streamDeck: undefined
+		cli: {
+			mode: "prod" as const,
+			version: JSON.parse(readFileSync(relative("../package.json"), { encoding: "utf-8" })).version
+		},
+		streamDeck: {
+			mode: "prod" as const,
+			version: "0.1.0-beta.1"
+		}
 	},
 	reduceMotion: false
 });
@@ -28,7 +33,18 @@ export const defaultConfig: Config = Object.freeze({
  * @returns The configuration.
  */
 export function getConfig(): Config {
-	return __config || (__config = _.merge({}, defaultConfig, getLocalConfig() || {}));
+	if (__config === undefined) {
+		__config = _.merge({}, defaultConfig, getLocalConfig() || {});
+
+		const setVersion = (dependency: DependencyConfig, prod: DependencyConfig): void => {
+			dependency.version = dependency.mode === "prod" ? prod.version : dependency.version;
+		};
+
+		setVersion(__config.npm.cli, defaultConfig.npm.cli);
+		setVersion(__config.npm.streamDeck, defaultConfig.npm.streamDeck);
+	}
+
+	return __config;
 }
 
 /**
@@ -125,23 +141,23 @@ function exitWithError(message: string, errors?: string[]): never {
  */
 const validateSchema = new Ajv({ allErrors: true }).compile({
 	optionalProperties: {
-		create: {
-			optionalProperties: {
-				mode: {
-					enum: ["dev", "prod"]
-				}
-			}
-		},
 		npm: {
 			optionalProperties: {
+				cli: {
+					optionalProperties: {
+						mode: { enum: ["dev", "prod"] },
+						version: { type: "string" }
+					}
+				},
 				streamDeck: {
-					type: "string"
+					optionalProperties: {
+						mode: { enum: ["dev", "prod"] },
+						version: { type: "string" }
+					}
 				}
 			}
 		},
-		reduceMotion: {
-			type: "boolean"
-		}
+		reduceMotion: { type: "boolean" }
 	}
 } satisfies JTDSchemaType<DeepPartial<Config>>);
 
@@ -168,27 +184,37 @@ function validate(config: unknown): never | void {
  */
 export type Config = {
 	/**
-	 * Persistent configuration relating to the `create` command.
-	 */
-	create: {
-		/**
-		 * Defines the creation mode. When `dev`, {@link Config.npm} dependencies are used.
-		 */
-		mode: "dev" | "prod";
-	};
-
-	/**
 	 * Defines the preferred npm dependencies to use when developing.
 	 */
 	npm: {
 		/**
-		 * Local path or npm version of the `@elgato/streamdeck` dependency to be used when developing.
+		 * The preferred `@elgato/cli` dependency to use.
 		 */
-		streamDeck?: string;
+		cli: DependencyConfig;
+
+		/**
+		 * The preferred `@elgato/streamdeck` dependency to use.
+		 */
+		streamDeck: DependencyConfig;
 	};
 
 	/**
 	 * Determines whether the standard output stream should display non-essential motion, e.g. spinning bars.
 	 */
 	reduceMotion: boolean;
+};
+
+/**
+ * Provides configuration information relating to a dependency.
+ */
+type DependencyConfig = {
+	/**
+	 * Defines the preferred dependency mode.
+	 */
+	mode: "dev" | "prod";
+
+	/**
+	 * Local path or npm version of the dependency to be used when {@link DependencyConfig.mode} is `dev`.
+	 */
+	version: string;
 };
