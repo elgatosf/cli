@@ -1,9 +1,6 @@
-<p align="center">
-	<a href="https://docs.elgato.com/sdk" title="Read the Stream Deck SDK documentation" alt="Stream Deck SDK">
-		<img src="./assets/banner.png">
-	</a>
-</p>
 <div align="center">
+
+[![Stream Deck SDK banner](https://images.ctfassets.net/8j9xr8kwdre8/1ihLKCwNWEfPixs27dq0c0/130be66a5173f332e4caa892a3462893/banner.png)](https://docs.elgato.com/sdk)
 
 # Maker CLI (Beta)
 
