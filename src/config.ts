@@ -22,7 +22,7 @@ export const defaultConfig: Config = Object.freeze({
 		},
 		streamDeck: {
 			mode: "prod" as const,
-			version: "0.1.0-beta.1"
+			version: "^0.1.0"
 		}
 	},
 	reduceMotion: false
