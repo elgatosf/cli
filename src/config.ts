@@ -18,7 +18,7 @@ export const defaultConfig: Config = Object.freeze({
 	npm: {
 		cli: {
 			mode: "prod" as const,
-			version: JSON.parse(readFileSync(relative("../package.json"), { encoding: "utf-8" })).version
+			version: `^${JSON.parse(readFileSync(relative("../package.json"), { encoding: "utf-8" })).version}`
 		},
 		streamDeck: {
 			mode: "prod" as const,
