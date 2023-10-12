@@ -62,6 +62,8 @@ streamdeck create
 
 The creation wizard will guide you through creating Stream Deck plugins with our official Node.js SDK, and provides all scaffolding required to get started quickly. As part of the wizard, developer mode is enabled, and the plugin built and linked to Stream Deck making it ready for use.
 
+> To learn more about creating Stream Deck plugins with Node.js, see our [Stream Deck SDK](https://github.com/elgatosf/streamdeck).
+
 #### See Also
 
 - [dev](#%EF%B8%8F-dev)
