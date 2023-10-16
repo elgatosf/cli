@@ -5,7 +5,7 @@ import path from "node:path";
 
 import { command } from "../common/command";
 import { createCopier } from "../common/file-copier";
-import { invalidCharacters, isSafeBaseName, relative } from "../common/path";
+import { invalidCharacters, isExecutable, isSafeBaseName, relative } from "../common/path";
 import { run } from "../common/runner";
 import { StdOut } from "../common/stdout";
 import { getConfig } from "../config";
@@ -252,8 +252,7 @@ async function finalize(destination: string, pluginInfo: PluginInfo): Promise<vo
  * @param stdout The stream where messages, and termination results, will be output.
  */
 async function tryOpenVSCode(destination: string, stdout: StdOut): Promise<void> {
-	const paths = process.env.PATH?.split(":") ?? [];
-	if (!paths.some((p) => p.includes("Microsoft VS Code"))) {
+	if (!isExecutable("code")) {
 		return;
 	}
 
