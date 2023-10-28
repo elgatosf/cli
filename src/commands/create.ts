@@ -12,6 +12,7 @@ import { getConfig } from "../config";
 import { generatePluginId, getPlugins, isValidPluginId } from "../stream-deck";
 import { setDeveloperMode } from "./dev";
 import { link } from "./link";
+import os from "os";
 
 const TEMPLATE_PLUGIN_UUID = "com.elgato.template";
 
@@ -29,6 +30,9 @@ export const create = command(async (options, stdout) => {
 		return stdout.info("Aborted").exit();
 	}
 
+	// Prompt the user for the project information.
+	const projectInfo = await promptForProjectInfo();
+
 	// Run final pre-checks.
 	validateFinalPreChecks(pluginInfo, destination, stdout);
 
@@ -40,9 +44,9 @@ export const create = command(async (options, stdout) => {
 	await stdout.spin("Enabling developer mode", () => setDeveloperMode({ quiet: true }));
 	await stdout.spin("Generating plugin", () => renderTemplate(destination, pluginInfo));
 
-	// Install npm dependencies, build the plugin, and finalize the setup.
-	await stdout.spin("Installing dependencies", () => run("npm", ["i"], { cwd: destination }));
-	await stdout.spin("Building plugin", () => run("npm", ["run", "build"], { cwd: destination }));
+	// Install node dependencies, build the plugin, and finalize the setup.
+	await stdout.spin("Installing dependencies", () => run(projectInfo.packageManager, ["i"], { cwd: destination }));
+	await stdout.spin("Building plugin", () => run(projectInfo.packageManager, ["run", "build"], { cwd: destination }));
 	await stdout.spin("Finalizing setup", () => finalize(destination, pluginInfo));
 
 	stdout.log().log(chalk.green("Successfully created plugin!"));
@@ -109,6 +113,39 @@ async function promptForPluginInfo(): Promise<PluginInfo> {
 			message: "Description:",
 			validate: required("Please enter a brief description of what the plugin will do."),
 			type: "input"
+		}
+	]);
+}
+
+/**
+ * Prompts the user for the project information.
+ * @returns User input that provides required information to configure a project.
+ */
+async function promptForProjectInfo(): Promise<ProjectInfo> {
+	return await inquirer.prompt<ProjectInfo>([
+		{
+			name: "packageManager",
+			message: "Package Manager:",
+			type: "list",
+			default: "pnpm",
+			choices: [
+				{
+					name: "npm",
+					value: "npm"
+				},
+				{
+					name: "yarn",
+					value: "yarn"
+				},
+				{
+					name: "pnpm",
+					value: "pnpm"
+				},
+				os.platform() === "darwin" && {
+					name: "bun",
+					value: "bun"
+				}
+			].filter(Boolean)
 		}
 	]);
 }
@@ -308,4 +345,14 @@ type PluginInfo = {
 	 * Plugin's unique identifier.
 	 */
 	uuid: string;
+};
+
+/**
+ * Provides information about the project.
+ */
+type ProjectInfo = {
+	/**
+	 * the project manager to use for initial dependencies installation and build.
+	 */
+	packageManager: string;
 };
