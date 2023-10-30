@@ -40,9 +40,10 @@ export const create = command(async (options, stdout) => {
 	await stdout.spin("Enabling developer mode", () => setDeveloperMode({ quiet: true }));
 	await stdout.spin("Generating plugin", () => renderTemplate(destination, pluginInfo));
 
-	// Install npm dependencies, build the plugin, and finalize the setup.
-	await stdout.spin("Installing dependencies", () => run("npm", ["i"], { cwd: destination }));
-	await stdout.spin("Building plugin", () => run("npm", ["run", "build"], { cwd: destination }));
+	// Install node dependencies, build the plugin, and finalize the setup.
+	const { packageManager } = getConfig();
+	await stdout.spin("Installing dependencies", () => run(packageManager, ["i"], { cwd: destination }));
+	await stdout.spin("Building plugin", () => run(packageManager, ["run", "build"], { cwd: destination }));
 	await stdout.spin("Finalizing setup", () => finalize(destination, pluginInfo));
 
 	stdout.log().log(chalk.green("Successfully created plugin!"));

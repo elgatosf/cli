@@ -25,7 +25,8 @@ export const defaultConfig: Config = Object.freeze({
 			version: "^0.1.0"
 		}
 	},
-	reduceMotion: false
+	reduceMotion: false,
+	packageManager: "npm"
 });
 
 /**
@@ -157,7 +158,8 @@ const validateSchema = new Ajv({ allErrors: true }).compile({
 				}
 			}
 		},
-		reduceMotion: { type: "boolean" }
+		reduceMotion: { type: "boolean" },
+		packageManager: { enum: ["npm", "yarn", "pnpm", "bun"] }
 	}
 } satisfies JTDSchemaType<DeepPartial<Config>>);
 
@@ -202,6 +204,11 @@ export type Config = {
 	 * Determines whether the standard output stream should display non-essential motion, e.g. spinning bars.
 	 */
 	reduceMotion: boolean;
+
+	/**
+	 * Defines the preferred package manager.
+	 */
+	packageManager: "bun" | "npm" | "pnpm" | "yarn";
 };
 
 /**
