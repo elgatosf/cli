@@ -11,6 +11,10 @@
 
 # Change Log
 
+## 0.2.0 (Pending)
+
+- ✨ Add [`packageManager`](README.md/#packagemanager) configuration option (@fcannizzaro).
+
 ## 0.1.0
 
 ### New

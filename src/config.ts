@@ -141,16 +141,20 @@ function exitWithError(message: string, errors?: string[]): never {
  * Validates a configuration object to ensure it fulfils the {@link Config} type.
  */
 const validateSchema = new Ajv({ allErrors: true }).compile({
+	additionalProperties: true,
 	optionalProperties: {
 		npm: {
+			additionalProperties: true,
 			optionalProperties: {
 				cli: {
+					additionalProperties: true,
 					optionalProperties: {
 						mode: { enum: ["dev", "prod"] },
 						version: { type: "string" }
 					}
 				},
 				streamDeck: {
+					additionalProperties: true,
 					optionalProperties: {
 						mode: { enum: ["dev", "prod"] },
 						version: { type: "string" }
