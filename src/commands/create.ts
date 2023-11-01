@@ -42,7 +42,7 @@ export const create = command(async (options, stdout) => {
 
 	// Install node dependencies, build the plugin, and finalize the setup.
 	const { packageManager } = getConfig();
-	await stdout.spin("Installing dependencies", () => run(packageManager, ["i"], { cwd: destination }));
+	await stdout.spin("Installing dependencies", () => run(packageManager, ["install"], { cwd: destination }));
 	await stdout.spin("Building plugin", () => run(packageManager, ["run", "build"], { cwd: destination }));
 	await stdout.spin("Finalizing setup", () => finalize(destination, pluginInfo));
 
