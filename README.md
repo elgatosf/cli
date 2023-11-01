@@ -198,3 +198,10 @@ Lists the defined configuration, eg. values defined using [config set](#set).
 - Type: Boolean
 
 Determines whether feedback provided should prefer reduced motion; when `true`, the busy indicator will be rendered as a static indicator.
+
+#### packageManager
+
+- Default: `npm`
+- Type: bun | npm | pnpm | yarn
+
+Determines the package manager to use when installing dependencies for every new project.
