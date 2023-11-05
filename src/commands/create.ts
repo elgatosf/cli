@@ -23,6 +23,7 @@ export const create = command(async (options, stdout) => {
 	showWelcome(stdout);
 	const pluginInfo = await promptForPluginInfo();
 	const destination = await validateDestination(pluginInfo.uuid.split(".")[2] || "", stdout);
+	const rollupOptions = await promptForRollupOptions();
 
 	// Prompt the user to confirm the information.
 	if (!(await isPluginInfoCorrect(stdout))) {
@@ -38,13 +39,13 @@ export const create = command(async (options, stdout) => {
 
 	// Enable developer mode, and generate the plugin from the template.
 	await stdout.spin("Enabling developer mode", () => setDeveloperMode({ quiet: true }));
-	await stdout.spin("Generating plugin", () => renderTemplate(destination, pluginInfo));
+	await stdout.spin("Generating plugin", () => renderTemplate(destination, pluginInfo, rollupOptions));
 
 	// Install node dependencies, build the plugin, and finalize the setup.
 	const { packageManager } = getConfig();
 	await stdout.spin("Installing dependencies", () => run(packageManager, ["install"], { cwd: destination }));
 	await stdout.spin("Building plugin", () => run(packageManager, ["run", "build"], { cwd: destination }));
-	await stdout.spin("Finalizing setup", () => finalize(destination, pluginInfo));
+	await stdout.spin("Finalizing setup", () => finalize(destination, pluginInfo, rollupOptions));
 
 	stdout.log().log(chalk.green("Successfully created plugin!"));
 	await tryOpenVSCode(destination, stdout);
@@ -110,6 +111,25 @@ async function promptForPluginInfo(): Promise<PluginInfo> {
 			message: "Description:",
 			validate: required("Please enter a brief description of what the plugin will do."),
 			type: "input"
+		}
+	]);
+}
+
+/**
+ * Prompts the user for the Rollup variant to use.
+ * @returns The Rollup variant to use.
+ */
+async function promptForRollupOptions(): Promise<RollupOptions> {
+	return inquirer.prompt<RollupOptions>([
+		{
+			name: "variant",
+			message: "Template:",
+			default: "typescript",
+			choices: [
+				{ name: chalk.blue("TypeScript"), value: "typescript" },
+				{ name: chalk.blue("TypeScript") + chalk.yellow(" + SWC"), value: "typescript-swc" }
+			],
+			type: "list"
 		}
 	]);
 }
@@ -195,10 +215,11 @@ async function isPluginInfoCorrect(stdout: StdOut): Promise<boolean> {
  * Creates a template renderer capable of copying template files to a destination, and rendering them with supporting data.
  * @param destination Destination where the plugin is being created.
  * @param pluginInfo Information about the plugin.
+ * @param rollupOptions Rollup options.
  * @param options Supporting data supplied to the renderer.
  * @returns The file copier capable of rendering the template.
  */
-function createTemplateRenderer(destination: string, pluginInfo: PluginInfo, options = { isPreBuild: true }): ReturnType<typeof createCopier> {
+function createTemplateRenderer(destination: string, pluginInfo: PluginInfo, rollupOptions: RollupOptions, options = { isPreBuild: true }): ReturnType<typeof createCopier> {
 	const config = getConfig();
 	return createCopier({
 		dest: destination,
@@ -206,6 +227,7 @@ function createTemplateRenderer(destination: string, pluginInfo: PluginInfo, opt
 		data: {
 			...pluginInfo,
 			...options,
+			...rollupOptions,
 			npm: {
 				cli: config.npm.cli.version,
 				streamDeck: config.npm.streamDeck.version
@@ -218,9 +240,10 @@ function createTemplateRenderer(destination: string, pluginInfo: PluginInfo, opt
  * Renders the template, copying the output to the destination directory.
  * @param destination Destination where the plugin is being created.
  * @param pluginInfo Information about the plugin.
+ * @param rollupOptions Rollup options.
  */
-async function renderTemplate(destination: string, pluginInfo: PluginInfo): Promise<void> {
-	const template = createTemplateRenderer(destination, pluginInfo);
+async function renderTemplate(destination: string, pluginInfo: PluginInfo, rollupOptions: RollupOptions): Promise<void> {
+	const template = createTemplateRenderer(destination, pluginInfo, rollupOptions);
 	await Promise.allSettled([
 		template.copy(".vscode"),
 		template.copy(`${TEMPLATE_PLUGIN_UUID}.sdPlugin/imgs`, `${pluginInfo.uuid}.sdPlugin/imgs`),
@@ -237,9 +260,10 @@ async function renderTemplate(destination: string, pluginInfo: PluginInfo): Prom
  * Finalizes the creation of the plugin.
  * @param destination Destination where the plugin is being created.
  * @param pluginInfo Information about the plugin.
+ * @param rollupOptions Rollup options.
  */
-async function finalize(destination: string, pluginInfo: PluginInfo): Promise<void> {
-	createTemplateRenderer(destination, pluginInfo, { isPreBuild: false }).copy("rollup.config.mjs.ejs");
+async function finalize(destination: string, pluginInfo: PluginInfo, rollupOptions: RollupOptions): Promise<void> {
+	createTemplateRenderer(destination, pluginInfo, rollupOptions, { isPreBuild: false }).copy("rollup.config.mjs.ejs");
 
 	link({
 		path: path.join(destination, `${pluginInfo.uuid}.sdPlugin`),
@@ -309,4 +333,14 @@ type PluginInfo = {
 	 * Plugin's unique identifier.
 	 */
 	uuid: string;
+};
+
+/**
+ * Provides rollup configuration options.
+ */
+type RollupOptions = {
+	/**
+	 * build variant
+	 */
+	variant: "typescript-swc" | "typescript";
 };

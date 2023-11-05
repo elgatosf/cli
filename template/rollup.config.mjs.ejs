@@ -1,7 +1,11 @@
 import commonjs from "@rollup/plugin-commonjs";
 import nodeResolve from "@rollup/plugin-node-resolve";
-import terser from "@rollup/plugin-terser";
+<% if (variant === 'typescript') { -%>
 import typescript from "@rollup/plugin-typescript";
+import terser from "@rollup/plugin-terser";
+<% } else if (variant==='typescript-swc' ) { -%>
+import { swc } from "rollup-plugin-swc3";
+<% } -%>
 import path from "node:path";
 import url from "node:url";
 
@@ -20,16 +24,30 @@ const config = {
 		}
 	},
 	plugins: [
+		<%_ if (variant === 'typescript') { _%>
 		typescript({
 			mapRoot: isWatching ? "./" : undefined
 		}),
+		<%_ } else if (variant==='typescript-swc' ) { _%>
+		swc({
+			minify: !isWatching,
+			sourceMaps: isWatching,
+			jsc: {
+				parser: {
+					decorators: true,
+				},
+			},
+		}),
+		<%_ } _%>
 		nodeResolve({
 			browser: false,
 			exportConditions: ["node"],
 			preferBuiltins: true
 		}),
 		commonjs(),
+		<%_ if (variant === 'typescript') { _%>
 		!isWatching && terser(),
+		<%_ } _%>
 		{
 			name: "emit-module-package-file",
 			generateBundle() {
