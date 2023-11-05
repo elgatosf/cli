@@ -1,6 +1,6 @@
 {
 	"scripts": {
-		"build": "rollup -c",
+		"build": "<%- variant==='typescript-swc' ? 'tsc --noEmit && ' : '' %>rollup -c",
 		"watch": "rollup -c -w --watch.onEnd=\"streamdeck restart <%- uuid %>\""
 	},
 	"type": "module",
