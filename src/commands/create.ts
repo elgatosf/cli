@@ -169,12 +169,16 @@ async function validateDestination(dirName: string, stdout: StdOut): Promise<str
  * @returns Returns when the pre-checks pass validation.
  */
 function validateFinalPreChecks({ uuid }: PluginInfo, destination: string, stdout: StdOut): never | void {
-	if (getPlugins().some((p) => p.uuid === uuid)) {
-		return stdout.error(`Another plugin with the UUID ${chalk.yellow(uuid)} is already installed.`).exit(1);
-	}
+	try {
+		if (getPlugins().some((p) => p.uuid === uuid)) {
+			return stdout.error(`Another plugin with the UUID ${chalk.yellow(uuid)} is already installed.`).exit(1);
+		}
 
-	if (fs.existsSync(destination)) {
-		return stdout.error(`Directory ${chalk.yellow(destination)} already exists.`).exit(1);
+		if (fs.existsSync(destination)) {
+			return stdout.error(`Directory ${chalk.yellow(destination)} already exists.`).exit(1);
+		}
+	} catch {
+		// Ignore.
 	}
 }
 
