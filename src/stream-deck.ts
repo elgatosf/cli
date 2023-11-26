@@ -32,7 +32,7 @@ export function getPluginsPath(): string {
 	}
 
 	const appData = process.env.APPDATA ?? join(os.homedir(), "AppData/Roaming");
-	return join(appData, "Elgato/StreamDeck/Plugins");
+	return join(appData, "Elgato", "StreamDeck", "Plugins");
 }
 
 /**
@@ -151,7 +151,10 @@ class PluginInfo {
 	 * @param entry The directory entry of the plugin.
 	 * @param uuid Unique identifier of the plugin.
 	 */
-	constructor(private readonly entry: Dirent, public readonly uuid: string) {
+	constructor(
+		private readonly entry: Dirent,
+		public readonly uuid: string
+	) {
 		this.path = join(this.entry.path, this.entry.name);
 	}
 
