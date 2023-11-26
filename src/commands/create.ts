@@ -97,8 +97,12 @@ async function promptForPluginInfo(): Promise<PluginInfo> {
 					return "UUID can only contain lowercase alphanumeric characters (a-z, 0-9), hyphens (-), underscores (_), or periods (.).";
 				}
 
-				if (getPlugins().some((p) => p.uuid === uuid)) {
-					return "Another plugin with this UUID is already installed.";
+				try {
+					if (getPlugins().some((p) => p.uuid === uuid)) {
+						return "Another plugin with this UUID is already installed.";
+					}
+				} catch {
+					// Ignore.
 				}
 
 				return true;
