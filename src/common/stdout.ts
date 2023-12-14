@@ -80,7 +80,7 @@ class ConsoleStdOut {
 	/**
 	 * Identifies the timer responsible for displaying the spinning symbol.
 	 */
-	private timerId?: NodeJS.Timer;
+	private timerId?: NodeJS.Timeout;
 
 	/**
 	 * Initializes a new instance of the {@link ConsoleStdOut} class.
