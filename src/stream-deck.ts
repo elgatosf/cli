@@ -1,7 +1,7 @@
 import find from "find-process";
 import { Dirent, readdirSync, readlinkSync } from "node:fs";
 import os from "node:os";
-import { basename, join } from "node:path";
+import { basename, join, resolve } from "node:path";
 
 const PLUGIN_SUFFIX = ".sdPlugin";
 
@@ -10,11 +10,12 @@ const PLUGIN_SUFFIX = ".sdPlugin";
  * @returns List of plugins, including their path and UUID.
  */
 export function getPlugins(): PluginInfo[] {
-	return readdirSync(getPluginsPath(), { withFileTypes: true }).reduce<PluginInfo[]>((plugins, entry) => {
+	const pluginsPath = getPluginsPath();
+	return readdirSync(pluginsPath, { withFileTypes: true }).reduce<PluginInfo[]>((plugins, entry) => {
 		if (entry.isDirectory() || entry.isSymbolicLink()) {
 			const uuid = getPluginId(entry.name);
 			if (uuid) {
-				plugins.push(new PluginInfo(entry, uuid));
+				plugins.push(new PluginInfo(join(pluginsPath, entry.name), entry, uuid));
 			}
 		}
 
@@ -32,7 +33,7 @@ export function getPluginsPath(): string {
 	}
 
 	const appData = process.env.APPDATA ?? join(os.homedir(), "AppData/Roaming");
-	return join(appData, "Elgato/StreamDeck/Plugins");
+	return resolve(join(appData, "Elgato/StreamDeck/Plugins"));
 }
 
 /**
@@ -137,23 +138,21 @@ export function isValidPluginId(uuid: string | undefined): boolean {
  */
 class PluginInfo {
 	/**
-	 * Path where the plugin is installed.
-	 */
-	public readonly path;
-
-	/**
 	 * Private backing field for {@link PluginInfo.sourcePath}.
 	 */
 	private _sourcePath: string | null | undefined = undefined;
 
 	/**
 	 * Initializes a new instance of the {@link PluginInfo} class.
+	 * @param path Path where the plugin is installed.
 	 * @param entry The directory entry of the plugin.
 	 * @param uuid Unique identifier of the plugin.
 	 */
-	constructor(private readonly entry: Dirent, public readonly uuid: string) {
-		this.path = join(this.entry.path, this.entry.name);
-	}
+	constructor(
+		private readonly path: string,
+		private readonly entry: Dirent,
+		public readonly uuid: string
+	) {}
 
 	/**
 	 * Gets the source path of the plugin, when the installation path is a symbolic link; otherwise `null`.
