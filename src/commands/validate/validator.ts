@@ -1,97 +1,52 @@
 /**
- * Executes a collection on validators on a specific path, collecting the results.
+ * Validates the specified {@link context} against the {@link rules}.
+ * @param context Context to validate.
+ * @param rules Rules used to validate the context.
+ * @returns Validation result.
  */
-export abstract class Validator<TContext> implements ValidationContext {
-	/**
-	 * Validation rules to execute when validating the {@link Validator.path}.
-	 */
-	protected readonly rules: ValidationRule<TContext>[] = [];
+export function validate<T>(context: T, rules: ValidationRule<T>[]): ValidationResult {
+	let isCancellationRequested = false;
+	const result = new Result();
 
-	/**
-	 * The validation entries as a result of executing the validators, indexed by the directory or file path.
-	 */
-	private readonly result = new ValidationResult();
+	const validator: T & Validator = {
+		addCritical: function (path: string, message: string, fix?: string): typeof validator {
+			isCancellationRequested = true;
+			result.add(path, { fix, message, severity: "error" });
+			return validator;
+		},
+		addError: function (path: string, message: string, fix?: string): typeof validator {
+			result.add(path, { fix, message, severity: "error" });
+			return validator;
+		},
+		addWarning: function (path: string, message: string, fix?: string): typeof validator {
+			result.add(path, { fix, message, severity: "warning" });
+			return validator;
+		},
+		...context
+	};
 
-	/**
-	 * Initializes a new instance of the {@link Validator} class.
-	 * @param path Path to validate.
-	 */
-	constructor(public readonly path: string) {}
-
-	/**
-	 * @inheritdoc
-	 */
-	public addError(path: string, message: string, fix?: string): this {
-		this.push(path, { fix, message, severity: "error" });
-		this.result.errorCount++;
-		return this;
-	}
-
-	/**
-	 * @inheritdoc
-	 */
-	public addWarning(path: string, message: string, fix?: string): this {
-		this.push(path, { fix, message, severity: "warning" });
-		this.result.warningCount++;
-		return this;
-	}
-
-	/**
-	 * Validates the root path, and returns the result of the validation.
-	 * @returns The validation result.
-	 */
-	public validate(): ValidationResult {
-		const ctx = this.getContext();
-		for (const rule of this.rules) {
-			if ((rule.call(ctx) || 0) > 0) {
-				break;
-			}
+	for (const rule of rules) {
+		rule.call(validator);
+		if (isCancellationRequested) {
+			break;
 		}
-
-		return this.result;
 	}
 
-	/**
-	 * Gets the context of the validation runner to be provided to each validator.
-	 * @returns The context.
-	 */
-	protected abstract getContext(): TContext;
-
-	/**
-	 * Pushes the {@link entry} onto the validation stack associated with the {@link path}.
-	 * @param path Parent path.
-	 * @param entry Validation entry.
-	 */
-	private push(path: string, entry: ValidationEntry): void {
-		const entries = this.result.get(path) || [];
-		entries.push(entry);
-
-		this.result.set(path, entries);
-	}
+	return result;
 }
 
 /**
- * Validation rule.
- * @param fn Delegate function responsible for validation; when a number greater than zero is returned, the validation terminates.
- * @returns The rule.
+ * Validator capable of recording a
  */
-export function rule<TContext>(fn: (this: TContext) => number | void): (this: TContext) => number | void {
-	return fn;
-}
-
-/**
- * Validation rule that will be executed as part of a validator.
- */
-export type ValidationRule<TContext> = (this: TContext) => number | void;
-
-/**
- * Validation context that enables validators to execute and report their result.
- */
-export interface ValidationContext {
+type Validator = {
 	/**
-	 * Path to validate.
+	 * Adds a critical validation error; validation will be cancelled.
+	 * @param path File or directory path the entry is associated with.
+	 * @param message Validation message.
+	 * @param fix Optional text indicating how to fix the issue.
+	 * @returns This instance for chaining.
 	 */
-	readonly path: string;
+	addCritical(path: string, message: string, fix?: string): Validator;
 
 	/**
 	 * Adds a validation error.
@@ -100,7 +55,7 @@ export interface ValidationContext {
 	 * @param fix Optional text indicating how to fix the issue.
 	 * @returns This instance for chaining.
 	 */
-	addError(path: string, message: string, fix?: string): this;
+	addError(path: string, message: string, fix?: string): Validator;
 
 	/**
 	 * Adds a validation warning.
@@ -109,28 +64,89 @@ export interface ValidationContext {
 	 * @param fix Optional text indicating how to fix the issue.
 	 * @returns This instance for chaining.
 	 */
-	addWarning(path: string, message: string, fix?: string): this;
-}
+	addWarning(path: string, message: string, fix?: string): Validator;
+};
 
 /**
- * Validation result.
+ * Wraps a validation rule.
+ * @param fn Delegate function responsible for applying the validation rule.
+ * @returns The validation rule.
  */
-export class ValidationResult extends Map<string, ValidationEntry[]> {
+export const rule = <TContext>(fn: ValidationRule<TContext>): ValidationRule<TContext> => fn;
+
+/**
+ * Validation rule that will be executed as part of a validator.
+ */
+export type ValidationRule<TContext> = (this: TContext & Validator) => void;
+
+/**
+ * Collection of validation entries.
+ */
+export type ValidationResult = ReadonlyMap<string, ReadonlyArray<ValidationEntry>> & {
 	/**
 	 * Number of errors.
 	 */
-	public errorCount = 0;
+	readonly errorCount: number;
 
 	/**
 	 * Number of warnings.
 	 */
-	public warningCount = 0;
+	readonly warningCount: number;
+};
+
+/**
+ * Collection of validation entries, indexed by the directory or file path associated with them.
+ */
+class Result extends Map<string, ValidationEntry[]> implements ValidationResult {
+	/**
+	 * Private backing field for {@link Result.errorCount}.
+	 */
+	private _errorCount = 0;
+
+	/**
+	 * Private backing field for {@link Result.warningCount}.
+	 */
+	private _warningCount = 0;
+
+	/**
+	 * Number of errors.
+	 * @returns Error count.
+	 */
+	public get errorCount(): number {
+		return this._errorCount;
+	}
+
+	/**
+	 * Number of warnings.
+	 * @returns Warning count.
+	 */
+	public get warningCount(): number {
+		return this._warningCount;
+	}
+
+	/**
+	 * Adds a new validation entry to the result.
+	 * @param path Directory or file path the entry is associated with.
+	 * @param entry Validation entry.
+	 */
+	public add(path: string, entry: ValidationEntry): void {
+		if (entry.severity === "error") {
+			this._errorCount++;
+		} else {
+			this._warningCount++;
+		}
+
+		const entries = super.get(path) || [];
+		entries.push(entry);
+
+		super.set(path, entries);
+	}
 }
 
 /**
  * Validation entry.
  */
-export type ValidationEntry = {
+type ValidationEntry = {
 	/**
 	 * Optional supporting text to rectify the validation entry, i.e. how to fix the problem.
 	 */

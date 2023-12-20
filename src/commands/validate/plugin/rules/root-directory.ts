@@ -9,13 +9,13 @@ import type { PluginContext } from "../validate";
  */
 export default rule<PluginContext>(function () {
 	if (!existsSync(this.path)) {
-		this.addError(this.path, "Path does not exist");
-		return 1;
+		this.addCritical(this.path, "Path does not exist");
+		return;
 	}
 
 	if (!lstatSync(this.path).isDirectory()) {
-		this.addError(this.path, "Path must be a directory");
-		return 1;
+		this.addCritical(this.path, "Path must be a directory");
+		return;
 	}
 
 	const dir = basename(this.path);
@@ -29,6 +29,4 @@ export default rule<PluginContext>(function () {
 	if (!isValidPluginId(dir.substring(0, idLength))) {
 		this.addError(this.path, "Invalid directory name", "Directory name must only contain lowercase alphanumeric characters (a-z, 0-9), hyphens (-), underscores (_), and periods (.).");
 	}
-
-	return 0;
 });

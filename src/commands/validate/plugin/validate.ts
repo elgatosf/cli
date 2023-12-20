@@ -1,38 +1,16 @@
 import type { Manifest } from "@elgato/streamdeck";
-import { Validator, type ValidationContext, type ValidationResult } from "../validator";
+import { validate, type ValidationResult } from "../validator";
 import rootDirectoryRule from "./rules/root-directory";
-
-/**
- * Validates a Stream Deck plugin.
- */
-class PluginValidator extends Validator<PluginContext> {
-	/**
-	 * @inheritdoc
-	 */
-	public manifest?: Manifest;
-
-	/**
-	 * Initializes a new instance of the {@link PluginValidator} class.
-	 * @param path Path to validate.
-	 */
-	constructor(path: string) {
-		super(path);
-
-		this.rules.push(rootDirectoryRule);
-	}
-
-	/**
-	 *  @inheritdoc
-	 */
-	protected getContext(): PluginValidator {
-		return this;
-	}
-}
 
 /**
  * Validation context that enables validation of a plugin.
  */
-export interface PluginContext extends ValidationContext {
+export interface PluginContext {
+	/**
+	 * Path to the root of the plugin.
+	 */
+	path: string;
+
 	/**
 	 * Manifest associated with the plugin; when undefined, the manifest should be considered invalid.
 	 */
@@ -45,6 +23,5 @@ export interface PluginContext extends ValidationContext {
  * @returns The validation result.
  */
 export function validatePlugin(path: string): ValidationResult {
-	const pluginValidator = new PluginValidator(path);
-	return pluginValidator.validate();
+	return validate<PluginContext>({ path }, [rootDirectoryRule]);
 }
