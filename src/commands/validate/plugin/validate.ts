@@ -1,6 +1,9 @@
 import type { Manifest } from "@elgato/streamdeck";
 import { validate, type ValidationResult } from "../validator";
-import rootDirectoryRule from "./rules/root-directory";
+import { directoryNameIsIdentifier } from "./rules/directory-name-is-uuid";
+import { manifestExists } from "./rules/manifest-exists";
+import { manifestSchema } from "./rules/manifest-schema";
+import { pathIsDirectory } from "./rules/path-is-directory";
 
 /**
  * Validation context that enables validation of a plugin.
@@ -23,5 +26,5 @@ export interface PluginContext {
  * @returns The validation result.
  */
 export function validatePlugin(path: string): ValidationResult {
-	return validate<PluginContext>({ path }, [rootDirectoryRule]);
+	return validate<PluginContext>({ path }, [pathIsDirectory, directoryNameIsIdentifier, manifestExists, manifestSchema]);
 }
