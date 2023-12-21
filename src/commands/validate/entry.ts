@@ -78,6 +78,6 @@ export type ValidationEntryDetails = {
 		/**
 		 * Line number.
 		 */
-		line: number;
+		line?: number;
 	};
 };

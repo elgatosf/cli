@@ -1,5 +1,6 @@
 import type { Manifest } from "@elgato/streamdeck";
-import { ValidationResult } from "../result";
+import type { DocumentNode } from "@humanwhocodes/momoa";
+import type { ValidationResult } from "../result";
 import { validate } from "../validator";
 import { actionImagesExist } from "./rules/action-images-exist";
 import { directoryNameIsIdentifier } from "./rules/directory-name-is-uuid";
@@ -27,12 +28,22 @@ export type PluginContext = {
  */
 export type ManifestMetadata = {
 	/**
+	 * Raw JSON that was used to parse the manifest.
+	 */
+	json?: string;
+
+	/**
+	 * Abstract syntax tree that represents the {@link json}.
+	 */
+	jsonAst?: DocumentNode;
+
+	/**
 	 * Path to the manifest.
 	 */
 	path?: string;
 
 	/**
-	 * Parsed manifest data.
+	 * Manifest parsed from the {@link json}; this is a valid manifest.
 	 */
 	value?: Manifest;
 };

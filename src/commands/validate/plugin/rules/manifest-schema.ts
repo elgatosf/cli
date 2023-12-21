@@ -1,7 +1,7 @@
 import { rule } from "../../rule";
 import type { PluginContext } from "../validate";
 
-import { type Manifest } from "@elgato/streamdeck";
+import { parse } from "@humanwhocodes/momoa";
 import Ajv, { AnySchema, ErrorObject } from "ajv";
 import betterAjvErrors from "better-ajv-errors";
 import { readFileSync } from "node:fs";
@@ -15,12 +15,10 @@ export const manifestSchema = rule<PluginContext>(function () {
 		throw new Error("Validating the manifest schema requires a manifest file");
 	}
 
-	const json = readFileSync(this.manifest.path, { encoding: "utf-8" });
-
 	// Attempt to load the manifest data from the file contents.
-	let manifest: Manifest | undefined = undefined;
 	try {
-		manifest = JSON.parse(json);
+		this.manifest.json = readFileSync(this.manifest.path, { encoding: "utf-8" });
+		this.manifest.value = JSON.parse(this.manifest.json);
 	} catch {
 		this.addCritical(this.manifest.path, "Failed to parse manifest");
 		return;
@@ -33,15 +31,14 @@ export const manifestSchema = rule<PluginContext>(function () {
 	const validate = ajv.compile(schema);
 
 	// Validate the manifest.
-	const valid = validate(manifest);
+	const valid = validate(this.manifest.value);
 	if (!valid) {
-		betterAjvErrors(schema, manifest, validate.errors as Array<ErrorObject>, { format: "js", json }).forEach(({ error, start }) => {
+		betterAjvErrors(schema, this.manifest.value, validate.errors as Array<ErrorObject>, { format: "js", json: this.manifest.json }).forEach(({ error, start }) => {
 			this.addError(this.manifest.path!, error.trim(), { position: start });
 		});
 	}
 
-	// Set the manifest to allow for chaining.
-	this.manifest.value = manifest;
+	this.manifest.jsonAst = parse(this.manifest.json);
 });
 
 /**
