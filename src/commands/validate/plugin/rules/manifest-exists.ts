@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { rule } from "../../validator";
+import { rule } from "../../rule";
 import type { PluginContext } from "../validate";
 
 /**

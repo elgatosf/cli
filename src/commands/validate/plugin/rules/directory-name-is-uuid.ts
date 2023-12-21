@@ -1,6 +1,6 @@
 import { basename } from "path";
 import { isValidPluginId } from "../../../../stream-deck";
-import { rule } from "../../validator";
+import { rule } from "../../rule";
 import type { PluginContext } from "../validate";
 
 /**

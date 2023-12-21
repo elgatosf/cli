@@ -1,5 +1,6 @@
 import type { Manifest } from "@elgato/streamdeck";
-import { validate, type ValidationResult } from "../validator";
+import { ValidationResult } from "../result";
+import { validate } from "../validator";
 import { directoryNameIsIdentifier } from "./rules/directory-name-is-uuid";
 import { manifestExists } from "./rules/manifest-exists";
 import { manifestSchema } from "./rules/manifest-schema";
