@@ -11,11 +11,11 @@ export const directoryNameIsIdentifier = rule<PluginContext>(function () {
 	let idLength = dir.length - 9;
 
 	if (!dir.endsWith(".sdPlugin")) {
-		this.addError(this.path, "Invalid directory name", { suggestion: `Directory name must be suffixed with ".sdPlugin".` });
+		this.addError(this.path, "Invalid directory name", { suggestion: `Directory name must be suffixed with ".sdPlugin"` });
 		idLength = 0;
 	}
 
 	if (!isValidPluginId(dir.substring(0, idLength))) {
-		this.addError(this.path, "Invalid directory name", { suggestion: "Directory name must only contain lowercase alphanumeric characters (a-z, 0-9), hyphens (-), underscores (_), and periods (.)." });
+		this.addError(this.path, "Invalid directory name", { suggestion: "Directory name must only contain lowercase alphanumeric characters (a-z, 0-9), hyphens (-), underscores (_), and periods (.)" });
 	}
 });
