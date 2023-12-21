@@ -11,7 +11,13 @@
 
 # Change Log
 
-## 0.2.0 (Pending)
+## vNext
+
+### ♻️ Improvements
+
+- Add "Open in VSCode" prompt, as part of creation wizard, for macOS.
+
+## 0.2.0
 
 ### ✨ New
 
