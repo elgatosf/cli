@@ -33,7 +33,7 @@ export class ValidationEntryCollection {
 	 * @param entry Entry to add.
 	 */
 	public add(entry: ValidationEntry): void {
-		this.positionPad = Math.max(entry.position.length);
+		this.positionPad = Math.max(this.positionPad, entry.position.length);
 		this.entries.push(entry);
 	}
 
