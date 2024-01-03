@@ -12,7 +12,7 @@ import { relative } from "../../../../common/path";
  */
 export const manifestSchema = rule<PluginContext>(function () {
 	if (this.manifest.path === undefined) {
-		throw new Error("Validating the manifest schema requires a manifest file");
+		throw new Error("Validating the manifest schema requires the manifest file");
 	}
 
 	// Attempt to load the manifest data from the file contents.

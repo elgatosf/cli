@@ -10,7 +10,7 @@ import { type PluginContext } from "../validate";
  */
 export const actionImagesExist = rule<PluginContext>(function () {
 	if (this.manifest.path === undefined || this.manifest.value === undefined) {
-		throw new Error("Validating action images exist requires a manifest");
+		throw new Error("Validating action images exist requires the manifest");
 	}
 
 	/**
