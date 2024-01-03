@@ -4,34 +4,18 @@ import { type ValidationRule } from "./rule";
 
 /**
  * Validates the specified {@link context} against the {@link rules}.
- * @param context Context to validate.
+ * @param path Root path of the item being validated.
+ * @param context Additional context provided to each validation rule.
  * @param rules Rules used to validate the context.
  * @returns Validation result.
  */
-export function validate<T>(context: T, rules: ValidationRule<T>[]): ValidationResult {
-	let isCancellationRequested = false;
+export function validate<T>(path: string, context: T, rules: ValidationRule<T>[]): ValidationResult {
 	const result = new ValidationResult();
-
-	const validator: Validator<T> = {
-		addCritical: function (path: string, message: string, details?: ValidationEntryDetails): typeof validator {
-			isCancellationRequested = true;
-			result.add(path, new ValidationEntry(ValidationLevel.error, message, details));
-			return validator;
-		},
-		addError: function (path: string, message: string, details?: ValidationEntryDetails): typeof validator {
-			result.add(path, new ValidationEntry(ValidationLevel.error, message, details));
-			return validator;
-		},
-		addWarning: function (path: string, message: string, details?: ValidationEntryDetails): typeof validator {
-			result.add(path, new ValidationEntry(ValidationLevel.warning, message, details));
-			return validator;
-		},
-		...context
-	};
+	const validationContext = new ValidationContext(path, result);
 
 	for (const rule of rules) {
-		rule.call(validator);
-		if (isCancellationRequested) {
+		rule.call(validationContext, context);
+		if (validationContext.isCancellationRequested) {
 			break;
 		}
 	}
@@ -40,9 +24,32 @@ export function validate<T>(context: T, rules: ValidationRule<T>[]): ValidationR
 }
 
 /**
- * Validator capable of recording a
+ * Validation context, providing information about the current item being validated, and methods for recording validation entries.
  */
-export type Validator<TContext> = TContext & {
+export class ValidationContext {
+	/**
+	 * Private backing field for {@link ValidationContext.isCancellationRequested}.
+	 */
+	private _isCancellationRequested = false;
+
+	/**
+	 * Initializes a new instance of the {@link ValidationContext} class.
+	 * @param path Path to the item being validated.
+	 * @param result Validation results.
+	 */
+	constructor(
+		public readonly path: string,
+		private readonly result: ValidationResult
+	) {}
+
+	/**
+	 * Determines whether cancellation was requested; this is set to `true` when {@link ValidationContext.addCritical} is called.
+	 * @returns `true` when a critical error was encountered; otherwise `false`.
+	 */
+	public get isCancellationRequested(): boolean {
+		return this._isCancellationRequested;
+	}
+
 	/**
 	 * Adds a critical validation error; validation will be cancelled.
 	 * @param path File or directory path the entry is associated with.
@@ -50,7 +57,10 @@ export type Validator<TContext> = TContext & {
 	 * @param details Optional details.
 	 * @returns This instance for chaining.
 	 */
-	addCritical(path: string, message: string, details?: ValidationEntryDetails): Validator<TContext>;
+	public addCritical(path: string, message: string, details?: ValidationEntryDetails): this {
+		this._isCancellationRequested = true;
+		return this.addError(path, message, details);
+	}
 
 	/**
 	 * Adds a validation error.
@@ -59,7 +69,10 @@ export type Validator<TContext> = TContext & {
 	 * @param details Optional details.
 	 * @returns This instance for chaining.
 	 */
-	addError(path: string, message: string, details?: ValidationEntryDetails): Validator<TContext>;
+	public addError(path: string, message: string, details?: ValidationEntryDetails): this {
+		this.result.add(path, new ValidationEntry(ValidationLevel.error, message, details));
+		return this;
+	}
 
 	/**
 	 * Adds a validation warning.
@@ -68,5 +81,8 @@ export type Validator<TContext> = TContext & {
 	 * @param details Optional details.
 	 * @returns This instance for chaining.
 	 */
-	addWarning(path: string, message: string, details?: ValidationEntryDetails): Validator<TContext>;
-};
+	public addWarning(path: string, message: string, details?: ValidationEntryDetails): this {
+		this.result.add(path, new ValidationEntry(ValidationLevel.warning, message, details));
+		return this;
+	}
+}

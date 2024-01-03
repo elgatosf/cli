@@ -1,5 +1,5 @@
 import { rule } from "../../rule";
-import type { PluginContext } from "../validate";
+import { PluginContext } from "../validate";
 
 import { parse } from "@humanwhocodes/momoa";
 import Ajv, { AnySchema, ErrorObject } from "ajv";
@@ -10,17 +10,17 @@ import { relative } from "../../../../common/path";
 /**
  * Validates the JSON schema of the manifest.
  */
-export const manifestSchema = rule<PluginContext>(function () {
-	if (this.manifest.path === undefined) {
+export const manifestSchema = rule<PluginContext>(function (plugin: PluginContext) {
+	if (plugin.manifest.path === undefined) {
 		throw new Error("Validating the manifest schema requires the manifest file");
 	}
 
 	// Attempt to load the manifest data from the file contents.
 	try {
-		this.manifest.json = readFileSync(this.manifest.path, { encoding: "utf-8" });
-		this.manifest.value = JSON.parse(this.manifest.json);
+		plugin.manifest.json = readFileSync(plugin.manifest.path, { encoding: "utf-8" });
+		plugin.manifest.value = JSON.parse(plugin.manifest.json);
 	} catch {
-		this.addCritical(this.manifest.path, "Failed to parse manifest");
+		this.addCritical(plugin.manifest.path, "Failed to parse manifest");
 		return;
 	}
 
@@ -31,14 +31,14 @@ export const manifestSchema = rule<PluginContext>(function () {
 	const validate = ajv.compile(schema);
 
 	// Validate the manifest.
-	const valid = validate(this.manifest.value);
+	const valid = validate(plugin.manifest.value);
 	if (!valid) {
-		betterAjvErrors(schema, this.manifest.value, validate.errors as Array<ErrorObject>, { format: "js", json: this.manifest.json }).forEach(({ error, start }) => {
-			this.addError(this.manifest.path!, error.trim(), { position: start });
+		betterAjvErrors(schema, plugin.manifest.value, validate.errors as Array<ErrorObject>, { format: "js", json: plugin.manifest.json }).forEach(({ error, start }) => {
+			this.addError(plugin.manifest.path!, error.trim(), { position: start });
 		});
 	}
 
-	this.manifest.jsonAst = parse(this.manifest.json);
+	plugin.manifest.jsonAst = parse(plugin.manifest.json);
 });
 
 /**

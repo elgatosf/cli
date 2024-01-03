@@ -6,10 +6,10 @@ import type { PluginContext } from "../validate";
 /**
  * Validates the manifest exists.
  */
-export const manifestExists = rule<PluginContext>(function () {
-	this.manifest.path = join(this.path, "manifest.json");
+export const manifestExists = rule<PluginContext>(function (plugin: PluginContext) {
+	plugin.manifest.path = join(this.path, "manifest.json");
 
-	if (!existsSync(this.manifest.path)) {
-		this.addCritical(this.manifest.path, "Manifest not found");
+	if (!existsSync(plugin.manifest.path)) {
+		this.addCritical(plugin.manifest.path, "Manifest not found");
 	}
 });

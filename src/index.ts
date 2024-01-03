@@ -36,7 +36,8 @@ program
 program
 	.command("validate")
 	.description("Validates the Stream Deck plugin.")
-	.action(() => validate());
+	.argument("[path]", "Path of the plugin to validate")
+	.action((path) => validate({ path }));
 
 const configCommand = program.command("config").description("Manage the local configuration.");
 
