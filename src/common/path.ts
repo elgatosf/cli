@@ -1,5 +1,5 @@
 import { existsSync, lstatSync, readdirSync, readlinkSync, Stats } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { delimiter, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 /**
@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
  * @returns `true` when the application is considered executable; otherwise `false`.
  */
 export function isExecutable(application: string): boolean {
-	for (const path of process.env.PATH?.split(":") || []) {
+	for (const path of process.env.PATH?.split(delimiter) || []) {
 		if (existsSync(path) && isDirectory(path) && readdirSync(path).find((entry) => entry === application && isFile(join(path, entry)))) {
 			return true;
 		}
