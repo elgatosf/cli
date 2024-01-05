@@ -1,62 +1,6 @@
-import { parse, type DocumentNode, type ElementNode, type Location, type MemberNode, type ObjectNode, type ValueNode } from "@humanwhocodes/momoa";
+import { parse, type ArrayNode, type DocumentNode, type ElementNode, type Location, type MemberNode, type NullNode, type ObjectNode, type ValueNode } from "@humanwhocodes/momoa";
 import { type AnyValidateFunction } from "ajv/dist/types";
 import betterAjvErrors, { type IOutputError } from "better-ajv-errors";
-
-/**
- * Gets the location of the JSON {@link pointer} from the JSON's abstract syntax tree.
- * @param jsonAst Abstract syntax tree to traverse.
- * @param pointer Pointer to the location to find.
- * @returns The location, otherwise `undefined`.
- */
-export function getLocation(jsonAst: DocumentNode, pointer: string): Location | undefined {
-	// Split the pointers, and parse numbers for array elements.
-	const pointers = pointer
-		.split("/")
-		.slice(1)
-		.map((pointer) => {
-			const number = parseInt(pointer);
-			return isNaN(number) ? pointer : number;
-		});
-
-	return traverse(jsonAst.body, pointers)?.loc?.start;
-}
-
-/**
- * Continually traverses through the {@link node}, selecting the {@link pointer}, and continuing with the {@link pointers}.
- * @param node Node to traverse
- * @param param1 Pointers used to traverse the node.
- * @param param1."0" Current pointer.
- * @param param1."1" Remaining pointers.
- * @returns The node for the relative {@link pointer}.
- */
-function traverse(node: Node, [pointer, ...pointers]: (number | string)[]): Node | undefined {
-	// We've found the node when there are no pointers left.
-	if (pointer === undefined) {
-		return node;
-	}
-
-	// When the node is an array, attempt to return the right element based on the pointer as an index.
-	if (node.type === "Array") {
-		if (typeof pointer !== "number") {
-			throw new TypeError("Pointer is not a number");
-		}
-
-		return traverse(node.elements[pointer].value, pointers);
-	}
-
-	// When the node is an object, find the first matching member and continue.
-	if (node.type === "Object") {
-		const filtered = node.members.filter(({ name: { value } }) => value === pointer);
-		if (filtered.length !== 1) {
-			throw new Error(`Couldn't find property ${pointer}`);
-		}
-
-		const { value } = filtered[0];
-		return traverse(value, pointers);
-	}
-
-	throw new Error(`Unhandled node type ${node.type}`);
-}
 
 /**
  * Validates the {@link json} against the {@link validate} schema function. The result is a data object from the parsed {@link json} string, where only valid value-types are set.
@@ -112,19 +56,28 @@ export type JsonObject<T = unknown> = {
 };
 
 /**
- * JSON element within a JSON string, including it's parsed value, and the location it was parsed from.
+ * JSON property within a JSON string, including it's parsed value, and the location it was parsed from.
  */
-export type JsonElement<T = unknown> = {
-	/**
-	 * Location of the element within the JSON it was parsed from.
-	 */
-	location?: Location | undefined;
+export type JsonElement<T = unknown> = T extends Array<infer E>
+	? JsonElement<E>[]
+	: T extends object | undefined
+	? JsonObject<T>
+	: {
+			/**
+			 * Location of the element within the JSON it was parsed from.
+			 */
+			location?: Location | undefined;
 
-	/**
-	 * Parsed value.
-	 */
-	value?: T extends Array<infer E> ? JsonObject<E>[] : T extends object ? JsonObject<T> : T;
-};
+			/**
+			 * JSON pointer to the element in the JSON.
+			 */
+			pointer: string;
+
+			/**
+			 * Parsed value.
+			 */
+			value?: T;
+	  };
 
 /**
  * Maps the {@link node} to a {@link JsonObject}.
@@ -135,61 +88,53 @@ export type JsonElement<T = unknown> = {
 function toJsonObject<T>(node: ObjectNode, errors: AnyValidateFunction<T>["errors"]): JsonObject<T> {
 	const invalidTypeInstancePaths = new Set<string>(errors?.filter(({ keyword }) => keyword === "type").map(({ instancePath }) => instancePath) || []);
 
-	const reduce: JsonObjectReducer = (node, path) => {
-		if (invalidTypeInstancePaths.has(path)) {
+	const reduce = (node: Node, pointer: string): JsonElement | JsonElement[] | JsonObject => {
+		if (invalidTypeInstancePaths.has(pointer)) {
 			return {
-				value: undefined,
-				location: node.loc?.start
+				location: node.loc?.start,
+				pointer,
+				value: undefined
 			};
 		}
 
 		// Object node, recursively reduce each member.
 		if (node.type === "Object") {
-			return node.members.reduce((obj: Record<string, unknown>, member: MemberNode) => {
-				obj[member.name.value] = reduce(member.value, `${path}/${member.name.value}`);
+			return node.members.reduce((obj: Record<string, ReturnType<typeof reduce>>, member: MemberNode) => {
+				obj[member.name.value] = reduce(member.value, `${pointer}/${member.name.value}`);
 				return obj;
 			}, {});
 		}
 
 		// Array node, recursively reduce each element.
 		if (node.type === "Array") {
-			return {
-				value: node.elements.map((item, i) => reduce(item.value, `${path}/${i}`)),
-				location: node.loc?.start
-			};
+			return node.elements.map((item, i) => reduce(item.value, `${pointer}/${i}`));
 		}
 
 		// Value node.
 		if (node.type === "Boolean" || node.type === "Number" || node.type === "String") {
 			return {
-				value: node.value,
-				location: node.loc?.start
+				location: node.loc?.start,
+				pointer,
+				value: node.value
 			};
 		}
 
 		// Null value node.
 		if (node.type === "Null") {
 			return {
-				value: null,
-				location: node.loc?.start
+				location: node.loc?.start,
+				pointer,
+				value: null
 			};
 		}
 
 		throw new Error(`Encountered unhandled node type '${node.type}' when mapping abstract-syntax tree node to JSON object`);
 	};
 
-	return reduce(node, "");
-}
-
-/**
- * Reducer that traverses the {@link node} and maps it to a {@link JsonObject} or {@link JsonElement}.
- */
-interface JsonObjectReducer {
-	(node: ObjectNode, path: string): JsonObject;
-	(node: Node, path: string): JsonElement;
+	return reduce(node, "") as JsonObject<T>;
 }
 
 /**
  * Abstract syntax tree node.
  */
-type Node = DocumentNode | ElementNode | ValueNode;
+type Node = ArrayNode | DocumentNode | ElementNode | NullNode | ObjectNode | ValueNode;

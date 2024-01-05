@@ -32,11 +32,11 @@ export class ManifestContext {
 
 	/**
 	 * Initializes a new instance of the {@link ManifestContext} class.
-	 * @param root Root directory where the plugin is located.
+	 * @param path Path to the plugin.
 	 */
-	constructor(root: string) {
+	constructor(path: string) {
 		// Determine if a manifest exists.
-		this.path = join(root, "manifest.json");
+		this.path = join(path, "manifest.json");
 		if (!existsSync(this.path)) {
 			return;
 		}

@@ -15,9 +15,6 @@ export function validate<T>(path: string, context: T, rules: ValidationRule<T>[]
 
 	for (const rule of rules) {
 		rule.call(validationContext, context);
-		if (validationContext.isCancellationRequested) {
-			break;
-		}
 	}
 
 	return result;
@@ -28,11 +25,6 @@ export function validate<T>(path: string, context: T, rules: ValidationRule<T>[]
  */
 export class ValidationContext {
 	/**
-	 * Private backing field for {@link ValidationContext.isCancellationRequested}.
-	 */
-	private _isCancellationRequested = false;
-
-	/**
 	 * Initializes a new instance of the {@link ValidationContext} class.
 	 * @param path Path to the item being validated.
 	 * @param result Validation results.
@@ -41,26 +33,6 @@ export class ValidationContext {
 		public readonly path: string,
 		private readonly result: ValidationResult
 	) {}
-
-	/**
-	 * Determines whether cancellation was requested; this is set to `true` when {@link ValidationContext.addCritical} is called.
-	 * @returns `true` when a critical error was encountered; otherwise `false`.
-	 */
-	public get isCancellationRequested(): boolean {
-		return this._isCancellationRequested;
-	}
-
-	/**
-	 * Adds a critical validation error; validation will be cancelled.
-	 * @param path File or directory path the entry is associated with.
-	 * @param message Validation message.
-	 * @param details Optional details.
-	 * @returns This instance for chaining.
-	 */
-	public addCritical(path: string, message: string, details?: ValidationEntryDetails): this {
-		this._isCancellationRequested = true;
-		return this.addError(path, message, details);
-	}
 
 	/**
 	 * Adds a validation error.
