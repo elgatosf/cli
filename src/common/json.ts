@@ -66,31 +66,26 @@ function traverse(node: Node, [pointer, ...pointers]: (number | string)[]): Node
  * @returns Errors associated with validating the schema, and the parsed result of the {@link json}.
  */
 export function validate<T extends object>(json: string, validate: AnyValidateFunction<T>): JsonValidationResult<T> {
-	// Check the JSON is valid, and we can parse it.
+	// Parse the JSON contents.
 	let data;
 	try {
 		data = JSON.parse(json);
-		validate(data);
 	} catch {
 		return {
-			errors: [{ error: "JSON contents are invalid", start: { column: 0, line: 0, offset: 0 } }],
+			errors: [{ error: "Contents must be a valid JSON string", start: { column: 0, line: 0, offset: 0 } }],
 			value: {}
 		};
 	}
 
-	// Check the JSON represents an object (only objects are supported).
+	// Validate the JSON contents against the schema.
+	validate(data);
+	const errors = betterAjvErrors(validate.schema, data, validate.errors ?? [], { format: "js", json });
+
+	// Return the errors, and build the JSON object if the AST allows it.
 	const ast = parse(json, { mode: "json", ranges: false, tokens: false });
-	if (ast.body.type !== "Object") {
-		return {
-			errors: [{ error: "JSON contents must represent a serialized object", start: { column: 0, line: 0, offset: 0 } }],
-			value: {}
-		};
-	}
-
-	// Prettify schema errors, and build the JSON as an object.
 	return {
-		errors: betterAjvErrors(validate.schema, data, validate.errors ?? [], { format: "js", json }),
-		value: toJsonObject(ast.body, validate.errors || [])
+		errors,
+		value: ast.body.type === "Object" ? toJsonObject(ast.body, validate.errors) : {}
 	};
 }
 

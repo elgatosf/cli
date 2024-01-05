@@ -41,18 +41,12 @@ export class ManifestContext {
 			return;
 		}
 
-		// Validate the parsed manifest against the JSON schema.
+		// Read the contents of the JSON, and validate it against the schema.
 		const json = readFileSync(this.path, { encoding: "utf-8" });
 		const ajv = new Ajv({ allErrors: true });
 		ajv.addKeyword("markdownDescription");
 
-		try {
-			({ errors: this.errors, value: this.manifest } = validate<Manifest>(json, ajv.compile<Manifest>(this.schema)));
-		} catch (e) {
-			if (e instanceof TypeError) {
-				this.errors = this.errors.concat([{ error: "Unable to parse JSON", start: { column: 0, line: 0, offset: 0 } }]);
-			}
-		}
+		({ errors: this.errors, value: this.manifest } = validate<Manifest>(json, ajv.compile<Manifest>(this.schema)));
 	}
 
 	/**
