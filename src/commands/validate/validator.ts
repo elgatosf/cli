@@ -9,12 +9,12 @@ import { type ValidationRule } from "./rule";
  * @param rules Rules used to validate the context.
  * @returns Validation result.
  */
-export function validate<T>(path: string, context: T, rules: ValidationRule<T>[]): ValidationResult {
+export async function validate<T>(path: string, context: T, rules: ValidationRule<T>[]): Promise<ValidationResult> {
 	const result = new ValidationResult();
 	const validationContext = new ValidationContext(path, result);
 
 	for (const rule of rules) {
-		rule.call(validationContext, context);
+		await rule.call(validationContext, context);
 	}
 
 	return result;

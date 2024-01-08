@@ -10,4 +10,4 @@ export const rule = <TContext>(fn: ValidationRule<TContext>): ValidationRule<TCo
 /**
  * Validation rule that will be executed as part of a validator.
  */
-export type ValidationRule<TContext> = (this: ValidationContext, context: TContext) => void;
+export type ValidationRule<TContext> = (this: ValidationContext, context: TContext) => Promise<void> | void;
