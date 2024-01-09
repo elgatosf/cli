@@ -11,17 +11,12 @@ export const directorySuffix = ".sdPlugin";
  */
 export class PluginContext {
 	/**
-	 * Directory name (basename).
-	 */
-	public readonly directoryName: string;
-
-	/**
 	 * Manifest associated with the plugin.
 	 */
 	public readonly manifest: ManifestContext;
 
 	/**
-	 * Unique identifier parsed from the {@link PluginContext.directoryName}.
+	 * Unique identifier parsed from the {@link PluginContext.pathName}.
 	 */
 	public readonly uuid: string;
 
@@ -30,8 +25,7 @@ export class PluginContext {
 	 * @param path Path to the plugin.
 	 */
 	constructor(path: string) {
-		this.directoryName = basename(path);
 		this.manifest = new ManifestContext(path);
-		this.uuid = this.directoryName.replace(/\.sdPlugin$/, "");
+		this.uuid = basename(path).replace(/\.sdPlugin$/, "");
 	}
 }
