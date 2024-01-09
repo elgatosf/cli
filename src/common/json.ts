@@ -58,26 +58,29 @@ export type JsonObject<T = unknown> = {
 /**
  * JSON property within a JSON string, including it's parsed value, and the location it was parsed from.
  */
-export type JsonElement<T = unknown> = T extends Array<infer E>
-	? JsonElement<E>[]
-	: T extends object | undefined
-	? JsonObject<T>
-	: {
-			/**
-			 * Location of the element within the JSON it was parsed from.
-			 */
-			location?: Location | undefined;
+export type JsonElement<T = unknown> = T extends Array<infer E> ? JsonElement<E>[] : T extends object | undefined ? JsonObject<T> : JsonValueNode<T>;
 
-			/**
-			 * JSON pointer to the element in the JSON.
-			 */
-			pointer: string;
+/**
+ * Represents a node within a JSON structure.
+ */
+export class JsonValueNode<T> {
+	/**
+	 * Initializes a new instance of the {@link JsonValueNode} class.
+	 * @param pointer JSON pointer to the element in the JSON.
+	 * @param value Parsed value.
+	 * @param location Location of the element within the JSON it was parsed from.
+	 */
+	constructor(
+		public readonly pointer: string,
+		public readonly value: T,
+		public readonly location: Location | undefined
+	) {}
 
-			/**
-			 * Parsed value.
-			 */
-			value?: T;
-	  };
+	/** @inheritdoc */
+	public toString(): string | undefined {
+		return this.value?.toString();
+	}
+}
 
 /**
  * Maps the {@link node} to a {@link JsonObject}.
@@ -90,11 +93,7 @@ function toJsonObject<T>(node: ObjectNode, errors: AnyValidateFunction<T>["error
 
 	const reduce = (node: Node, pointer: string): JsonElement | JsonElement[] | JsonObject => {
 		if (invalidTypeInstancePaths.has(pointer)) {
-			return {
-				location: node.loc?.start,
-				pointer,
-				value: undefined
-			};
+			return new JsonValueNode(pointer, undefined, node.loc?.start);
 		}
 
 		// Object node, recursively reduce each member.
@@ -112,20 +111,12 @@ function toJsonObject<T>(node: ObjectNode, errors: AnyValidateFunction<T>["error
 
 		// Value node.
 		if (node.type === "Boolean" || node.type === "Number" || node.type === "String") {
-			return {
-				location: node.loc?.start,
-				pointer,
-				value: node.value
-			};
+			return new JsonValueNode(pointer, node.value, node.loc?.start);
 		}
 
 		// Null value node.
 		if (node.type === "Null") {
-			return {
-				location: node.loc?.start,
-				pointer,
-				value: null
-			};
+			return new JsonValueNode(pointer, null, node.loc?.start);
 		}
 
 		throw new Error(`Encountered unhandled node type '${node.type}' when mapping abstract-syntax tree node to JSON object`);
