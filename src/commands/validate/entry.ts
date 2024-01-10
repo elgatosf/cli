@@ -1,5 +1,4 @@
 import chalk from "chalk";
-import { EOL } from "os";
 import { LocationRef } from "../../common/location";
 
 /**
@@ -48,7 +47,7 @@ export class ValidationEntry {
 		// Prepend the position and level, and append the suggestion (if available).
 		message = `${position}  ${level}  ${message}`;
 		if (this.details?.suggestion) {
-			message += `${EOL}${" ".repeat(padding + 13)}${chalk.dim(`└ ${this.details.suggestion}`)}`;
+			message += `  ${chalk.dim(this.details.suggestion)}`;
 		}
 
 		return message;
