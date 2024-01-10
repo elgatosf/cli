@@ -11,7 +11,5 @@ export const manifestExistsAndSchemaIsValid = rule<PluginContext>(function (plug
 		this.addError(plugin.manifest.path, "Manifest not found");
 	}
 
-	plugin.manifest.errors.forEach(({ message, position }) => {
-		this.addError(plugin.manifest.path!, message, { position });
-	});
+	plugin.manifest.errors.forEach((err) => this.addError(plugin.manifest.path!, err.message, err));
 });

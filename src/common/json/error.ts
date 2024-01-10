@@ -1,11 +1,18 @@
 import { type Location } from "@humanwhocodes/momoa";
 import { ErrorObject } from "ajv/dist/types";
+import chalk from "chalk";
 import { isArray } from "lodash";
+import { getPath } from "./path";
 
 /**
  * Provides information relating to a JSON error, as part from {@link ErrorObject}.
  */
 export class JsonSchemaError {
+	/**
+	 * Position of the JSON error within the source JSON.
+	 */
+	public readonly location: Location | undefined;
+
 	/**
 	 * User-friendly message that explain the JSON schema error.
 	 */
@@ -17,16 +24,6 @@ export class JsonSchemaError {
 	public readonly path: string;
 
 	/**
-	 * JSON pointer to the error in the source JSON.
-	 */
-	public readonly pointer: string;
-
-	/**
-	 * Position of the JSON error within the source JSON.
-	 */
-	public readonly position: Location | undefined;
-
-	/**
 	 * Initializes a new instance of the {@link JsonSchemaError} class.
 	 * @param param0 JSON schema error.
 	 * @param param0.instancePath JSON pointer to the error in the source JSON.
@@ -36,15 +33,14 @@ export class JsonSchemaError {
 	 * @param locations Locations of JSON nodes, indexed by their JSON pointer.
 	 */
 	constructor({ instancePath: pointer, keyword, message, params }: ErrorObject<JsonSchemaErrorKeyword>, locations: Map<string, Location | undefined>) {
-		this.path = JsonSchemaError.getPath(pointer);
-		this.pointer = pointer;
-		this.position = locations.get(this.pointer);
+		this.path = getPath(pointer);
+		this.location = locations.get(pointer);
 
 		message = message ?? `${this.path} is invalid (error: ${keyword})`;
 
 		switch (keyword) {
 			case "additionalProperties":
-				this.message = "additionalProperty" in params ? `must not contain property '${params.additionalProperty}'` : "must not contain additional properties";
+				this.message = "additionalProperty" in params ? `must not contain property: ${params.additionalProperty}` : "must not contain additional properties";
 				break;
 
 			case "enum": {
@@ -66,7 +62,7 @@ export class JsonSchemaError {
 				break;
 
 			case "required":
-				this.message = "missingProperty" in params ? `must contain property '${params.missingProperty}'` : message;
+				this.message = "missingProperty" in params ? `must contain property: ${params.missingProperty}` : message;
 				break;
 
 			case "type":
@@ -77,8 +73,6 @@ export class JsonSchemaError {
 				this.message = message;
 				break;
 		}
-
-		this.message = `${this.path} ${this.message}`;
 	}
 
 	/**
@@ -98,31 +92,10 @@ export class JsonSchemaError {
 				result += i < allowedValues.length - 1 ? ", " : " or ";
 			}
 
-			result += typeof allowedValues[i] === "string" ? `'${allowedValues[i]}'` : typeof allowedValues[i];
+			result += typeof allowedValues[i] === "string" ? chalk.green(`'${allowedValues[i]}'`) : chalk.yellow(allowedValues[i]);
 		}
 
 		return result;
-	}
-
-	/**
-	 * Gets the user-friendly path from the specified {@link pointer}.
-	 * @param pointer JSON pointer to the error in the source JSON.
-	 * @returns User-friendly path.
-	 */
-	private static getPath(pointer: string): string {
-		const path = pointer.split("/").reduce((path, segment) => {
-			if (segment === undefined || segment === "") {
-				return path;
-			}
-
-			if (!isNaN(Number(segment))) {
-				return `${path}[${segment}]`;
-			}
-
-			return `${path}.${segment}`;
-		}, "");
-
-		return path.startsWith(".") ? path.slice(1) : path;
 	}
 }
 

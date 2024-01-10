@@ -1,5 +1,6 @@
 import { type ArrayNode, type DocumentNode, type ElementNode, type Location, type MemberNode, type NullNode, type ObjectNode, type ValueNode } from "@humanwhocodes/momoa";
 import { type AnyValidateFunction } from "ajv/dist/types";
+import { getPath } from "./path";
 
 /**
  * JSON object map that provides data parsed from an {@link ObjectNode}, and the locations associated with each node.
@@ -89,16 +90,23 @@ export type JsonElement<T = unknown> = T extends Array<infer E> ? JsonElement<E>
  */
 class JsonValueNode<T> {
 	/**
+	 * Gets the JSON path in a user-friendly format.
+	 */
+	public readonly path: string;
+
+	/**
 	 * Initializes a new instance of the {@link JsonValueNode} class.
 	 * @param pointer JSON pointer to the element in the JSON.
 	 * @param value Parsed value.
 	 * @param location Location of the element within the JSON it was parsed from.
 	 */
 	constructor(
-		public readonly pointer: string,
+		pointer: string,
 		public readonly value: T,
 		public readonly location: Location | undefined
-	) {}
+	) {
+		this.path = getPath(pointer);
+	}
 
 	/** @inheritdoc */
 	public toString(): string | undefined {

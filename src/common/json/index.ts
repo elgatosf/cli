@@ -37,9 +37,8 @@ export function validate<T extends object>(json: string, validate: AnyValidateFu
 			errors: [
 				{
 					path: "",
-					pointer: "",
 					message: "Contents must be a valid JSON string",
-					position: { column: 0, line: 0, offset: 0 }
+					location: { column: 0, line: 0, offset: 0 }
 				}
 			],
 			value: {}

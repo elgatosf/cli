@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import { rule } from "../../rule";
 import { PluginContext } from "../contexts/plugin";
 
@@ -13,18 +14,14 @@ export const actionUuidIsUniqueAndPrefixed = rule<PluginContext>(function (plugi
 
 		// Validate the action identifier is unique.
 		if (uuids.has(uuid.value)) {
-			this.addError(plugin.manifest.path, `${uuid.pointer}: '${uuid}' must be unique`, {
-				position: uuid.location
-			});
+			this.addError(plugin.manifest.path, "must be unique", uuid);
 		} else {
 			uuids.add(uuid.value);
 		}
 
 		// Check if the action identifier is prefixed with the plugin identifier.
 		if (plugin.uuid !== undefined && !uuid.value.startsWith(plugin.uuid)) {
-			this.addWarning(plugin.manifest.path, `${uuid.pointer}: ${uuid} should be prefixed with ${plugin.uuid}`, {
-				position: uuid.location
-			});
+			this.addWarning(plugin.manifest.path, `should be prefixed with ${chalk.green(`'${plugin.uuid}'`)}`, uuid);
 		}
 	});
 });

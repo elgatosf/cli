@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import { rule } from "../../rule";
 import { type PluginContext } from "../contexts/plugin";
 
@@ -20,8 +21,8 @@ export const manifestUrlsExist = rule<PluginContext>(async function (plugin: Plu
 	try {
 		parsedUrl = new URL(url.value);
 	} catch {
-		this.addError(plugin.manifest.path, `${url.pointer}: '${url.value}' is not a valid URL`, {
-			position: url.location,
+		this.addError(plugin.manifest.path, "must be valid URL", {
+			...url,
 			suggestion: !url.value.toLowerCase().startsWith("http") ? "Protocol must be http or https" : undefined
 		});
 
@@ -30,11 +31,7 @@ export const manifestUrlsExist = rule<PluginContext>(async function (plugin: Plu
 
 	// Validate the protocol of the URL.
 	if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
-		this.addError(plugin.manifest.path, `${url.pointer}: invalid protocol`, {
-			position: url.location,
-			suggestion: "Protocol must be http or https"
-		});
-
+		this.addError(plugin.manifest.path, "must have http or https protocol", url);
 		return;
 	}
 
@@ -43,17 +40,15 @@ export const manifestUrlsExist = rule<PluginContext>(async function (plugin: Plu
 
 		// Validate the status code of the URL.
 		if (status < 200 || status >= 300) {
-			this.addWarning(plugin.manifest.path, `${url.pointer}: '${url.value}' returned status code '${status}'`, {
-				position: url.location,
+			this.addWarning(plugin.manifest.path, `should return a success status code, but was ${chalk.yellow(status)}'`, {
+				...url,
 				suggestion: "Status code should be 2xx"
 			});
 		}
 	} catch (err) {
 		// Check if resolving the DNS failed.
 		if (err instanceof Error && typeof err.cause === "object" && err.cause && "code" in err.cause && err.cause.code === "ENOTFOUND") {
-			this.addError(plugin.manifest.path, `${url.pointer}: '${url.value}' could not be resolved`, {
-				position: url.location
-			});
+			this.addError(plugin.manifest.path, "must be resolvable", url);
 		} else {
 			throw err;
 		}

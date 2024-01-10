@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import { existsSync } from "node:fs";
 import { extname, join, resolve } from "node:path";
 import { type JsonElement } from "../../../../common/json";
@@ -9,6 +10,8 @@ import { type PluginContext } from "../contexts/plugin";
  * Validates the files defined within the manifest exist.
  */
 export const manifestFilesExist = rule<PluginContext>(function (plugin: PluginContext) {
+	const missingHighRes = new Set<string>();
+
 	/**
 	 * Validates the specified {@link elem} file exists.
 	 * @param elem JSON element that contains information about the file to validate.
@@ -21,8 +24,8 @@ export const manifestFilesExist = rule<PluginContext>(function (plugin: PluginCo
 
 		const path = resolve(this.path, elem.value, ext);
 		if (!existsSync(path)) {
-			this.addError(plugin.manifest.path, `${elem.pointer}: '${elem.value}' file not found`, {
-				position: elem.location,
+			this.addError(plugin.manifest.path, `file not found: ${chalk.green(`'${elem.value}'`)}`, {
+				...elem,
 				suggestion: ext !== "" ? `File must be ${ext}` : undefined
 			});
 		}
@@ -40,12 +43,13 @@ export const manifestFilesExist = rule<PluginContext>(function (plugin: PluginCo
 
 		const path = resolveImagePath(this.path, elem.value, type);
 		if (path === undefined) {
-			this.addError(plugin.manifest.path, `${elem.pointer}: '${elem.value}' file not found`, {
-				suggestion: `Image must be ${type.join(", ")}`,
-				position: elem.location
+			this.addError(plugin.manifest.path, `file not found: ${chalk.green(`'${elem.value}'`)}`, {
+				...elem,
+				suggestion: `Image must be ${type.join(", ")}`
 			});
-		} else if (extname(path) === ".png" && !existsSync(join(this.path, `${elem.value}@2x.png`))) {
+		} else if (extname(path) === ".png" && !existsSync(join(this.path, `${elem.value}@2x.png`)) && !missingHighRes.has(path)) {
 			this.addWarning(path, "Missing high-resolution (@2x) variant");
+			missingHighRes.add(path);
 		}
 	};
 

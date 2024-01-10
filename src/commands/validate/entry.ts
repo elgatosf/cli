@@ -20,10 +20,10 @@ export class ValidationEntry {
 		public readonly message: string,
 		public readonly details?: ValidationEntryDetails
 	) {
-		if (this.details?.position) {
-			this.position = `${this.details.position.line}`;
-			if (this.details.position.column) {
-				this.position += `:${this.details.position.column}`;
+		if (this.details?.location) {
+			this.position = `${this.details.location.line}`;
+			if (this.details.location.column) {
+				this.position += `:${this.details.location.column}`;
 			}
 		}
 	}
@@ -34,9 +34,13 @@ export class ValidationEntry {
 	 * @returns String that represents the entry.
 	 */
 	public toString(positionPad: number): string {
-		const position = positionPad === 0 ? "" : `  ${chalk.gray(this.position.padEnd(positionPad))}`;
+		const position = positionPad === 0 ? "" : `  ${chalk.dim(this.position.padEnd(positionPad))}`;
 		const level = this.level === ValidationLevel.error ? chalk.red(ValidationLevel[this.level].padEnd(7)) : chalk.yellow(ValidationLevel[this.level].padEnd(7));
-		const message = this.details?.suggestion !== undefined ? `${this.message}  ${chalk.gray(this.details.suggestion)}` : this.message;
+		let message = this.details?.suggestion !== undefined ? `${this.message}  ${chalk.gray(this.details.suggestion)}` : this.message;
+
+		if (this.details?.path) {
+			message = `${chalk.cyan(this.details.path)} ${message}`;
+		}
 
 		return `${position}  ${level}  ${message}`;
 	}
@@ -62,14 +66,19 @@ export enum ValidationLevel {
  */
 export type ValidationEntryDetails = {
 	/**
+	 * Path to the validation entry within the file; supports {@link ValidationEntryDetails.location}.
+	 */
+	path?: string;
+
+	/**
 	 * Optional suggestion to fix the validation entry.
 	 */
 	suggestion?: string;
 
 	/**
-	 * Position of a validation entry within a file.
+	 * Location of a validation entry within a file.
 	 */
-	position?: {
+	location?: {
 		/**
 		 * Column number.
 		 */

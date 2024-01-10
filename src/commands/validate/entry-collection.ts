@@ -12,8 +12,8 @@ export class ValidationEntryCollection {
 	 */
 	private entries = new OrderedArray<ValidationEntry>(
 		(x) => x.level,
-		(x) => x.details?.position?.line ?? Infinity,
-		(x) => x.details?.position?.column ?? Infinity,
+		(x) => x.details?.location?.line ?? Infinity,
+		(x) => x.details?.location?.column ?? Infinity,
 		(x) => x.message
 	);
 
