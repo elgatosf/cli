@@ -139,11 +139,15 @@ export function isValidPluginId(uuid: string | undefined): boolean {
  * @param root Root.
  * @param path Path relative to the {@link root}.
  * @param type Resolution type that determines the precedence of extensions when resolving the path.
- * @returns The full path to the image; otherwise `undefined` when a file could not be found.
+ * @returns The full path to the image; otherwise `undefined` when a file could not be found. If the {@link path} is invalid, a {@link PathError} is thrown.
  */
-export function resolveImagePath(root: string, path: string, type: ImagePathResolution = imagePathResolution.default): string | undefined {
+export function resolveImagePath(root: string, path: string, type: ImagePathResolution = imagePathResolution.default): never | string | undefined {
 	if (path.startsWith("/") || path.startsWith("\\")) {
-		throw new Error("Path must not start with a slash");
+		throw new PathError("must not start with a slash");
+	}
+
+	if (path.startsWith("../") || path.startsWith("..\\")) {
+		throw new PathError("must not reference file outside root directory");
 	}
 
 	const incompletePath = join(root, path);
@@ -170,6 +174,19 @@ export const imagePathResolution = {
  * Determines the order in which image paths, without extensions, should be resolved.
  */
 export type ImagePathResolution = (typeof imagePathResolution)[keyof typeof imagePathResolution];
+
+/**
+ * Represents an error thrown when resolving a path, as determined by Stream Deck.
+ */
+export class PathError extends Error {
+	/**
+	 * Initializes a new instance of the {@link PathError} class.
+	 * @param message Error message
+	 */
+	constructor(message: string) {
+		super(message);
+	}
+}
 
 /**
  * Provides information about an installed plugin.

@@ -1,8 +1,8 @@
 import { existsSync } from "node:fs";
-import { extname, join, resolve } from "node:path";
+import { extname, join, relative, resolve, sep } from "node:path";
 import { type JsonElement } from "../../../../common/json";
 import { colorize } from "../../../../common/stdout";
-import { ImagePathResolution, imagePathResolution, resolveImagePath } from "../../../../stream-deck";
+import { ImagePathResolution, PathError, imagePathResolution, resolveImagePath } from "../../../../stream-deck";
 import { rule } from "../../rule";
 import { type PluginContext } from "../contexts/plugin";
 
@@ -22,12 +22,14 @@ export const manifestFilesExist = rule<PluginContext>(function (plugin: PluginCo
 			return;
 		}
 
-		const path = resolve(this.path, elem.value, ext);
+		const path = resolve(this.path, `${elem.value}${ext}`);
 		if (!existsSync(path)) {
-			this.addError(plugin.manifest.path, `file not found: ${colorize(elem.value)}`, {
+			this.addError(plugin.manifest.path, `file not found, ${colorize(elem.value)}`, {
 				...elem,
 				suggestion: ext !== "" ? `File must be ${ext}` : undefined
 			});
+		} else if (relative(this.path, path).startsWith(`..${sep}`)) {
+			this.addError(plugin.manifest.path, "must not reference file outside root directory", elem);
 		}
 	};
 
@@ -41,15 +43,23 @@ export const manifestFilesExist = rule<PluginContext>(function (plugin: PluginCo
 			return;
 		}
 
-		const path = resolveImagePath(this.path, elem.value, type);
-		if (path === undefined) {
-			this.addError(plugin.manifest.path, `file not found: ${colorize(elem.value)}`, {
-				...elem,
-				suggestion: `Image must be ${type.join(", ")}, and value must not contain extension`
-			});
-		} else if (extname(path) === ".png" && !existsSync(join(this.path, `${elem.value}@2x.png`)) && !missingHighRes.has(path)) {
-			this.addWarning(path, "Missing high-resolution (@2x) variant");
-			missingHighRes.add(path);
+		try {
+			const path = resolveImagePath(this.path, elem.value, type);
+			if (path === undefined) {
+				this.addError(plugin.manifest.path, `file not found, ${colorize(elem.value)}`, {
+					...elem,
+					suggestion: `Image must be ${type.join(", ")}, and value must not contain extension`
+				});
+			} else if (extname(path) === ".png" && !existsSync(join(this.path, `${elem.value}@2x.png`)) && !missingHighRes.has(path)) {
+				this.addWarning(path, "Missing high-resolution (@2x) variant");
+				missingHighRes.add(path);
+			}
+		} catch (err) {
+			if (err instanceof PathError) {
+				this.addError(plugin.manifest.path, err.message, elem);
+			} else {
+				throw err;
+			}
 		}
 	};
 
