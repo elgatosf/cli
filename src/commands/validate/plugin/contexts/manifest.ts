@@ -1,9 +1,8 @@
 import { type Manifest } from "@elgato/streamdeck";
 import Ajv, { type AnySchema } from "ajv";
-import { type IOutputError } from "better-ajv-errors";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { validate, type JsonObject } from "../../../../common/json";
+import { JsonSchemaError, validate, type JsonObject } from "../../../../common/json";
 import { relative } from "../../../../common/path";
 
 /**
@@ -13,7 +12,7 @@ export class ManifestContext {
 	/**
 	 * Collection of JSON schema validation errors.
 	 */
-	public readonly errors: ReadonlyArray<IOutputError> = [];
+	public readonly errors: ReadonlyArray<JsonSchemaError> = [];
 
 	/**
 	 * Parsed manifest data with all valid value types set, including the location of which the value was parsed within the JSON.
