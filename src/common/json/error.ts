@@ -1,13 +1,12 @@
-import { type Location } from "@humanwhocodes/momoa";
 import { ErrorObject } from "ajv/dist/types";
 import chalk from "chalk";
 import { isArray } from "lodash";
-import { getPath } from "./path";
+import { type Location, type LocationRef } from "../location";
 
 /**
  * Provides information relating to a JSON error, as part from {@link ErrorObject}.
  */
-export class JsonSchemaError {
+export class JsonSchemaError implements LocationRef {
 	/**
 	 * Position of the JSON error within the source JSON.
 	 */
@@ -19,11 +18,6 @@ export class JsonSchemaError {
 	public readonly message: string;
 
 	/**
-	 * User-friendly path to the error.
-	 */
-	public readonly path: string;
-
-	/**
 	 * Initializes a new instance of the {@link JsonSchemaError} class.
 	 * @param param0 JSON schema error.
 	 * @param param0.instancePath JSON pointer to the error in the source JSON.
@@ -33,10 +27,8 @@ export class JsonSchemaError {
 	 * @param locations Locations of JSON nodes, indexed by their JSON pointer.
 	 */
 	constructor({ instancePath: pointer, keyword, message, params }: ErrorObject<JsonSchemaErrorKeyword>, locations: Map<string, Location | undefined>) {
-		this.path = getPath(pointer);
 		this.location = locations.get(pointer);
-
-		message = message ?? `${this.path} is invalid (error: ${keyword})`;
+		message = message ?? `invalid (error: ${keyword})`;
 
 		switch (keyword) {
 			case "additionalProperties":

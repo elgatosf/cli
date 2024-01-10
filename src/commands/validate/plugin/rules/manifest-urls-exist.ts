@@ -40,7 +40,7 @@ export const manifestUrlsExist = rule<PluginContext>(async function (plugin: Plu
 
 		// Validate the status code of the URL.
 		if (status < 200 || status >= 300) {
-			this.addWarning(plugin.manifest.path, `should return a success status code, but was ${chalk.yellow(status)}'`, {
+			this.addWarning(plugin.manifest.path, `should return success (received ${chalk.yellow(status)})`, {
 				...url,
 				suggestion: "Status code should be 2xx"
 			});

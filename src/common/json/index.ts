@@ -34,13 +34,7 @@ export function validate<T extends object>(json: string, validate: AnyValidateFu
 		data = JSON.parse(json);
 	} catch {
 		return {
-			errors: [
-				{
-					path: "",
-					message: "Contents must be a valid JSON string",
-					location: { column: 0, line: 0, offset: 0 }
-				}
-			],
+			errors: [{ message: "Contents must be a valid JSON string", location: { key: undefined } }],
 			value: {}
 		};
 	}

@@ -1,4 +1,6 @@
 import chalk from "chalk";
+import { EOL } from "os";
+import { LocationRef } from "../../common/location";
 
 /**
  * Provides information about a validation entry.
@@ -36,13 +38,20 @@ export class ValidationEntry {
 	public toString(positionPad: number): string {
 		const position = positionPad === 0 ? "" : `  ${chalk.dim(this.position.padEnd(positionPad))}`;
 		const level = this.level === ValidationLevel.error ? chalk.red(ValidationLevel[this.level].padEnd(7)) : chalk.yellow(ValidationLevel[this.level].padEnd(7));
-		let message = this.details?.suggestion !== undefined ? `${this.message}  ${chalk.gray(this.details.suggestion)}` : this.message;
 
-		if (this.details?.path) {
-			message = `${chalk.cyan(this.details.path)} ${message}`;
+		// Construct the base message
+		let message = this.message;
+		if (this.details?.location?.key) {
+			message = `${chalk.cyan(this.details.location.key)} ${message}`;
 		}
 
-		return `${position}  ${level}  ${message}`;
+		// Prepend the position and level, and append the suggestion (if available).
+		message = `${position}  ${level}  ${message}`;
+		if (this.details?.suggestion) {
+			message += `${EOL}${" ".repeat(positionPad + 13)}${chalk.dim(`└ ${this.details.suggestion}`)}`;
+		}
+
+		return message;
 	}
 }
 
@@ -64,29 +73,9 @@ export enum ValidationLevel {
 /**
  * Optional details associated with the validation entry.
  */
-export type ValidationEntryDetails = {
-	/**
-	 * Path to the validation entry within the file; supports {@link ValidationEntryDetails.location}.
-	 */
-	path?: string;
-
+export type ValidationEntryDetails = LocationRef & {
 	/**
 	 * Optional suggestion to fix the validation entry.
 	 */
 	suggestion?: string;
-
-	/**
-	 * Location of a validation entry within a file.
-	 */
-	location?: {
-		/**
-		 * Column number.
-		 */
-		column?: number;
-
-		/**
-		 * Line number.
-		 */
-		line?: number;
-	};
 };

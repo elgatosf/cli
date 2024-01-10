@@ -1,6 +1,6 @@
-import { type ArrayNode, type DocumentNode, type ElementNode, type Location, type MemberNode, type NullNode, type ObjectNode, type ValueNode } from "@humanwhocodes/momoa";
+import { type ArrayNode, type DocumentNode, type ElementNode, type MemberNode, type NullNode, type ObjectNode, type ValueNode } from "@humanwhocodes/momoa";
 import { type AnyValidateFunction } from "ajv/dist/types";
-import { getPath } from "./path";
+import { type Location, type LocationRef } from "../location";
 
 /**
  * JSON object map that provides data parsed from an {@link ObjectNode}, and the locations associated with each node.
@@ -39,11 +39,12 @@ export class JsonObjectMap<T> {
 		pointer: string,
 		errors: AnyValidateFunction<T>["errors"]
 	): JsonElement | JsonElement[] | JsonObject {
-		this.locations.set(pointer, node.loc?.start);
+		const location = { ...node.loc?.start, key: getPath(pointer) };
+		this.locations.set(pointer, location);
 
 		// Node is considered an invalid type, so ignore the value.
 		if (errors?.find((e) => e.instancePath === pointer && e.keyword === "type")) {
-			return new JsonValueNode(pointer, undefined, node.loc?.start);
+			return new JsonValueNode(pointer, undefined, location);
 		}
 
 		// Object node, recursively reduce each member.
@@ -61,12 +62,12 @@ export class JsonObjectMap<T> {
 
 		// Value node.
 		if (node.type === "Boolean" || node.type === "Number" || node.type === "String") {
-			return new JsonValueNode(pointer, node.value, node.loc?.start);
+			return new JsonValueNode(pointer, node.value, location);
 		}
 
 		// Null value node.
 		if (node.type === "Null") {
-			return new JsonValueNode(pointer, null, node.loc?.start);
+			return new JsonValueNode(pointer, null, location);
 		}
 
 		throw new Error(`Encountered unhandled node type '${node.type}' when mapping abstract-syntax tree node to JSON object`);
@@ -88,12 +89,7 @@ export type JsonElement<T = unknown> = T extends Array<infer E> ? JsonElement<E>
 /**
  * Represents a node within a JSON structure.
  */
-class JsonValueNode<T> {
-	/**
-	 * Gets the JSON path in a user-friendly format.
-	 */
-	public readonly path: string;
-
+class JsonValueNode<T> implements LocationRef {
 	/**
 	 * Initializes a new instance of the {@link JsonValueNode} class.
 	 * @param pointer JSON pointer to the element in the JSON.
@@ -103,13 +99,32 @@ class JsonValueNode<T> {
 	constructor(
 		pointer: string,
 		public readonly value: T,
-		public readonly location: Location | undefined
-	) {
-		this.path = getPath(pointer);
-	}
+		public readonly location: Location
+	) {}
 
 	/** @inheritdoc */
 	public toString(): string | undefined {
 		return this.value?.toString();
 	}
+}
+
+/**
+ * Gets the user-friendly path from the specified {@link pointer}.
+ * @param pointer JSON pointer to the error in the source JSON.
+ * @returns User-friendly path.
+ */
+function getPath(pointer: string): string {
+	const path = pointer.split("/").reduce((path, segment) => {
+		if (segment === undefined || segment === "") {
+			return path;
+		}
+
+		if (!isNaN(Number(segment))) {
+			return `${path}[${segment}]`;
+		}
+
+		return `${path}.${segment}`;
+	}, "");
+
+	return path.startsWith(".") ? path.slice(1) : path;
 }

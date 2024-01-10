@@ -45,7 +45,7 @@ export const manifestFilesExist = rule<PluginContext>(function (plugin: PluginCo
 		if (path === undefined) {
 			this.addError(plugin.manifest.path, `file not found: ${chalk.green(`'${elem.value}'`)}`, {
 				...elem,
-				suggestion: `Image must be ${type.join(", ")}`
+				suggestion: `Image must be ${type.join(", ")}, and value must not contain extension`
 			});
 		} else if (extname(path) === ".png" && !existsSync(join(this.path, `${elem.value}@2x.png`)) && !missingHighRes.has(path)) {
 			this.addWarning(path, "Missing high-resolution (@2x) variant");
