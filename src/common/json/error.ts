@@ -1,7 +1,7 @@
 import { ErrorObject } from "ajv/dist/types";
-import chalk from "chalk";
 import { isArray } from "lodash";
 import { type Location, type LocationRef } from "../location";
+import { colorize } from "../stdout";
 
 /**
  * Provides information relating to a JSON error, as part from {@link ErrorObject}.
@@ -84,7 +84,7 @@ export class JsonSchemaError implements LocationRef {
 				result += i < allowedValues.length - 1 ? ", " : " or ";
 			}
 
-			result += typeof allowedValues[i] === "string" ? chalk.green(`'${allowedValues[i]}'`) : chalk.yellow(allowedValues[i]);
+			result += colorize(allowedValues[i]);
 		}
 
 		return result;

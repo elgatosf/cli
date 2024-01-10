@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import { colorize } from "../../../../common/stdout";
 import { rule } from "../../rule";
 import { PluginContext } from "../contexts/plugin";
 
@@ -21,7 +21,7 @@ export const actionUuidIsUniqueAndPrefixed = rule<PluginContext>(function (plugi
 
 		// Check if the action identifier is prefixed with the plugin identifier.
 		if (plugin.uuid !== undefined && !uuid.value.startsWith(plugin.uuid)) {
-			this.addWarning(plugin.manifest.path, `should be prefixed with ${chalk.green(`'${plugin.uuid}'`)}`, uuid);
+			this.addWarning(plugin.manifest.path, `should be prefixed with ${colorize(plugin.uuid)}`, uuid);
 		}
 	});
 });

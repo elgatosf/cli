@@ -1,7 +1,7 @@
-import chalk from "chalk";
 import { existsSync } from "node:fs";
 import { extname, join, resolve } from "node:path";
 import { type JsonElement } from "../../../../common/json";
+import { colorize } from "../../../../common/stdout";
 import { ImagePathResolution, imagePathResolution, resolveImagePath } from "../../../../stream-deck";
 import { rule } from "../../rule";
 import { type PluginContext } from "../contexts/plugin";
@@ -24,7 +24,7 @@ export const manifestFilesExist = rule<PluginContext>(function (plugin: PluginCo
 
 		const path = resolve(this.path, elem.value, ext);
 		if (!existsSync(path)) {
-			this.addError(plugin.manifest.path, `file not found: ${chalk.green(`'${elem.value}'`)}`, {
+			this.addError(plugin.manifest.path, `file not found: ${colorize(elem.value)}`, {
 				...elem,
 				suggestion: ext !== "" ? `File must be ${ext}` : undefined
 			});
@@ -43,7 +43,7 @@ export const manifestFilesExist = rule<PluginContext>(function (plugin: PluginCo
 
 		const path = resolveImagePath(this.path, elem.value, type);
 		if (path === undefined) {
-			this.addError(plugin.manifest.path, `file not found: ${chalk.green(`'${elem.value}'`)}`, {
+			this.addError(plugin.manifest.path, `file not found: ${colorize(elem.value)}`, {
 				...elem,
 				suggestion: `Image must be ${type.join(", ")}, and value must not contain extension`
 			});

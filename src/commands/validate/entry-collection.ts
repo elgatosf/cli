@@ -18,9 +18,9 @@ export class ValidationEntryCollection {
 	);
 
 	/**
-	 * Tracks the padding required for the position of a validation entry.
+	 * Tracks the padding required for the location of a validation entry, i.e. the text before the entry level.
 	 */
-	private positionPad = 0;
+	private padding = 0;
 
 	/**
 	 * Initializes a new instance of the {@link ValidationEntryCollection} class.
@@ -33,7 +33,7 @@ export class ValidationEntryCollection {
 	 * @param entry Entry to add.
 	 */
 	public add(entry: ValidationEntry): void {
-		this.positionPad = Math.max(this.positionPad, entry.position.length);
+		this.padding = Math.max(this.padding, entry.location.length);
 		this.entries.push(entry);
 	}
 
@@ -47,7 +47,7 @@ export class ValidationEntryCollection {
 		}
 
 		output.log(`${chalk.underline(this.path)}`);
-		this.entries.forEach((entry) => output.log(entry.toString(this.positionPad)));
+		this.entries.forEach((entry) => output.log(entry.toString(this.padding)));
 		output.log();
 	}
 }

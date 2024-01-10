@@ -2,6 +2,7 @@ import type { ValidationResult } from "../result";
 import { validate } from "../validator";
 import { PluginContext } from "./contexts/plugin";
 import { actionUuidIsUniqueAndPrefixed } from "./rules/manifest-action-uuids";
+import { categoryMatchesName } from "./rules/manifest-category";
 import { manifestFilesExist } from "./rules/manifest-files-exist";
 import { manifestExistsAndSchemaIsValid } from "./rules/manifest-schema";
 import { manifestUrlsExist } from "./rules/manifest-urls-exist";
@@ -13,5 +14,12 @@ import { pathIsDirectoryAndUuid } from "./rules/path-input";
  * @returns The validation result.
  */
 export function validatePlugin(path: string): Promise<ValidationResult> {
-	return validate<PluginContext>(path, new PluginContext(path), [pathIsDirectoryAndUuid, manifestExistsAndSchemaIsValid, manifestFilesExist, manifestUrlsExist, actionUuidIsUniqueAndPrefixed]);
+	return validate<PluginContext>(path, new PluginContext(path), [
+		pathIsDirectoryAndUuid,
+		manifestExistsAndSchemaIsValid,
+		manifestFilesExist,
+		manifestUrlsExist,
+		actionUuidIsUniqueAndPrefixed,
+		categoryMatchesName
+	]);
 }
