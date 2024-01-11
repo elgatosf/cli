@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import { EOL } from "node:os";
 import { LocationRef } from "../../common/location";
 
 /**
@@ -35,8 +36,9 @@ export class ValidationEntry {
 	 * @returns String that represents the entry.
 	 */
 	public toString(padding: number): string {
-		const position = padding === 0 ? "" : `  ${chalk.dim(this.location.padEnd(padding))}`;
-		const level = this.level === ValidationLevel.error ? chalk.red(ValidationLevel[this.level].padEnd(7)) : chalk.yellow(ValidationLevel[this.level].padEnd(7));
+		// Apply additional padding to the position so entries without position aren't misaligned.
+		const position = padding === 0 ? "" : `${this.location.padEnd(padding + 2)}`;
+		const level = ValidationLevel[this.level].padEnd(7);
 
 		// Construct the base message
 		let message = this.message;
@@ -44,10 +46,13 @@ export class ValidationEntry {
 			message = `${chalk.cyan(this.details.location.key)} ${message}`;
 		}
 
-		// Prepend the position and level, and append the suggestion (if available).
-		message = `${position}  ${level}  ${message}`;
+		// Prepend the position and level.
+		message = `  ${chalk.dim(position)}${this.level === ValidationLevel.error ? chalk.red(level) : chalk.yellow(level)}  ${message}`;
+
+		// Attach the suggestion; we prefix a hidden position so that errors are clickable within supported terminals (for example, VSCode).
 		if (this.details?.suggestion) {
-			message += `  ${chalk.dim(this.details.suggestion)}`;
+			const prefix = chalk.level > 0 ? chalk.hidden(`${position}${level}`) : " ".repeat(position.length + level.length);
+			message += `${EOL}  ${prefix}  ${chalk.dim("└ ", this.details.suggestion)}`;
 		}
 
 		return message;

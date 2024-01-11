@@ -46,7 +46,13 @@ export class ValidationEntryCollection {
 			return;
 		}
 
-		output.log(`${chalk.underline(this.path)}`);
+		output.log(chalk.underline(this.path));
+		if (chalk.level > 0) {
+			output.log(chalk.hidden(this.path));
+		} else {
+			output.log();
+		}
+
 		this.entries.forEach((entry) => output.log(entry.toString(this.padding)));
 		output.log();
 	}
