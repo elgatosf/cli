@@ -52,7 +52,7 @@ export class ValidationEntry {
 		// Attach the suggestion; we prefix a hidden position so that errors are clickable within supported terminals (for example, VSCode).
 		if (this.details?.suggestion) {
 			const prefix = chalk.level > 0 ? chalk.hidden(`${position}${level}`) : " ".repeat(position.length + level.length);
-			message += `${EOL}  ${prefix}  ${chalk.dim("└ ", this.details.suggestion)}`;
+			message += `${EOL}  ${prefix}  ${chalk.dim("└", this.details.suggestion)}`;
 		}
 
 		return message;

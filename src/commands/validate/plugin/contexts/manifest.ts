@@ -1,8 +1,7 @@
 import { type Manifest } from "@elgato/streamdeck";
-import Ajv, { type AnySchema } from "ajv";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { JsonSchemaError, validate, type JsonObject } from "../../../../common/json";
+import { JsonSchema, type JsonObject, type JsonSchemaError } from "../../../../common/json";
 import { relative } from "../../../../common/path";
 
 /**
@@ -25,11 +24,6 @@ export class ManifestContext {
 	public readonly path: string;
 
 	/**
-	 * JSON schema responsible for validating the `manifest.json` file.
-	 */
-	private readonly schema: AnySchema = ManifestContext.getSchema();
-
-	/**
 	 * Initializes a new instance of the {@link ManifestContext} class.
 	 * @param path Path to the plugin.
 	 */
@@ -40,24 +34,9 @@ export class ManifestContext {
 			return;
 		}
 
-		// Read the contents of the JSON, and validate it against the schema.
 		const json = readFileSync(this.path, { encoding: "utf-8" });
-		const ajv = new Ajv({ allErrors: true });
-		ajv.addKeyword("markdownDescription");
+		const schema = new JsonSchema<Manifest>(relative("../node_modules/@elgato/streamdeck/schemas/manifest.json"));
 
-		({ errors: this.errors, value: this.manifest } = validate<Manifest>(json, ajv.compile<Manifest>(this.schema)));
-	}
-
-	/**
-	 * Gets the JSON schema used to validate the plugin's `manifest.json` file.
-	 * @returns The JSON schema.
-	 */
-	private static getSchema(): AnySchema {
-		try {
-			const path = relative("../node_modules/@elgato/streamdeck/schemas/manifest.json");
-			return JSON.parse(readFileSync(path, { encoding: "utf-8" }));
-		} catch (cause) {
-			throw new Error("Failed to parse manifest JSON schema", { cause });
-		}
+		({ errors: this.errors, value: this.manifest } = schema.validate(json));
 	}
 }

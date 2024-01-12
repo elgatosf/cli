@@ -6,6 +6,12 @@ import { ImagePathResolution, PathError, imagePathResolution, resolveImagePath }
 import { rule } from "../../rule";
 import { type PluginContext } from "../contexts/plugin";
 
+// TODO: update this validation rule to *only* check if the file exists.
+
+/**
+ * Ignores files that start with "..", "/", "\", or incorrect have an extension.
+ */
+
 /**
  * Validates the files defined within the manifest exist.
  */
@@ -23,13 +29,13 @@ export const manifestFilesExist = rule<PluginContext>(function (plugin: PluginCo
 		}
 
 		const path = resolve(this.path, `${elem.value}${ext}`);
-		if (!existsSync(path)) {
+		if (relative(this.path, path).startsWith(`..${sep}`)) {
+			this.addError(plugin.manifest.path, "must not reference file outside root directory", elem);
+		} else if (!existsSync(path)) {
 			this.addError(plugin.manifest.path, `file not found, ${colorize(elem.value)}`, {
 				...elem,
 				suggestion: ext !== "" ? `File must be ${ext}` : undefined
 			});
-		} else if (relative(this.path, path).startsWith(`..${sep}`)) {
-			this.addError(plugin.manifest.path, "must not reference file outside root directory", elem);
 		}
 	};
 
@@ -39,7 +45,7 @@ export const manifestFilesExist = rule<PluginContext>(function (plugin: PluginCo
 	 * @param type Image path resolution type.
 	 */
 	const imageExists = (elem: JsonElement<string> | undefined, type: ImagePathResolution = imagePathResolution.default): void => {
-		if (elem?.value === undefined) {
+		if (elem?.value === undefined || extname(elem.value) !== "") {
 			return;
 		}
 
@@ -48,7 +54,7 @@ export const manifestFilesExist = rule<PluginContext>(function (plugin: PluginCo
 			if (path === undefined) {
 				this.addError(plugin.manifest.path, `file not found, ${colorize(elem.value)}`, {
 					...elem,
-					suggestion: `Image must be ${type.join(", ")}, and value must not contain extension`
+					suggestion: `Image must be ${type.join(", ")}`
 				});
 			} else if (extname(path) === ".png" && !existsSync(join(this.path, `${elem.value}@2x.png`)) && !missingHighRes.has(path)) {
 				this.addWarning(path, "Missing high-resolution (@2x) variant");
@@ -68,7 +74,7 @@ export const manifestFilesExist = rule<PluginContext>(function (plugin: PluginCo
 	fileExists(plugin.manifest.manifest.CodePathMac);
 	fileExists(plugin.manifest.manifest.CodePathWin);
 	imageExists(plugin.manifest.manifest.Icon);
-	imageExists(plugin.manifest.manifest.CategoryIcon);
+	imageExists(plugin.manifest.manifest.CategoryIcon, imagePathResolution.categoryIcon);
 	fileExists(plugin.manifest.manifest.PropertyInspectorPath);
 
 	// Action files.

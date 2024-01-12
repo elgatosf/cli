@@ -44,7 +44,7 @@ export class JsonObjectMap<T> {
 
 		// Node is considered an invalid type, so ignore the value.
 		if (errors?.find((e) => e.instancePath === pointer && e.keyword === "type")) {
-			return new JsonValueNode(pointer, undefined, location);
+			return new JsonValueNode(undefined, location);
 		}
 
 		// Object node, recursively reduce each member.
@@ -62,12 +62,12 @@ export class JsonObjectMap<T> {
 
 		// Value node.
 		if (node.type === "Boolean" || node.type === "Number" || node.type === "String") {
-			return new JsonValueNode(pointer, node.value, location);
+			return new JsonValueNode(node.value, location);
 		}
 
 		// Null value node.
 		if (node.type === "Null") {
-			return new JsonValueNode(pointer, null, location);
+			return new JsonValueNode(null, location);
 		}
 
 		throw new Error(`Encountered unhandled node type '${node.type}' when mapping abstract-syntax tree node to JSON object`);
@@ -92,12 +92,10 @@ export type JsonElement<T = unknown> = T extends Array<infer E> ? JsonElement<E>
 class JsonValueNode<T> implements LocationRef {
 	/**
 	 * Initializes a new instance of the {@link JsonValueNode} class.
-	 * @param pointer JSON pointer to the element in the JSON.
 	 * @param value Parsed value.
 	 * @param location Location of the element within the JSON it was parsed from.
 	 */
 	constructor(
-		pointer: string,
 		public readonly value: T,
 		public readonly location: Location
 	) {}
