@@ -1,6 +1,6 @@
 import { parse } from "@humanwhocodes/momoa";
-import Ajv, { type AnySchema, type DefinedError } from "ajv";
-import { type AnyValidateFunction } from "ajv/dist/types";
+import Ajv, { AnySchemaObject, JSONType, KeywordDefinition, type AnySchema, type DefinedError } from "ajv";
+import { DataValidationCxt, type AnyValidateFunction } from "ajv/dist/types";
 import { type EnumError } from "ajv/dist/vocabularies/validation/enum";
 import { existsSync, readFileSync } from "node:fs";
 import { type LocationRef } from "../location";
@@ -17,6 +17,16 @@ export class JsonSchema<T extends object> {
 	 * Internal validator.
 	 */
 	private _validate: AnyValidateFunction<T>;
+
+	/**
+	 * Collection of custom error messages, indexed by their JSON instance path, defined with the JSON schema using `@errorMessage`.
+	 */
+	private errorMessages = new Map<string, string>();
+
+	/**
+	 * Collection of {@link FilePathOptions}, indexed by their JSON instance path, defined with the JSON schema using `@filePath`.
+	 */
+	private filePaths = new Map<string, FilePathOptions>();
 
 	/**
 	 * Initializes a new instance of the {@link JsonSchema} class.
@@ -39,7 +49,19 @@ export class JsonSchema<T extends object> {
 		});
 
 		ajv.addKeyword("markdownDescription");
-		this._validate = ajv.compile(typeof source === "string" ? JsonSchema.readFromFile(source) : source);
+		ajv.addKeyword(captureKeyword("errorMessage", "string", this.errorMessages));
+		ajv.addKeyword(captureKeyword("filePath", ["boolean", "object"], this.filePaths));
+
+		this._validate = ajv.compile(typeof source === "string" ? readFromFile(source) : source);
+	}
+
+	/**
+	 * Gets the {@link FilePathOptions} for the specified {@link instancePath}.
+	 * @param instancePath JSON instance path.
+	 * @returns The file path options; otherwise undefined.
+	 */
+	public getFilePathOptions(instancePath: string): Readonly<FilePathOptions> | undefined {
+		return this.filePaths.get(instancePath);
 	}
 
 	/**
@@ -80,52 +102,36 @@ export class JsonSchema<T extends object> {
 			errors:
 				this._validate.errors?.map((source) => ({
 					location: map.locations.get(source.instancePath),
-					message: JsonSchema.getMessage(source as DefinedError),
+					message: this.getMessage(source as DefinedError),
 					source: source as DefinedError
 				})) ?? []
 		};
 	}
 
 	/**
-	 * Gets the valid enum values from the {@link params} associated with the error object.
-	 * @param params Parameters that define the allowed enum values.
-	 * @returns The allowed enum values, as a concatenated string.
-	 */
-	private static getEnumAllowedValues(params: EnumError["params"]): string | undefined {
-		const { allowedValues } = params;
-		let result = "";
-
-		for (let i = 0; i < allowedValues.length; i++) {
-			if (i > 0) {
-				result += i < allowedValues.length - 1 ? ", " : " or ";
-			}
-
-			result += colorize(allowedValues[i]);
-		}
-
-		return result;
-	}
-
-	/**
 	 * Parses the error message from the specified {@link ErrorObject}.
-	 * @param param0 JSON schema error.
-	 * @param param0.keyword Keyword that defines the type of the error.
-	 * @param param0.message Original error message.
-	 * @param param0.params Supporting parameters that define the JSON schema error.
+	 * @param error JSON schema error.
 	 * @returns The error message.
 	 */
-	private static getMessage({ keyword, message, params }: DefinedError): string {
+	private getMessage(error: DefinedError): string {
+		const { keyword, message, params, instancePath } = error;
+
 		if (keyword === "additionalProperties") {
 			return params.additionalProperty !== undefined ? `must not contain property: ${params.additionalProperty}` : "must not contain additional properties";
 		}
 
 		if (keyword === "enum") {
-			const values = JsonSchema.getEnumAllowedValues(params);
+			const values = getEnumAllowedValues(params);
 			return values !== undefined ? `must be ${values}` : message || unknownMessage;
 		}
 
 		if (keyword === "pattern") {
-			return `must match pattern ${params.pattern}`;
+			const errorMessage = this.errorMessages.get(instancePath);
+			if (errorMessage?.startsWith("String")) {
+				return errorMessage.substring(7);
+			}
+
+			return errorMessage || `must match pattern ${params.pattern}`;
 		}
 
 		if (keyword === "minItems") {
@@ -150,24 +156,81 @@ export class JsonSchema<T extends object> {
 
 		return message || unknownMessage;
 	}
+}
 
-	/**
-	 * Get a {@link JsonSchema} from the contents of the specified {@link path}.
-	 * @param path File path to the JSON schema.
-	 * @returns The schema.
-	 */
-	private static readFromFile(path: string): AnySchema {
-		if (!existsSync(path)) {
-			throw new Error(`Failed to read JSON schema, file not found: ${path}`);
+/**
+ * Captures all instances of the keyword, and stores their schemas in the {@link map}.
+ * @param keyword Keyword to capture.
+ * @param schemaType Expected schema type of the keyword.
+ * @param map The map where the keyword instances will be captured.
+ * @returns The keyword definition.
+ */
+function captureKeyword(keyword: string, schemaType: JSONType | JSONType[], map: Map<string, unknown>): KeywordDefinition {
+	return {
+		keyword,
+		schemaType,
+		validate: (schema: unknown, data: unknown, parentSchema?: AnySchemaObject, dataCtx?: DataValidationCxt): boolean => {
+			if (dataCtx?.instancePath !== undefined) {
+				map.set(dataCtx.instancePath, schema);
+			}
+
+			return true;
+		}
+	};
+}
+
+/**
+ * Gets the valid enum values from the {@link params} associated with the error object.
+ * @param params Parameters that define the allowed enum values.
+ * @returns The allowed enum values, as a concatenated string.
+ */
+function getEnumAllowedValues(params: EnumError["params"]): string | undefined {
+	const { allowedValues } = params;
+	let result = "";
+
+	for (let i = 0; i < allowedValues.length; i++) {
+		if (i > 0) {
+			result += i < allowedValues.length - 1 ? ", " : " or ";
 		}
 
-		try {
-			return JSON.parse(readFileSync(path, { encoding: "utf-8" }));
-		} catch (cause) {
-			throw new Error("Failed to parse JSON schema", { cause });
-		}
+		result += colorize(allowedValues[i]);
+	}
+
+	return result;
+}
+
+/**
+ * Get a {@link JsonSchema} from the contents of the specified {@link path}.
+ * @param path File path to the JSON schema.
+ * @returns The schema.
+ */
+function readFromFile(path: string): AnySchema {
+	if (!existsSync(path)) {
+		throw new Error(`Failed to read JSON schema, file not found: ${path}`);
+	}
+
+	try {
+		return JSON.parse(readFileSync(path, { encoding: "utf-8" }));
+	} catch (cause) {
+		throw new Error("Failed to parse JSON schema", { cause });
 	}
 }
+
+/**
+ * Options used to determine a valid file path, used to generate the regular expression pattern.
+ */
+type FilePathOptions =
+	| true
+	| {
+			/**
+			 * Collection of valid file extensions.
+			 */
+			extensions: string[];
+			/**
+			 * Determines whether the extension must be present, or omitted, from the file path.
+			 */
+			includeExtension: boolean;
+	  };
 
 /**
  * Result of validating a JSON string.
