@@ -21,7 +21,7 @@ export class ManifestContext {
 	/**
 	 * JSON schema used to validate the manifest.
 	 */
-	public readonly schema: JsonSchema<Manifest> = new JsonSchema<Manifest>("");
+	public readonly schema: JsonSchema<Manifest>;
 
 	/**
 	 * Parsed manifest data with all valid value types set, including the location of which the value was parsed within the JSON.
