@@ -8,7 +8,7 @@ import { type PluginContext } from "../contexts/plugin";
 export const manifestUrlsExist = rule<PluginContext>(async function (plugin: PluginContext) {
 	const {
 		manifest: {
-			manifest: { URL: url }
+			value: { URL: url }
 		}
 	} = plugin;
 

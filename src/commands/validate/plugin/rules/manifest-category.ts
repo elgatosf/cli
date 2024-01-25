@@ -7,7 +7,7 @@ import { PluginContext } from "../contexts/plugin";
 export const categoryMatchesName = rule<PluginContext>(function (plugin) {
 	const {
 		manifest: {
-			manifest: { Category: category, Name: name }
+			value: { Category: category, Name: name }
 		}
 	} = plugin;
 

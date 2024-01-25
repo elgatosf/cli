@@ -7,7 +7,7 @@ import { PluginContext } from "../contexts/plugin";
  */
 export const actionUuidIsUniqueAndPrefixed = rule<PluginContext>(function (plugin: PluginContext) {
 	const uuids = new Set<string>();
-	plugin.manifest.manifest.Actions?.forEach(({ UUID: uuid }) => {
+	plugin.manifest.value.Actions?.forEach(({ UUID: uuid }) => {
 		if (uuid?.value === undefined) {
 			return;
 		}

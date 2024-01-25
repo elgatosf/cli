@@ -9,7 +9,7 @@ export type LocationRef = {
 };
 
 /**
- * Location of a validation entry within a file.
+ * Location of an item within a file.
  */
 export type Location = {
 	/**
@@ -26,4 +26,14 @@ export type Location = {
 	 * Line number.
 	 */
 	line?: number;
+};
+
+/**
+ * Location of a JSON value within a file.
+ */
+export type JsonLocation = Location & {
+	/**
+	 * JSON pointer to the value.
+	 */
+	instancePath: string;
 };

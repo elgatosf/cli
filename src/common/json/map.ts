@@ -1,20 +1,20 @@
 import { type ArrayNode, type DocumentNode, type ElementNode, type MemberNode, type NullNode, type ObjectNode, type ValueNode } from "@humanwhocodes/momoa";
 import { type AnyValidateFunction } from "ajv/dist/types";
-import { type Location, type LocationRef } from "../location";
+import { JsonLocation, type Location, type LocationRef } from "../location";
 
 /**
  * JSON object map that provides data parsed from an {@link ObjectNode}, and the locations associated with each node.
  */
 export class JsonObjectMap<T> {
 	/**
-	 * Parsed data.
-	 */
-	public readonly data: JsonObject<T> = {};
-
-	/**
 	 * Location of each parsed node, indexed by their JSON pointer.
 	 */
 	public readonly locations = new Map<string, Location | undefined>();
+
+	/**
+	 * Parsed data.
+	 */
+	public readonly value: JsonObject<T> = {};
 
 	/**
 	 * Initializes a new instance of the {@link JsonObjectMap} class.
@@ -23,7 +23,7 @@ export class JsonObjectMap<T> {
 	 */
 	constructor(node: ValueNode, errors: AnyValidateFunction<T>["errors"]) {
 		if (node.type === "Object") {
-			this.data = this.aggregate(node, "", errors) as JsonObject<T>;
+			this.value = this.aggregate(node, "", errors) as JsonObject<T>;
 		}
 	}
 
@@ -39,7 +39,12 @@ export class JsonObjectMap<T> {
 		pointer: string,
 		errors: AnyValidateFunction<T>["errors"]
 	): JsonElement | JsonElement[] | JsonObject {
-		const location = { ...node.loc?.start, key: getPath(pointer) };
+		const location: JsonLocation = {
+			...node.loc?.start,
+			instancePath: pointer,
+			key: getPath(pointer)
+		};
+
 		this.locations.set(pointer, location);
 
 		// Node is considered an invalid type, so ignore the value.
@@ -97,7 +102,7 @@ class JsonValueNode<T> implements LocationRef {
 	 */
 	constructor(
 		public readonly value: T,
-		public readonly location: Location
+		public readonly location: JsonLocation
 	) {}
 
 	/** @inheritdoc */

@@ -2,7 +2,6 @@ import find from "find-process";
 import { Dirent, readdirSync, readlinkSync } from "node:fs";
 import os from "node:os";
 import { basename, join, resolve } from "node:path";
-import { isFile } from "./common/path";
 
 const PLUGIN_SUFFIX = ".sdPlugin";
 
@@ -133,47 +132,6 @@ export function isValidPluginId(uuid: string | undefined): boolean {
 
 	return /^([a-z0-9\-_]*[a-z0-9][a-z0-9\-_]*\.){2}[a-z0-9\-_]*[a-z0-9][a-z0-9\-_]*$/.test(uuid);
 }
-
-/**
- * Resolves the image {@link path}, without an extension, in relation to the {@link root}.
- * @param root Root.
- * @param path Path relative to the {@link root}.
- * @param type Resolution type that determines the precedence of extensions when resolving the path.
- * @returns The full path to the image; otherwise `undefined` when a file could not be found. If the {@link path} is invalid, a {@link PathError} is thrown.
- */
-export function resolveImagePath(root: string, path: string, type: ImagePathResolution = imagePathResolution.default): never | string | undefined {
-	if (path.startsWith("/") || path.startsWith("\\")) {
-		throw new PathError("must not start with a slash");
-	}
-
-	if (path.startsWith("../") || path.startsWith("..\\")) {
-		throw new PathError("must not reference file outside root directory");
-	}
-
-	const incompletePath = join(root, path);
-	for (const ext of type) {
-		const imgPath = `${incompletePath}${ext}`;
-		if (isFile(imgPath)) {
-			return imgPath;
-		}
-	}
-
-	return undefined;
-}
-
-/**
- * Determines the order in which image paths, without extensions, should be resolved.
- */
-export const imagePathResolution = {
-	default: [".gif", ".svg", ".png"],
-	categoryIcon: [".svg", ".png"],
-	encoderBackground: [".png", ".svg"]
-};
-
-/**
- * Determines the order in which image paths, without extensions, should be resolved.
- */
-export type ImagePathResolution = (typeof imagePathResolution)[keyof typeof imagePathResolution];
 
 /**
  * Represents an error thrown when resolving a path, as determined by Stream Deck.

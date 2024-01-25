@@ -14,14 +14,19 @@ export class ManifestContext {
 	public readonly errors: ReadonlyArray<JsonSchemaError> = [];
 
 	/**
-	 * Parsed manifest data with all valid value types set, including the location of which the value was parsed within the JSON.
-	 */
-	public readonly manifest: JsonObject<Manifest> = {};
-
-	/**
 	 * Path to the `manifest.json` file; the file may or may not exist.
 	 */
 	public readonly path: string;
+
+	/**
+	 * JSON schema used to validate the manifest.
+	 */
+	public readonly schema: JsonSchema<Manifest> = new JsonSchema<Manifest>("");
+
+	/**
+	 * Parsed manifest data with all valid value types set, including the location of which the value was parsed within the JSON.
+	 */
+	public readonly value: JsonObject<Manifest> = {};
 
 	/**
 	 * Initializes a new instance of the {@link ManifestContext} class.
@@ -30,13 +35,13 @@ export class ManifestContext {
 	constructor(path: string) {
 		// Determine if a manifest exists.
 		this.path = join(path, "manifest.json");
+		this.schema = new JsonSchema<Manifest>(relative("../node_modules/@elgato/streamdeck/schemas/manifest.json"));
+
 		if (!existsSync(this.path)) {
 			return;
 		}
 
 		const json = readFileSync(this.path, { encoding: "utf-8" });
-		const schema = new JsonSchema<Manifest>(relative("../node_modules/@elgato/streamdeck/schemas/manifest.json"));
-
-		({ errors: this.errors, value: this.manifest } = schema.validate(json));
+		({ errors: this.errors, value: this.value } = this.schema.validate(json));
 	}
 }

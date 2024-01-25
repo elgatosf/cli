@@ -1,10 +1,10 @@
 import { parse } from "@humanwhocodes/momoa";
 import Ajv, { AnySchemaObject, JSONType, KeywordDefinition, type AnySchema, type DefinedError } from "ajv";
 import { DataValidationCxt, type AnyValidateFunction } from "ajv/dist/types";
-import { type EnumError } from "ajv/dist/vocabularies/validation/enum";
 import { existsSync, readFileSync } from "node:fs";
 import { type LocationRef } from "../location";
 import { colorize } from "../stdout";
+import { aggregate } from "../utils";
 import { JsonObjectMap, type JsonObject } from "./map";
 
 const unknownMessage = "could not be validated (unknown error)";
@@ -98,7 +98,7 @@ export class JsonSchema<T extends object> {
 		const map = new JsonObjectMap(ast.body, this._validate.errors);
 
 		return {
-			value: map.data,
+			value: map.value,
 			errors:
 				this._validate.errors?.map((source) => ({
 					location: map.locations.get(source.instancePath),
@@ -121,7 +121,7 @@ export class JsonSchema<T extends object> {
 		}
 
 		if (keyword === "enum") {
-			const values = getEnumAllowedValues(params);
+			const values = aggregate(params.allowedValues, "or", colorize);
 			return values !== undefined ? `must be ${values}` : message || unknownMessage;
 		}
 
@@ -180,26 +180,6 @@ function captureKeyword(keyword: string, schemaType: JSONType | JSONType[], map:
 }
 
 /**
- * Gets the valid enum values from the {@link params} associated with the error object.
- * @param params Parameters that define the allowed enum values.
- * @returns The allowed enum values, as a concatenated string.
- */
-function getEnumAllowedValues(params: EnumError["params"]): string | undefined {
-	const { allowedValues } = params;
-	let result = "";
-
-	for (let i = 0; i < allowedValues.length; i++) {
-		if (i > 0) {
-			result += i < allowedValues.length - 1 ? ", " : " or ";
-		}
-
-		result += colorize(allowedValues[i]);
-	}
-
-	return result;
-}
-
-/**
  * Get a {@link JsonSchema} from the contents of the specified {@link path}.
  * @param path File path to the JSON schema.
  * @returns The schema.
@@ -219,7 +199,7 @@ function readFromFile(path: string): AnySchema {
 /**
  * Options used to determine a valid file path, used to generate the regular expression pattern.
  */
-type FilePathOptions =
+export type FilePathOptions =
 	| true
 	| {
 			/**
