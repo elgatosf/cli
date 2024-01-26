@@ -5,7 +5,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { type LocationRef } from "../location";
 import { colorize } from "../stdout";
 import { aggregate } from "../utils";
-import { JsonObjectMap, type JsonObject } from "./map";
+import { JsonObjectMap } from "./map";
 
 const unknownMessage = "could not be validated (unknown error)";
 
@@ -13,6 +13,11 @@ const unknownMessage = "could not be validated (unknown error)";
  * JSON schema capable of validating JSON.
  */
 export class JsonSchema<T extends object> {
+	/**
+	 * Private backing field for {@link filePathsKeywords}
+	 */
+	private readonly _filePathsKeywords = new Map<string, FilePathOptions>();
+
 	/**
 	 * Internal validator.
 	 */
@@ -22,11 +27,6 @@ export class JsonSchema<T extends object> {
 	 * Collection of custom error messages, indexed by their JSON instance path, defined with the JSON schema using `@errorMessage`.
 	 */
 	private errorMessages = new Map<string, string>();
-
-	/**
-	 * Collection of {@link FilePathOptions}, indexed by their JSON instance path, defined with the JSON schema using `@filePath`.
-	 */
-	private filePaths = new Map<string, FilePathOptions>();
 
 	/**
 	 * Initializes a new instance of the {@link JsonSchema} class.
@@ -50,18 +50,17 @@ export class JsonSchema<T extends object> {
 
 		ajv.addKeyword("markdownDescription");
 		ajv.addKeyword(captureKeyword("errorMessage", "string", this.errorMessages));
-		ajv.addKeyword(captureKeyword("filePath", ["boolean", "object"], this.filePaths));
+		ajv.addKeyword(captureKeyword("filePath", ["boolean", "object"], this._filePathsKeywords));
 
 		this._validate = ajv.compile(typeof source === "string" ? readFromFile(source) : source);
 	}
 
 	/**
-	 * Gets the {@link FilePathOptions} for the specified {@link instancePath}.
-	 * @param instancePath JSON instance path.
-	 * @returns The file path options; otherwise undefined.
+	 * Collection of {@link FilePathOptions}, indexed by their JSON instance path, defined with the JSON schema using `@filePath`.
+	 * @returns The collection of {@link FilePathOptions}.
 	 */
-	public getFilePathOptions(instancePath: string): Readonly<FilePathOptions> | undefined {
-		return this.filePaths.get(instancePath);
+	public get filePathsKeywords(): ReadonlyMap<string, FilePathOptions> {
+		return this._filePathsKeywords;
 	}
 
 	/**
@@ -76,6 +75,7 @@ export class JsonSchema<T extends object> {
 			data = JSON.parse(json);
 		} catch {
 			return {
+				map: new JsonObjectMap<T>(),
 				errors: [
 					{
 						source: {
@@ -87,8 +87,7 @@ export class JsonSchema<T extends object> {
 						message: "Contents must be a valid JSON string",
 						location: { key: undefined }
 					}
-				],
-				value: {}
+				]
 			};
 		}
 
@@ -98,10 +97,10 @@ export class JsonSchema<T extends object> {
 		const map = new JsonObjectMap(ast.body, this._validate.errors);
 
 		return {
-			value: map.value,
+			map,
 			errors:
 				this._validate.errors?.map((source) => ({
-					location: map.locations.get(source.instancePath),
+					location: map.find(source.instancePath)?.location,
 					message: this.getMessage(source as DefinedError),
 					source: source as DefinedError
 				})) ?? []
@@ -222,9 +221,9 @@ export type JsonSchemaValidationResult<T> = {
 	errors: JsonSchemaError[];
 
 	/**
-	 * Parsed value, represented as a collection of values and their locations, mapped to the structure of {@template T}.
+	 * Map of the parsed data.
 	 */
-	value: JsonObject<T>;
+	map: JsonObjectMap<T>;
 };
 
 /**

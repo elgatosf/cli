@@ -1,30 +1,49 @@
 import { type ArrayNode, type DocumentNode, type ElementNode, type MemberNode, type NullNode, type ObjectNode, type ValueNode } from "@humanwhocodes/momoa";
 import { type AnyValidateFunction } from "ajv/dist/types";
-import { JsonLocation, type Location, type LocationRef } from "../location";
+import { JsonLocation, type LocationRef } from "../location";
 
 /**
  * JSON object map that provides data parsed from an {@link ObjectNode}, and the locations associated with each node.
  */
 export class JsonObjectMap<T> {
 	/**
-	 * Location of each parsed node, indexed by their JSON pointer.
-	 */
-	public readonly locations = new Map<string, Location | undefined>();
-
-	/**
 	 * Parsed data.
 	 */
 	public readonly value: JsonObject<T> = {};
 
 	/**
+	 * Collection of AST nodes indexed by their instance path (pointer).
+	 */
+	private readonly nodes = new Map<string, NodeRef>();
+
+	/**
+	 * Initializes a new instance of the {@link JsonObjectMap} class.
+	 */
+	constructor();
+	/**
 	 * Initializes a new instance of the {@link JsonObjectMap} class.
 	 * @param node Source that contains the data.
 	 * @param errors JSON schema errors; used to determine invalid types based on the instance path of an error.
 	 */
-	constructor(node: ValueNode, errors: AnyValidateFunction<T>["errors"]) {
-		if (node.type === "Object") {
+	constructor(node: ValueNode, errors: AnyValidateFunction<T>["errors"]);
+	/**
+	 * Initializes a new instance of the {@link JsonObjectMap} class.
+	 * @param node Source that contains the data.
+	 * @param errors JSON schema errors; used to determine invalid types based on the instance path of an error.
+	 */
+	constructor(node?: ValueNode, errors?: AnyValidateFunction<T>["errors"]) {
+		if (node?.type === "Object") {
 			this.value = this.aggregate(node, "", errors) as JsonObject<T>;
 		}
+	}
+
+	/**
+	 * Finds the {@link NodeRef} from its {@link instancePath}.
+	 * @param instancePath Instance path.
+	 * @returns The node associated with the {@link instancePath}.
+	 */
+	public find(instancePath: string): NodeRef | undefined {
+		return this.nodes.get(instancePath);
 	}
 
 	/**
@@ -39,17 +58,20 @@ export class JsonObjectMap<T> {
 		pointer: string,
 		errors: AnyValidateFunction<T>["errors"]
 	): JsonElement | JsonElement[] | JsonObject {
-		const location: JsonLocation = {
-			...node.loc?.start,
-			instancePath: pointer,
-			key: getPath(pointer)
+		const nodeRef: NodeRef = {
+			location: {
+				...node.loc?.start,
+				instancePath: pointer,
+				key: getPath(pointer)
+			}
 		};
 
-		this.locations.set(pointer, location);
+		this.nodes.set(pointer, nodeRef);
 
 		// Node is considered an invalid type, so ignore the value.
 		if (errors?.find((e) => e.instancePath === pointer && e.keyword === "type")) {
-			return new JsonValueNode(undefined, location);
+			nodeRef.node = new JsonValueNode(undefined, nodeRef.location);
+			return nodeRef.node;
 		}
 
 		// Object node, recursively reduce each member.
@@ -67,17 +89,34 @@ export class JsonObjectMap<T> {
 
 		// Value node.
 		if (node.type === "Boolean" || node.type === "Number" || node.type === "String") {
-			return new JsonValueNode(node.value, location);
+			nodeRef.node = new JsonValueNode(node.value, nodeRef.location);
+			return nodeRef.node;
 		}
 
 		// Null value node.
 		if (node.type === "Null") {
-			return new JsonValueNode(null, location);
+			nodeRef.node = new JsonValueNode(null, nodeRef.location);
+			return nodeRef.node;
 		}
 
 		throw new Error(`Encountered unhandled node type '${node.type}' when mapping abstract-syntax tree node to JSON object`);
 	}
 }
+
+/**
+ * References to a AST node.
+ */
+type NodeRef = {
+	/**
+	 * Location of the node.
+	 */
+	location: JsonLocation;
+
+	/**
+	 * Primitive value the node represents; otherwise `undefined`.
+	 */
+	node?: JsonValueNode<boolean | number | string | null | undefined>;
+};
 
 /**
  * JSON object that includes all valid value-types of {@template T}, and defines all invalid value-types as `undefined`.

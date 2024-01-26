@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { extname, join, resolve } from "node:path";
-import { type JsonElement } from "../../../../common/json";
+import { FilePathOptions } from "../../../../common/json";
 import { colorize } from "../../../../common/stdout";
 import { aggregate } from "../../../../common/utils";
 import { rule } from "../../rule";
@@ -12,25 +12,38 @@ import { type PluginContext } from "../contexts/plugin";
 export const manifestFilesExist = rule<PluginContext>(function (plugin: PluginContext) {
 	const missingHighRes = new Set<string>();
 
-	/**
-	 * Validates the specified {@link elem} file exists, and is valid based on the file options specified within the manifest's JSON schema.
-	 * @param elem JSON element that contains information about the file to validate.
-	 */
-	const validate = (elem: JsonElement<string> | undefined): void => {
-		// When there is no value, we have nothing to validate.
-		if (elem?.value === undefined) {
+	// Determine the values that require validating based on the JSON schema.
+	const filePaths = new Map<string, FilePathOptions>(plugin.manifest.schema.filePathsKeywords);
+
+	// Remove layout file paths to validate if they're predefined layouts.
+	plugin.manifest.value.Actions?.forEach((action) => {
+		if (action.Encoder?.layout?.value?.startsWith("$") === true && !action.Encoder.layout.value.endsWith(".json")) {
+			filePaths.delete(action.Encoder.layout.location.instancePath);
+		}
+	});
+
+	// Iterate over the file paths, and validate them.
+	filePaths.forEach((opts, instancePath) => {
+		// When there is no node for the file path, we don't need to validate.
+		const nodeRef = plugin.manifest.jsonMap.find(instancePath);
+		if (nodeRef?.node === undefined) {
+			return;
+		}
+
+		// When the value is undefined, or not a string, we rely on schema validation.
+		const { node } = nodeRef;
+		if (node.value === undefined || typeof node.value !== "string") {
 			return;
 		}
 
 		// Validate the file is nested within the plugin directory.
-		if (elem.value.startsWith("../")) {
-			this.addError(plugin.manifest.path, "must not reference file outside plugin directory", elem);
+		if (node.value.startsWith("../")) {
+			this.addError(plugin.manifest.path, "must not reference file outside plugin directory", node);
 			return;
 		}
 
-		// Determine if there are file path options associated with the element.
-		const opts = plugin.manifest.schema?.getFilePathOptions(elem.location.instancePath);
-		const possiblePaths = typeof opts === "object" && !opts.includeExtension ? opts.extensions.map((ext) => `${elem.value}${ext}`) : [elem.value];
+		// Determine the possible paths from the file path options.
+		const possiblePaths = typeof opts === "object" && !opts.includeExtension ? opts.extensions.map((ext) => `${node.value}${ext}`) : [node.value];
 
 		// Attempt to resolve the possible paths the value can represent.
 		let resolvedPath: string | undefined = undefined;
@@ -39,7 +52,7 @@ export const manifestFilesExist = rule<PluginContext>(function (plugin: PluginCo
 			if (existsSync(path)) {
 				// If the path has already been resolved, there are files with duplicate names, e.g. "my-image.png" and "my-image.svg". Warn, and highlighted the resolved path.
 				if (resolvedPath !== undefined) {
-					this.addWarning(plugin.manifest.path, `multiple files named ${colorize(elem.value)} found, using ${colorize(resolvedPath)}`, elem);
+					this.addWarning(plugin.manifest.path, `multiple files named ${colorize(node.value)} found, using ${colorize(resolvedPath)}`, node);
 					break;
 				}
 
@@ -49,8 +62,8 @@ export const manifestFilesExist = rule<PluginContext>(function (plugin: PluginCo
 
 		// Validate there is a resolved path, when there isn't, it means a file was not found.
 		if (resolvedPath === undefined) {
-			this.addError(plugin.manifest.path, `file not found, ${colorize(elem.value)}`, {
-				...elem,
+			this.addError(plugin.manifest.path, `file not found, ${colorize(node.value)}`, {
+				...node,
 				suggestion: typeof opts === "object" ? `File must be ${aggregate(opts.extensions, "or")}` : undefined
 			});
 
@@ -58,45 +71,16 @@ export const manifestFilesExist = rule<PluginContext>(function (plugin: PluginCo
 		}
 
 		// Validate there is a high-res version of the image, when the resolved path is a .png file.
-		if (extname(resolvedPath) === ".png" && !existsSync(join(this.path, `${elem.value}@2x.png`)) && !missingHighRes.has(resolvedPath)) {
-			this.addWarning(resolvedPath, "Missing high-resolution (@2x) variant");
-			missingHighRes.add(resolvedPath);
+		if (extname(resolvedPath) === ".png") {
+			const fullPath = join(this.path, resolvedPath);
+			if (missingHighRes.has(fullPath)) {
+				return;
+			}
+
+			if (!existsSync(join(this.path, `${node.value}@2x.png`))) {
+				this.addWarning(fullPath, "Missing high-resolution (@2x) variant");
+				missingHighRes.add(fullPath);
+			}
 		}
-	};
-
-	// Top-level.
-	validate(plugin.manifest.value.CodePath);
-	validate(plugin.manifest.value.CodePathMac);
-	validate(plugin.manifest.value.CodePathWin);
-	validate(plugin.manifest.value.Icon);
-	validate(plugin.manifest.value.CategoryIcon);
-	validate(plugin.manifest.value.PropertyInspectorPath);
-
-	// Action files.
-	plugin.manifest.value.Actions?.forEach((action) => {
-		validate(action?.Icon);
-		validate(action?.Encoder?.background);
-		validate(action?.Encoder?.Icon);
-		validate(action.PropertyInspectorPath);
-		if (!isPredefinedLayout(action.Encoder?.layout)) {
-			validate(action.Encoder?.layout);
-		}
-
-		action.States?.forEach((state) => {
-			validate(state?.Image);
-			validate(state?.MultiActionImage);
-		});
 	});
-
-	// Profile files.
-	plugin.manifest.value.Profiles?.forEach((profile) => validate(profile.Name));
 });
-
-/**
- * Determines whether the {@link elem} represents a pre-defined layout; this is guarded by the manifest's JSON schema validation.
- * @param elem JSON element that contains the information about the layout.
- * @returns `true` when the value represents a pre-defined layout.
- */
-function isPredefinedLayout(elem: JsonElement<string> | undefined): boolean {
-	return elem?.value?.startsWith("$") === true && !elem.value.endsWith(".json");
-}
