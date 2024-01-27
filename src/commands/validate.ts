@@ -1,7 +1,7 @@
 import { resolve } from "node:path";
 import { cwd } from "node:process";
-import { command } from "../../common/command";
-import { validatePlugin } from "./plugin/validate";
+import { command } from "../common/command";
+import { validatePlugin } from "../validation/plugin";
 
 /**
  * Validates the given path, and outputs the results.

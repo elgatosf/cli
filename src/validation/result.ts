@@ -1,4 +1,4 @@
-import { StdOut } from "../../common/stdout";
+import { StdOut } from "../common/stdout";
 import { ValidationLevel, type ValidationEntry } from "./entry";
 import { ValidationEntryCollection } from "./entry-collection";
 

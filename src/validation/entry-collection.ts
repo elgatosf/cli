@@ -1,6 +1,6 @@
 import chalk from "chalk";
-import { OrderedArray } from "../../common/ordered-array";
-import { StdOut } from "../../common/stdout";
+import { OrderedArray } from "../common/ordered-array";
+import { StdOut } from "../common/stdout";
 import type { ValidationEntry } from "./entry";
 
 /**

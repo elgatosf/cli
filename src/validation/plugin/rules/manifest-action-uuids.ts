@@ -1,4 +1,4 @@
-import { colorize } from "../../../../common/stdout";
+import { colorize } from "../../../common/stdout";
 import { rule } from "../../rule";
 import { PluginContext } from "../contexts/plugin";
 

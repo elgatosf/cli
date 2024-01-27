@@ -1,6 +1,6 @@
 import { existsSync, lstatSync } from "node:fs";
 import { basename } from "node:path";
-import { isValidPluginId } from "../../../../stream-deck";
+import { isValidPluginId } from "../../../stream-deck";
 import { rule } from "../../rule";
 import { PluginContext, directorySuffix } from "../contexts/plugin";
 

@@ -1,8 +1,8 @@
 import { type Manifest } from "@elgato/streamdeck";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { JsonObjectMap, JsonSchema, type JsonObject, type JsonSchemaError } from "../../../../common/json";
-import { relative } from "../../../../common/path";
+import { JsonObjectMap, JsonSchema, type JsonObject, type JsonSchemaError } from "../../../common/json";
+import { relative } from "../../../common/path";
 
 /**
  * Provides information about the `manifest.json` file associated with a plugin.
