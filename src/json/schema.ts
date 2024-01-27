@@ -14,19 +14,24 @@ const unknownMessage = "could not be validated (unknown error)";
  */
 export class JsonSchema<T extends object> {
 	/**
-	 * Private backing field for {@link filePathsKeywords}
+	 * Private backing field for {@link filePathsKeywords}.
 	 */
 	private readonly _filePathsKeywords = new Map<string, FilePathOptions>();
 
 	/**
+	 * Private backing field for {@link imageDimensionKeywords}.
+	 */
+	private readonly _imageDimensionKeywords = new Map<string, ImageDimensions>();
+
+	/**
 	 * Internal validator.
 	 */
-	private _validate: AnyValidateFunction<T>;
+	private readonly _validate: AnyValidateFunction<T>;
 
 	/**
 	 * Collection of custom error messages, indexed by their JSON instance path, defined with the JSON schema using `@errorMessage`.
 	 */
-	private errorMessages = new Map<string, string>();
+	private readonly errorMessages = new Map<string, string>();
 
 	/**
 	 * Initializes a new instance of the {@link JsonSchema} class.
@@ -45,11 +50,13 @@ export class JsonSchema<T extends object> {
 	constructor(source: AnySchema | string) {
 		const ajv = new Ajv({
 			allErrors: true,
-			messages: false
+			messages: false,
+			strict: false
 		});
 
 		ajv.addKeyword("markdownDescription");
 		ajv.addKeyword(captureKeyword("errorMessage", "string", this.errorMessages));
+		ajv.addKeyword(captureKeyword("imageDimensions", "array", this._imageDimensionKeywords));
 		ajv.addKeyword(captureKeyword("filePath", ["boolean", "object"], this._filePathsKeywords));
 
 		this._validate = ajv.compile(typeof source === "string" ? readFromFile(source) : source);
@@ -64,11 +71,22 @@ export class JsonSchema<T extends object> {
 	}
 
 	/**
+	 * Collection of {@link ImageDimensions}, indexed by their JSON instance path, defined with the JSON schema using `@imageDimensions`.
+	 * @returns The collection of {@link FilePathOptions}.
+	 */
+	public get imageDimensionKeywords(): ReadonlyMap<string, ImageDimensions> {
+		return this._imageDimensionKeywords;
+	}
+
+	/**
 	 * Validates the {@param json}.
 	 * @param json JSON string to parse.
 	 * @returns Data that could be successfully parsed from the {@param json}, and a collection of errors.
 	 */
 	public validate(json: string): JsonSchemaValidationResult<T> {
+		this._filePathsKeywords.clear();
+		this._imageDimensionKeywords.clear();
+
 		// Parse the JSON contents.
 		let data;
 		try {
@@ -194,6 +212,11 @@ function readFromFile(path: string): AnySchema {
 		throw new Error("Failed to parse JSON schema", { cause });
 	}
 }
+
+/**
+ * Image dimensions, in pixels.
+ */
+export type ImageDimensions = [width: number, height: number];
 
 /**
  * Options used to determine a valid file path, used to generate the regular expression pattern.
