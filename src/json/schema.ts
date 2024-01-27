@@ -2,7 +2,7 @@ import { parse } from "@humanwhocodes/momoa";
 import Ajv, { AnySchemaObject, JSONType, KeywordDefinition, type AnySchema, type DefinedError } from "ajv";
 import { DataValidationCxt, type AnyValidateFunction } from "ajv/dist/types";
 import { existsSync, readFileSync } from "node:fs";
-import { type LocationRef } from "../common/location";
+import { type JsonLocation, type LocationRef } from "../common/location";
 import { colorize } from "../common/stdout";
 import { aggregate } from "../common/utils";
 import { JsonObjectMap } from "./map";
@@ -103,7 +103,7 @@ export class JsonSchema<T extends object> {
 							params: {}
 						},
 						message: "Contents must be a valid JSON string",
-						location: { key: undefined }
+						location: { instancePath: "/", key: undefined }
 					}
 				]
 			};
@@ -252,7 +252,7 @@ export type JsonSchemaValidationResult<T> = {
 /**
  * Provides information relating to a JSON error.
  */
-export type JsonSchemaError = LocationRef & {
+export type JsonSchemaError = LocationRef<JsonLocation> & {
 	/**
 	 * User-friendly message that explain the error.
 	 */

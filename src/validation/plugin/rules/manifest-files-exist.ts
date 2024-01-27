@@ -30,15 +30,9 @@ export const manifestFilesExist = rule<PluginContext>(function (plugin: PluginCo
 			return;
 		}
 
-		// When the value is undefined, or not a string, we rely on schema validation.
+		// When the value type is incorrect, or there is already a schema error, we can rely on schema validation.
 		const { node } = nodeRef;
-		if (node.value === undefined || typeof node.value !== "string") {
-			return;
-		}
-
-		// Validate the file is nested within the plugin directory.
-		if (node.value.startsWith("../")) {
-			this.addError(plugin.manifest.path, "must not reference file outside plugin directory", node);
+		if (typeof node.value !== "string" || plugin.manifest.errors.find((e) => e.location?.instancePath === instancePath)) {
 			return;
 		}
 
@@ -78,7 +72,11 @@ export const manifestFilesExist = rule<PluginContext>(function (plugin: PluginCo
 			}
 
 			if (!existsSync(join(this.path, `${node.value}@2x.png`))) {
-				this.addWarning(fullPath, "Missing high-resolution (@2x) variant");
+				this.addWarning(fullPath, "should have high-resolution (@2x) variant", {
+					location: {
+						key: node.location.key
+					}
+				});
 				missingHighRes.add(fullPath);
 			}
 		}

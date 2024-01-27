@@ -22,6 +22,10 @@ export class ValidationEntry {
 		public readonly message: string,
 		public readonly details?: ValidationEntryDetails
 	) {
+		if (message.endsWith(".")) {
+			this.message = message.slice(0, -1);
+		}
+
 		if (this.details?.location?.column || this.details?.location?.line) {
 			this.location = `${this.details.location.line}`;
 			if (this.details.location.column) {

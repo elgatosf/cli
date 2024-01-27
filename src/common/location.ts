@@ -1,11 +1,11 @@
 /**
  * An object that references a location.
  */
-export type LocationRef = {
+export type LocationRef<T extends JsonLocation | Location = Location> = {
 	/**
 	 * The location this instance references.
 	 */
-	location?: Location;
+	location?: T;
 };
 
 /**

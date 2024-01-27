@@ -1,6 +1,6 @@
 import { type ArrayNode, type DocumentNode, type ElementNode, type MemberNode, type NullNode, type ObjectNode, type ValueNode } from "@humanwhocodes/momoa";
 import { type AnyValidateFunction } from "ajv/dist/types";
-import { JsonLocation, type LocationRef } from "../common/location";
+import { type JsonLocation, type LocationRef } from "../common/location";
 
 /**
  * JSON object map that provides data parsed from an {@link ObjectNode}, and the locations associated with each node.
@@ -133,7 +133,7 @@ export type JsonElement<T = unknown> = T extends Array<infer E> ? JsonElement<E>
 /**
  * Represents a node within a JSON structure.
  */
-class JsonValueNode<T> implements LocationRef {
+class JsonValueNode<T> implements LocationRef<JsonLocation> {
 	/**
 	 * Initializes a new instance of the {@link JsonValueNode} class.
 	 * @param value Parsed value.
