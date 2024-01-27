@@ -2,9 +2,9 @@ import { parse } from "@humanwhocodes/momoa";
 import Ajv, { AnySchemaObject, JSONType, KeywordDefinition, type AnySchema, type DefinedError } from "ajv";
 import { DataValidationCxt, type AnyValidateFunction } from "ajv/dist/types";
 import { existsSync, readFileSync } from "node:fs";
-import { type LocationRef } from "../location";
-import { colorize } from "../stdout";
-import { aggregate } from "../utils";
+import { type LocationRef } from "../common/location";
+import { colorize } from "../common/stdout";
+import { aggregate } from "../common/utils";
 import { JsonObjectMap } from "./map";
 
 const unknownMessage = "could not be validated (unknown error)";

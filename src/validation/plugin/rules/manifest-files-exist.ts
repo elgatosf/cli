@@ -1,8 +1,8 @@
 import { existsSync } from "node:fs";
 import { extname, join, resolve } from "node:path";
-import { FilePathOptions } from "../../../common/json";
 import { colorize } from "../../../common/stdout";
 import { aggregate } from "../../../common/utils";
+import { FilePathOptions } from "../../../json";
 import { rule } from "../../rule";
 import { type PluginContext } from "../contexts/plugin";
 
