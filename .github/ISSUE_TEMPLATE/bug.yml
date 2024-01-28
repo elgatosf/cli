@@ -19,6 +19,7 @@ body:
         - Config
         - Create
         - Dev
+        - Help
         - Link
         - Restart
         - Stop
