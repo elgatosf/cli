@@ -1,0 +1,12 @@
+contact_links:
+  - name: Feature request
+    url: https://discord.gg/dcHV3jX3FE
+    about: Suggest an idea for the Maker CLI on our Marketplace Makers Discord.
+
+  - name: Help
+    url: https://discord.gg/98t3mrpq7H
+    about: Looking for help with building for Stream Deck? Check out our wonderful Maker community.
+
+  - name: Stream Deck feature request
+    url: https://e.lga.to/FeatureRequest
+    about: Suggest an idea for Stream Deck on our dedicated feature request page.
