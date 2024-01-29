@@ -13,7 +13,7 @@ const SPIN_SYMBOLS = ["|", "/", "-", "\\"];
  * @returns The {@link ConsoleStdOut}.
  */
 export function createConsole(reduceMotion: boolean): StdOut {
-	const interactive = isInteractive();
+	const interactive = isInteractive() && process.stdout.clearLine !== undefined;
 	return new ConsoleStdOut({
 		interactive,
 		level: MessageLevel.LOG,
@@ -169,18 +169,6 @@ class ConsoleStdOut {
 	/**
 	 * Displays an interactive spinner and the {@link message}.
 	 * @param message Text to show next to the spinner.
-	 */
-	public spin(message: string): void;
-	/**
-	 * Displays an interactive spinner and the {@link message}.
-	 * @param message Text to show next to the spinner.
-	 * @param task Task that the spinner represents.
-	 * @returns A promise fulfilled when the {@link task} completes.
-	 */
-	public spin(message: string, task: (writer: ConsoleStdOut) => Promise<number | void> | void): Promise<void>;
-	/**
-	 * Displays an interactive spinner and the {@link message}.
-	 * @param message Text to show next to the spinner.
 	 * @param task Task that the spinner represents.
 	 * @returns A promise fulfilled when the {@link task} completes.
 	 */
@@ -241,15 +229,19 @@ class ConsoleStdOut {
 	 * @returns Associated symbol that denotes the {@link level} as an icon.
 	 */
 	private getSymbol(level: MessageLevel): string {
+		if (process.env.VisualStudioVersion) {
+			return "";
+		}
+
 		switch (level) {
 			case MessageLevel.ERROR:
-				return logSymbols.error;
+				return `${logSymbols.error} `;
 			case MessageLevel.WARN:
-				return logSymbols.warning;
+				return `${logSymbols.warning} `;
 			case MessageLevel.SUCCESS:
-				return logSymbols.success;
+				return `${logSymbols.success} `;
 			case MessageLevel.INFO:
-				return logSymbols.info;
+				return `${logSymbols.info} `;
 			default:
 				return "logSymbols.error";
 		}
@@ -265,12 +257,12 @@ class ConsoleStdOut {
 			process.stdout.write(`${symbol} ${this.message}`);
 		};
 
-		if (this.options.reduceMotion) {
+		if (!this.options.interactive) {
+			console.log(this.message);
+		} else if (this.options.reduceMotion) {
 			write("-");
-		} else if (this.options.interactive) {
-			this.timerId = setInterval(() => write(SPIN_SYMBOLS[++this.index % SPIN_SYMBOLS.length]), 150);
 		} else {
-			console.log(`- ${this.message}`);
+			this.timerId = setInterval(() => write(SPIN_SYMBOLS[++this.index % SPIN_SYMBOLS.length]), 150);
 		}
 
 		this._isLoading = true;
@@ -298,7 +290,7 @@ class ConsoleStdOut {
 
 		this._isLoading = false;
 		if (level <= this.options.level) {
-			console.log(`${this.getSymbol(level)} ${text}`);
+			console.log(`${this.getSymbol(level)}${text}`);
 		}
 
 		return this;
