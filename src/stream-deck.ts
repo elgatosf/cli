@@ -134,6 +134,19 @@ export function isValidPluginId(uuid: string | undefined): boolean {
 }
 
 /**
+ * Represents an error thrown when resolving a path, as determined by Stream Deck.
+ */
+export class PathError extends Error {
+	/**
+	 * Initializes a new instance of the {@link PathError} class.
+	 * @param message Error message
+	 */
+	constructor(message: string) {
+		super(message);
+	}
+}
+
+/**
  * Provides information about an installed plugin.
  */
 class PluginInfo {

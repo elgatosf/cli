@@ -34,6 +34,19 @@ export function createQuietConsole(): StdOut {
 }
 
 /**
+ * Prettifies the value for output.
+ * @param value Value to prettify.
+ * @returns Prettified value.
+ */
+export function colorize(value: unknown): string {
+	if (typeof value === "string") {
+		return chalk.green(`'${value}'`);
+	}
+
+	return chalk.yellow(value);
+}
+
+/**
  * Options associated with a {@link ConsoleStdOut}.
  */
 type ConsoleStdOutOptions = {

@@ -1,6 +1,6 @@
 import { program } from "commander";
 
-import { config, create, link, restart, setDeveloperMode, stop } from "./commands";
+import { config, create, link, restart, setDeveloperMode, stop, validate } from "./commands";
 
 program
 	.command("create")
@@ -32,6 +32,12 @@ program
 	.description("Enables developer mode.")
 	.option("-d|--disable", "Disables developer mode", false)
 	.action(({ disable }) => setDeveloperMode({ disable }));
+
+program
+	.command("validate")
+	.description("Validates the Stream Deck plugin.")
+	.argument("[path]", "Path of the plugin to validate")
+	.action((path) => validate({ path }));
 
 const configCommand = program.command("config").description("Manage the local configuration.");
 

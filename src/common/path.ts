@@ -71,8 +71,12 @@ export function relative(path: string): string {
  * @returns `true` when the stats of the {@link path} fulfil the {@link check}; otherwise `false`.
  */
 function checkStats(path: string, check: (stats?: Stats) => boolean): boolean {
-	const stats = lstatSync(path);
-	if (stats?.isSymbolicLink()) {
+	const stats = lstatSync(path, { throwIfNoEntry: false });
+	if (stats === undefined) {
+		return false;
+	}
+
+	if (stats.isSymbolicLink()) {
 		return checkStats(readlinkSync(path), check);
 	}
 

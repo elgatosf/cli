@@ -7,7 +7,6 @@ import { homedir, platform } from "node:os";
 import { dirname, join } from "node:path";
 
 import { relative } from "./common/path";
-import { DeepPartial } from "./utils";
 
 let __config: Config | undefined = undefined;
 
@@ -229,3 +228,8 @@ type DependencyConfig = {
 	 */
 	version: string;
 };
+
+/**
+ * Provides a utility type that recursively applies {@link Partial} to all properties that are objects.
+ */
+type DeepPartial<T> = T extends object ? { [P in keyof T]?: DeepPartial<T[P]> } : T;

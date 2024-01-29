@@ -94,7 +94,7 @@ async function promptForPluginInfo(): Promise<PluginInfo> {
 			default: ({ author, name }: PluginInfo): string | undefined => generatePluginId(author, name),
 			validate: (uuid: string): boolean | string => {
 				if (!isValidPluginId(uuid)) {
-					return "UUID can only contain lowercase alphanumeric characters (a-z, 0-9), hyphens (-), underscores (_), or periods (.).";
+					return "UUID must only contain lowercase alphanumeric characters (a-z, 0-9), hyphens (-), underscores (_), and periods (.).";
 				}
 
 				if (getPlugins().some((p) => p.uuid === uuid)) {
