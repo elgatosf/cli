@@ -46,7 +46,7 @@ class ManifestJsonFileContext extends JsonFileContext<Manifest> {
 				const filePath = resolve(dirname(path), action.Encoder.layout.value);
 				this.layoutFiles.push({
 					location: action.Encoder.layout.location,
-					file: new JsonFileContext<Layout>(filePath, layoutSchema)
+					layout: new JsonFileContext<Layout>(filePath, layoutSchema)
 				});
 			}
 		});
@@ -60,7 +60,7 @@ export type LayoutFile = LocationRef<JsonLocation> & {
 	/**
 	 * Context of the layout JSON file.
 	 */
-	file: JsonFileContext<Layout>;
+	layout: JsonFileContext<Layout>;
 };
 
 /**

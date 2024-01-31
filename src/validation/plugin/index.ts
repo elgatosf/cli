@@ -1,6 +1,7 @@
 import type { ValidationResult } from "../result";
 import { validate } from "../validator";
 import { createContext, type PluginContext } from "./plugin";
+import { layoutItemKeysAreUnique } from "./rules/layout-item-keys";
 import { layoutsExistAndSchemasAreValid } from "./rules/layout-schema";
 import { actionUuidIsUniqueAndPrefixed } from "./rules/manifest-action-uuids";
 import { categoryMatchesName } from "./rules/manifest-category";
@@ -22,6 +23,7 @@ export function validatePlugin(path: string): Promise<ValidationResult> {
 		manifestUrlsExist,
 		actionUuidIsUniqueAndPrefixed,
 		categoryMatchesName,
-		layoutsExistAndSchemasAreValid
+		layoutsExistAndSchemasAreValid,
+		layoutItemKeysAreUnique
 	]);
 }
