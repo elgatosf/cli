@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import { rule } from "../../rule";
-import { type PluginContext } from "../contexts/plugin";
+import { type PluginContext } from "../plugin";
 
 /**
  * Validates the URLs defined within the manifest are valid websites, and return 2xx status codes.

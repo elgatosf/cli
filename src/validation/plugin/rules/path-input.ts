@@ -2,7 +2,7 @@ import { existsSync, lstatSync } from "node:fs";
 import { basename } from "node:path";
 import { isValidPluginId } from "../../../stream-deck";
 import { rule } from "../../rule";
-import { PluginContext, directorySuffix } from "../contexts/plugin";
+import { directorySuffix, type PluginContext } from "../plugin";
 
 export const pathIsDirectoryAndUuid = rule<PluginContext>(function (plugin: PluginContext) {
 	const name = basename(this.path);

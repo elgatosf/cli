@@ -3,8 +3,9 @@ import { extname, join, resolve } from "node:path";
 import { colorize } from "../../../common/stdout";
 import { aggregate } from "../../../common/utils";
 import { FilePathOptions } from "../../../json";
+import { isPredefinedLayoutLike } from "../../../stream-deck";
 import { rule } from "../../rule";
-import { type PluginContext } from "../contexts/plugin";
+import { type PluginContext } from "../plugin";
 
 /**
  * Validates the files defined within the manifest exist.
@@ -17,7 +18,7 @@ export const manifestFilesExist = rule<PluginContext>(function (plugin: PluginCo
 
 	// Remove layout file paths to validate if they're predefined layouts.
 	plugin.manifest.value.Actions?.forEach((action) => {
-		if (action.Encoder?.layout?.value?.startsWith("$") === true && !action.Encoder.layout.value.endsWith(".json")) {
+		if (action.Encoder?.layout?.value !== undefined && isPredefinedLayoutLike(action.Encoder?.layout?.value)) {
 			filePaths.delete(action.Encoder.layout.location.instancePath);
 		}
 	});
@@ -25,7 +26,7 @@ export const manifestFilesExist = rule<PluginContext>(function (plugin: PluginCo
 	// Iterate over the file paths, and validate them.
 	filePaths.forEach((opts, instancePath) => {
 		// When there is no node for the file path, we don't need to validate.
-		const nodeRef = plugin.manifest.jsonMap.find(instancePath);
+		const nodeRef = plugin.manifest.find(instancePath);
 		if (nodeRef?.node === undefined) {
 			return;
 		}

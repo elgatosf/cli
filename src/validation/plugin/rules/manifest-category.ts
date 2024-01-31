@@ -1,5 +1,5 @@
 import { rule } from "../../rule";
-import { PluginContext } from "../contexts/plugin";
+import { type PluginContext } from "../plugin";
 
 /**
  * Validates the "Category" matches the "Name" of the plugin, as defined within the manifest.

@@ -37,6 +37,15 @@ export function getPluginsPath(): string {
 }
 
 /**
+ * Determines whether the specified {@link value} is structured like a pre-defined layout.
+ * @param value Value to check.
+ * @returns `true` when the string likely represents a pre-defined layout; otherwise `false`.
+ */
+export function isPredefinedLayoutLike(value: string): boolean {
+	return value.startsWith("$") === true && !value.endsWith(".json");
+}
+
+/**
  * Determines whether a plugin is installed that matches the specified {@link uuid}.
  * @param uuid Unique-identifier of the plugin to look for.
  * @returns `true` when a plugin was found that matches the {@link uuid}; otherwise `false`.

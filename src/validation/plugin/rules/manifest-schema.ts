@@ -1,5 +1,5 @@
 import { rule } from "../../rule";
-import { type PluginContext } from "../contexts/plugin";
+import { type PluginContext } from "../plugin";
 
 import { existsSync } from "node:fs";
 
