@@ -1,7 +1,9 @@
-import type { Manifest } from "@elgato/streamdeck";
-import { basename, join } from "node:path";
+import type { Layout, Manifest } from "@elgato/streamdeck";
+import { basename, dirname, join, resolve } from "node:path";
+import { JsonLocation, LocationRef } from "../../common/location";
 import { relative } from "../../common/path";
 import { JsonFileContext, JsonSchema } from "../../json";
+import { isPredefinedLayoutLike } from "../../stream-deck";
 
 /**
  * Suffixed associated with a plugin directory.
@@ -15,25 +17,51 @@ export const directorySuffix = ".sdPlugin";
  */
 export function createContext(path: string): PluginContext {
 	const uuid = basename(path).replace(/\.sdPlugin$/, "");
-	const manifest = createManifestContext(path);
 
 	return {
 		uuid,
-		manifest
+		manifest: new ManifestJsonFileContext(join(path, "manifest.json"))
 	};
 }
 
 /**
- * Creates a context that represents the plugin's manifest.
- * @param root Plugin directory.
- * @returns Manifest context.
+ * Provides information for a manifest JSON file.
  */
-function createManifestContext(root: string): JsonFileContext<Manifest> {
-	const path = join(root, "manifest.json");
-	const schema = new JsonSchema<Manifest>(relative("../node_modules/@elgato/streamdeck/schemas/manifest.json"));
+class ManifestJsonFileContext extends JsonFileContext<Manifest> {
+	/**
+	 * Layout files referenced by the manifest.
+	 */
+	public readonly layoutFiles: LayoutFile[] = [];
 
-	return new JsonFileContext(path, schema);
+	/**
+	 * Initializes a new instance of the {@link ManifestJsonFileContext} class.
+	 * @param path Path to the manifest file.
+	 */
+	constructor(path: string) {
+		super(path, new JsonSchema<Manifest>(relative("../node_modules/@elgato/streamdeck/schemas/manifest.json")));
+
+		const layoutSchema = new JsonSchema<Layout>(relative("../node_modules/@elgato/streamdeck/schemas/layout.json"));
+		this.value.Actions?.forEach((action) => {
+			if (action.Encoder?.layout !== undefined && !isPredefinedLayoutLike(action.Encoder?.layout.value)) {
+				const filePath = resolve(dirname(path), action.Encoder.layout.value);
+				this.layoutFiles.push({
+					location: action.Encoder.layout.location,
+					file: new JsonFileContext<Layout>(filePath, layoutSchema)
+				});
+			}
+		});
+	}
 }
+
+/**
+ * Provides a reference to a layout file defined within the manifest.
+ */
+export type LayoutFile = LocationRef<JsonLocation> & {
+	/**
+	 * Context of the layout JSON file.
+	 */
+	file: JsonFileContext<Layout>;
+};
 
 /**
  * Provides information about the plugin.
@@ -42,7 +70,7 @@ export type PluginContext = {
 	/**
 	 * Manifest associated with the plugin.
 	 */
-	readonly manifest: JsonFileContext<Manifest>;
+	readonly manifest: ManifestJsonFileContext;
 
 	/**
 	 * Unique identifier parsed from the path to the plugin.

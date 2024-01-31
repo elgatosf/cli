@@ -7,7 +7,10 @@ import { colorize } from "../common/stdout";
 import { aggregate } from "../common/utils";
 import { JsonObjectMap } from "./map";
 
-const unknownMessage = "could not be validated (unknown error)";
+/**
+ * Keywords ignored as part of validating a JSON string with a JSON schema..
+ */
+const ignoredKeywords = ["anyOf", "if"];
 
 /**
  * JSON schema capable of validating JSON.
@@ -117,11 +120,13 @@ export class JsonSchema<T extends object> {
 		return {
 			map,
 			errors:
-				this._validate.errors?.map((source) => ({
-					location: map.find(source.instancePath)?.location,
-					message: this.getMessage(source as DefinedError),
-					source: source as DefinedError
-				})) ?? []
+				this._validate.errors
+					?.filter(({ keyword }) => !ignoredKeywords.includes(keyword))
+					?.map((source) => ({
+						location: map.find(source.instancePath)?.location,
+						message: this.getMessage(source as DefinedError),
+						source: source as DefinedError
+					})) ?? []
 		};
 	}
 
@@ -139,7 +144,7 @@ export class JsonSchema<T extends object> {
 
 		if (keyword === "enum") {
 			const values = aggregate(params.allowedValues, "or", colorize);
-			return values !== undefined ? `must be ${values}` : message || unknownMessage;
+			return values !== undefined ? `must be ${values}` : message || `failed validation for keyword: ${keyword}`;
 		}
 
 		if (keyword === "pattern") {
@@ -171,7 +176,7 @@ export class JsonSchema<T extends object> {
 			return "must not contain duplicate items";
 		}
 
-		return message || unknownMessage;
+		return message || `failed validation for keyword: ${keyword}`;
 	}
 }
 
