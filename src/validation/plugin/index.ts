@@ -1,6 +1,7 @@
 import type { ValidationResult } from "../result";
 import { validate } from "../validator";
 import { createContext, type PluginContext } from "./plugin";
+import { layoutItemsAreWithinBoundsAndNoOverlap } from "./rules/layout-item-bounds";
 import { layoutItemKeysAreUnique } from "./rules/layout-item-keys";
 import { layoutsExistAndSchemasAreValid } from "./rules/layout-schema";
 import { actionUuidIsUniqueAndPrefixed } from "./rules/manifest-action-uuids";
@@ -24,6 +25,7 @@ export function validatePlugin(path: string): Promise<ValidationResult> {
 		actionUuidIsUniqueAndPrefixed,
 		categoryMatchesName,
 		layoutsExistAndSchemasAreValid,
-		layoutItemKeysAreUnique
+		layoutItemKeysAreUnique,
+		layoutItemsAreWithinBoundsAndNoOverlap
 	]);
 }
