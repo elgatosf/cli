@@ -1,6 +1,14 @@
 import { program } from "commander";
 
-import { config, create, link, restart, setDeveloperMode, stop, validate } from "./commands";
+import { cliVersion, config, create, link, restart, setDeveloperMode, stop, validate } from "./commands";
+
+program.option("-v, --version", "display CLI version").action((opts) => {
+	if (opts.version) {
+		cliVersion();
+	} else {
+		program.help();
+	}
+});
 
 program
 	.command("create")

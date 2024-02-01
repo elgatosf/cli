@@ -16,12 +16,17 @@
 ### ♻️ Improvements
 
 - Add "Open in VSCode" prompt, as part of creation wizard, for macOS.
+- Add `-v, --version` option to display current version of CLI.
+
+### 🐞 Bug Fixes
+
+- Fix support for Visual Studio integrated output.
 
 ## 0.2.0
 
 ### ✨ New
 
--  Add [`packageManager`](README.md/#packagemanager) configuration option ([@fcannizzaro](https://github.com/fcannizzaro)).
+- Add [`packageManager`](README.md/#packagemanager) configuration option ([@fcannizzaro](https://github.com/fcannizzaro)).
 
 ### ♻️ Improvements
 
