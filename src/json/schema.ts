@@ -1,6 +1,7 @@
 import { parse } from "@humanwhocodes/momoa";
 import Ajv, { AnySchemaObject, JSONType, KeywordDefinition, type AnySchema, type DefinedError } from "ajv";
 import { DataValidationCxt, type AnyValidateFunction } from "ajv/dist/types";
+import { type LimitNumberError } from "ajv/dist/vocabularies/validation/limitNumber";
 import { existsSync, readFileSync } from "node:fs";
 import { type JsonLocation, type LocationRef } from "../common/location";
 import { colorize } from "../common/stdout";
@@ -156,6 +157,10 @@ export class JsonSchema<T extends object> {
 			return errorMessage || `must match pattern ${params.pattern}`;
 		}
 
+		if (keyword === "minimum" || keyword === "maximum") {
+			return `must be ${getComparison(params.comparison)} ${params.limit}`;
+		}
+
 		if (keyword === "minItems") {
 			return `must contain at least ${params.limit} item${params.limit === 1 ? "" : "s"}`;
 		}
@@ -199,6 +204,26 @@ function captureKeyword(keyword: string, schemaType: JSONType | JSONType[], map:
 			return true;
 		}
 	};
+}
+
+/**
+ * Gets the comparison as a string, for example "less than", "greater than", etc.
+ * @param comparison Comparison to stringify.
+ * @returns String representation of the comparison.
+ */
+function getComparison(comparison: LimitNumberError["params"]["comparison"]): string {
+	switch (comparison) {
+		case "<":
+			return "less than";
+		case "<=":
+			return "less than or equal to";
+		case ">":
+			return "greater than";
+		case ">=":
+			return "greater than or equal to";
+		default:
+			throw new TypeError(`Expected comparison when validating JSON: ${comparison}`);
+	}
 }
 
 /**

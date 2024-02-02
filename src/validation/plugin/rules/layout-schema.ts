@@ -1,3 +1,4 @@
+import { DefinedError } from "ajv";
 import { rule } from "../../rule";
 import { type PluginContext } from "../plugin";
 
@@ -16,8 +17,30 @@ export const layoutsExistAndSchemasAreValid = rule<PluginContext>(function (plug
 
 	// Add their JSON schema errors.
 	plugin.manifest.layoutFiles.forEach(({ layout: layout }) => {
-		layout.errors.forEach(({ message, location }) => {
-			this.addError(layout.path, message, { location });
+		layout.errors.forEach(({ message, location, source }) => {
+			this.addError(layout.path, transformMessage(message, source), { location });
 		});
 	});
 });
+
+/**
+ * Transforms the {@link message} to provide more insightful error messages.
+ * @param message Original message.
+ * @param source Source of the error.
+ * @returns Transform message; otherwise the original {@link message}.
+ */
+function transformMessage(message: string, source: DefinedError): string {
+	// We only transform min and max errors.
+	if (source.keyword !== "minimum" && source.keyword !== "maximum") {
+		return message;
+	}
+
+	// ... when they're for the rect property.
+	const match = source.instancePath.match(/\/items\/\d+\/rect\/([0-3])$/);
+	if (match === null) {
+		return message;
+	}
+
+	const [, index] = match;
+	return `${["x", "y", "width", "height"][index as unknown as number]} ${message}`;
+}
