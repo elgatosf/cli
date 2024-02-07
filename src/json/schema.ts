@@ -1,13 +1,17 @@
 import { parse } from "@humanwhocodes/momoa";
 import Ajv, { AnySchemaObject, JSONType, KeywordDefinition, type AnySchema, type DefinedError } from "ajv";
 import { DataValidationCxt, type AnyValidateFunction } from "ajv/dist/types";
+import { type LimitNumberError } from "ajv/dist/vocabularies/validation/limitNumber";
 import { existsSync, readFileSync } from "node:fs";
 import { type JsonLocation, type LocationRef } from "../common/location";
 import { colorize } from "../common/stdout";
 import { aggregate } from "../common/utils";
 import { JsonObjectMap } from "./map";
 
-const unknownMessage = "could not be validated (unknown error)";
+/**
+ * Keywords ignored as part of validating a JSON string with a JSON schema..
+ */
+const ignoredKeywords = ["anyOf", "if"];
 
 /**
  * JSON schema capable of validating JSON.
@@ -117,11 +121,13 @@ export class JsonSchema<T extends object> {
 		return {
 			map,
 			errors:
-				this._validate.errors?.map((source) => ({
-					location: map.find(source.instancePath)?.location,
-					message: this.getMessage(source as DefinedError),
-					source: source as DefinedError
-				})) ?? []
+				this._validate.errors
+					?.filter(({ keyword }) => !ignoredKeywords.includes(keyword))
+					?.map((source) => ({
+						location: map.find(source.instancePath)?.location,
+						message: this.getMessage(source as DefinedError),
+						source: source as DefinedError
+					})) ?? []
 		};
 	}
 
@@ -139,7 +145,7 @@ export class JsonSchema<T extends object> {
 
 		if (keyword === "enum") {
 			const values = aggregate(params.allowedValues, "or", colorize);
-			return values !== undefined ? `must be ${values}` : message || unknownMessage;
+			return values !== undefined ? `must be ${values}` : message || `failed validation for keyword: ${keyword}`;
 		}
 
 		if (keyword === "pattern") {
@@ -149,6 +155,10 @@ export class JsonSchema<T extends object> {
 			}
 
 			return errorMessage || `must match pattern ${params.pattern}`;
+		}
+
+		if (keyword === "minimum" || keyword === "maximum") {
+			return `must be ${getComparison(params.comparison)} ${params.limit}`;
 		}
 
 		if (keyword === "minItems") {
@@ -171,7 +181,7 @@ export class JsonSchema<T extends object> {
 			return "must not contain duplicate items";
 		}
 
-		return message || unknownMessage;
+		return message || `failed validation for keyword: ${keyword}`;
 	}
 }
 
@@ -194,6 +204,26 @@ function captureKeyword(keyword: string, schemaType: JSONType | JSONType[], map:
 			return true;
 		}
 	};
+}
+
+/**
+ * Gets the comparison as a string, for example "less than", "greater than", etc.
+ * @param comparison Comparison to stringify.
+ * @returns String representation of the comparison.
+ */
+function getComparison(comparison: LimitNumberError["params"]["comparison"]): string {
+	switch (comparison) {
+		case "<":
+			return "less than";
+		case "<=":
+			return "less than or equal to";
+		case ">":
+			return "greater than";
+		case ">=":
+			return "greater than or equal to";
+		default:
+			throw new TypeError(`Expected comparison when validating JSON: ${comparison}`);
+	}
 }
 
 /**

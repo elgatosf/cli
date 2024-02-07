@@ -1,6 +1,6 @@
 import { colorize } from "../../../common/stdout";
 import { rule } from "../../rule";
-import { PluginContext } from "../contexts/plugin";
+import { type PluginContext } from "../plugin";
 
 /**
  * Validates all action UUIDs are unique, and prefixed with the plugin UUID.
