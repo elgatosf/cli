@@ -1,17 +1,13 @@
+import { keywordDefinitions } from "@elgato/schemas";
 import { parse } from "@humanwhocodes/momoa";
-import Ajv, { AnySchemaObject, JSONType, KeywordDefinition, type AnySchema, type DefinedError } from "ajv";
+import Ajv, { AnySchemaObject, ErrorObject, KeywordDefinition, type AnySchema, type DefinedError } from "ajv";
 import { DataValidationCxt, type AnyValidateFunction } from "ajv/dist/types";
 import { type LimitNumberError } from "ajv/dist/vocabularies/validation/limitNumber";
-import { existsSync, readFileSync } from "node:fs";
+import { isEqual, uniqWith } from "lodash";
 import { type JsonLocation, type LocationRef } from "../common/location";
 import { colorize } from "../common/stdout";
 import { aggregate } from "../common/utils";
 import { JsonObjectMap } from "./map";
-
-/**
- * Keywords ignored as part of validating a JSON string with a JSON schema..
- */
-const ignoredKeywords = ["anyOf", "if"];
 
 /**
  * JSON schema capable of validating JSON.
@@ -39,31 +35,21 @@ export class JsonSchema<T extends object> {
 
 	/**
 	 * Initializes a new instance of the {@link JsonSchema} class.
-	 * @param path File path to the JSON schema.
-	 */
-	constructor(path: string);
-	/**
-	 * Initializes a new instance of the {@link JsonSchema} class.
 	 * @param schema Schema that defines the JSON structure.
 	 */
-	constructor(schema: AnySchema);
-	/**
-	 * Initializes a new instance of the {@link JsonSchema} class.
-	 * @param source Source responsible for validating JSON.
-	 */
-	constructor(source: AnySchema | string) {
+	constructor(schema: AnySchema) {
 		const ajv = new Ajv({
 			allErrors: true,
 			messages: false,
 			strict: false
 		});
 
-		ajv.addKeyword("markdownDescription");
-		ajv.addKeyword(captureKeyword("errorMessage", "string", this.errorMessages));
-		ajv.addKeyword(captureKeyword("imageDimensions", "array", this._imageDimensionKeywords));
-		ajv.addKeyword(captureKeyword("filePath", ["boolean", "object"], this._filePathsKeywords));
+		ajv.addKeyword(keywordDefinitions.markdownDescription);
+		ajv.addKeyword(captureKeyword(keywordDefinitions.errorMessage, this.errorMessages));
+		ajv.addKeyword(captureKeyword(keywordDefinitions.imageDimensions, this._imageDimensionKeywords));
+		ajv.addKeyword(captureKeyword(keywordDefinitions.filePath, this._filePathsKeywords));
 
-		this._validate = ajv.compile(typeof source === "string" ? readFromFile(source) : source);
+		this._validate = ajv.compile(schema);
 	}
 
 	/**
@@ -121,14 +107,31 @@ export class JsonSchema<T extends object> {
 		return {
 			map,
 			errors:
-				this._validate.errors
-					?.filter(({ keyword }) => !ignoredKeywords.includes(keyword))
-					?.map((source) => ({
-						location: map.find(source.instancePath)?.location,
-						message: this.getMessage(source as DefinedError),
-						source: source as DefinedError
-					})) ?? []
+				this.filter(this._validate.errors).map((source) => ({
+					location: map.find(source.instancePath)?.location,
+					message: this.getMessage(source as DefinedError),
+					source: source as DefinedError
+				})) ?? []
 		};
+	}
+
+	/**
+	 * Filters the errors, removing ignored keywords and duplicates.
+	 * @param errors Errors to filter.
+	 * @returns Filtered errors.
+	 */
+	private filter(errors: ErrorObject[] | null | undefined): ErrorObject[] {
+		if (errors === undefined || errors === null) {
+			return [];
+		}
+
+		const ignoredKeywords = ["allOf", "anyOf", "if"];
+
+		// Remove ignored keywords, and remove duplicate errors.
+		return uniqWith(
+			errors.filter(({ keyword }) => !ignoredKeywords.includes(keyword)),
+			(a, b) => a.instancePath === b.instancePath && a.keyword === b.keyword && isEqual(a.params, b.params)
+		);
 	}
 
 	/**
@@ -187,12 +190,12 @@ export class JsonSchema<T extends object> {
 
 /**
  * Captures all instances of the keyword, and stores their schemas in the {@link map}.
- * @param keyword Keyword to capture.
- * @param schemaType Expected schema type of the keyword.
+ * @param def Definition of the keyword to capture.
  * @param map The map where the keyword instances will be captured.
  * @returns The keyword definition.
  */
-function captureKeyword(keyword: string, schemaType: JSONType | JSONType[], map: Map<string, unknown>): KeywordDefinition {
+function captureKeyword(def: KeywordDefinition, map: Map<string, unknown>): KeywordDefinition {
+	const { keyword, schemaType } = def;
 	return {
 		keyword,
 		schemaType,
@@ -223,23 +226,6 @@ function getComparison(comparison: LimitNumberError["params"]["comparison"]): st
 			return "greater than or equal to";
 		default:
 			throw new TypeError(`Expected comparison when validating JSON: ${comparison}`);
-	}
-}
-
-/**
- * Get a {@link JsonSchema} from the contents of the specified {@link path}.
- * @param path File path to the JSON schema.
- * @returns The schema.
- */
-function readFromFile(path: string): AnySchema {
-	if (!existsSync(path)) {
-		throw new Error(`Failed to read JSON schema, file not found: ${path}`);
-	}
-
-	try {
-		return JSON.parse(readFileSync(path, { encoding: "utf-8" }));
-	} catch (cause) {
-		throw new Error("Failed to parse JSON schema", { cause });
 	}
 }
 

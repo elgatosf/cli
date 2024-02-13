@@ -5,7 +5,7 @@
 			"node"
 		],
 		"module": "ES2022",
-		"moduleResolution": "Bundler",
+		"moduleResolution": "Bundler"
 	},
 	"include": [
 		"src",
