@@ -19,6 +19,13 @@ const config: RollupOptions = {
 			return url.pathToFileURL(path.resolve(path.dirname(sourcemapPath), relativeSourcePath)).href;
 		}
 	},
+	external: [
+		/* Ignore @elgato/schema to enable auto-update. */
+		"@elgato/schemas",
+		"@elgato/schemas/streamdeck/plugins/",
+		"@elgato/schemas/streamdeck/plugins/layout.json",
+		"@elgato/schemas/streamdeck/plugins/manifest.json"
+	],
 	plugins: [
 		typescript(),
 		json(),

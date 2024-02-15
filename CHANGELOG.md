@@ -13,14 +13,15 @@
 
 ## vNext
 
-### ♻️ Improvements
+### ✨ New
 
-- Add "Open in VSCode" prompt, as part of creation wizard, for macOS.
+- Add `streamdeck validate` command for validating Stream Deck plugins.
 - Add `-v, --version` option to display current version of CLI.
+- Add "Open in VSCode" prompt, as part of creation wizard, for macOS.
 
 ### 🐞 Bug Fixes
 
-- Fix support for Visual Studio integrated output.
+- Fix support for Visual Studio integrated terminal.
 
 ## 0.2.0
 

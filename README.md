@@ -23,16 +23,17 @@ npm install -g @elgato/cli
 Usage: streamdeck [options] [command]
 
 Options:
-  -h, --help        display help for command
+  -v, --version              display CLI version
+  -h, --help                 display help for command
 
 Commands:
-  create            Creation wizard.
-  link [path]       Links the plugin to Stream Deck.
-  restart|r <uuid>  Starts the plugin in Stream Deck; if the plugin is already running, it is stopped first.
-  stop|s <uuid>     Stops the plugin in Stream Deck.
-  dev [options]     Enables developer mode.
-  config            Manage the local configuration.
-  help [command]    display help for command
+  create                     Stream Deck plugin creation wizard.
+  link [path]                Links the plugin to Stream Deck.
+  restart|r <uuid>           Starts the plugin in Stream Deck; if the plugin is already running, it is stopped first.
+  stop|s <uuid>              Stops the plugin in Stream Deck.
+  dev [options]              Enables developer mode.
+  validate [options] [path]  Validates the Stream Deck plugin.
+  config                     Manage the local configuration.
 
 Alias:
   streamdeck
@@ -45,6 +46,7 @@ Alias:
 - [link](#-link)<br />Links the plugin to Stream Deck.
 - [restart](#%EF%B8%8F-restart)<br />Starts the plugin in Stream Deck; if the plugin is already running, it is stopped first.
 - [stop](#-stop)<br />Stops the plugin in Stream Deck.
+- [validate](#-validate)<br />Validates the Stream Deck plugin.
 - [dev](#%EF%B8%8F-dev)<br />Enables developer mode.
 - [config](#%EF%B8%8F-config)<br />Manage the local configuration.
 
@@ -124,6 +126,36 @@ Instructs Stream Deck to stop the plugin, as determined by the UUID. When stoppe
 #### See Also
 
 - [restart](#%EF%B8%8F-restart)
+
+## ✅ validate
+
+Validates the Stream Deck plugin.
+
+### Synopsis
+
+```
+streamdeck validate [path]
+```
+
+### Description
+
+Validates the Stream Deck plugin in the current working directory, or `path` when specified, and outputs the validation results. By default, the command will automatically check and install validation rule updates; this check occurs daily, unless forced with `--force-update-check` or prevented with `--no-update-check`.
+
+### Configuration
+
+#### `--force-update-check`
+
+- Default: `false`
+- Type: Boolean
+
+Forces an update check of new validation rules; by default, an update check will occur once a day. Cannot be used in conjunction with `--no-update-check`.
+
+#### `--no-update-check`
+
+- Default: `false`
+- Type: Boolean
+
+Prevents an update check of new validation rules. This configuration option is recommended when using the CLI as part of a build pipeline. Cannot be used in conjunction with `--force-update-check`.
 
 ## 🏗️ dev
 
