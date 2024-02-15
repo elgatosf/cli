@@ -1,5 +1,4 @@
 import { program } from "commander";
-
 import { cliVersion, config, create, link, restart, setDeveloperMode, stop, validate } from "./commands";
 
 program.option("-v, --version", "display CLI version").action((opts) => {
@@ -45,7 +44,17 @@ program
 	.command("validate")
 	.description("Validates the Stream Deck plugin.")
 	.argument("[path]", "Path of the plugin to validate")
-	.action((path) => validate({ path }));
+	.option("--force-update-check", "Forces an update check", false)
+	.option("--no-update-check", "Disables updating schemas", true)
+	.action((path, { forceUpdateCheck, updateCheck }) => {
+		// Check for conflicting options.
+		if (!updateCheck && forceUpdateCheck) {
+			console.log(`error: option '--force-update-check' cannot be used with option '--no-update-check'`);
+			process.exit(1);
+		}
+
+		validate({ forceUpdateCheck, path, updateCheck });
+	});
 
 const configCommand = program.command("config").description("Manage the local configuration.");
 

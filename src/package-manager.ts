@@ -7,7 +7,7 @@ import { dependencies } from "../package.json";
 import { relative } from "./common/path";
 
 /**
- * Light-weight dependency manager that wraps npm, capable of updating local instances of installed packages.
+ * Light-weight package manager that wraps npm, capable of updating locally-scoped installed packages.
  */
 class PackageManager {
 	/**
@@ -125,9 +125,9 @@ class PackageManager {
 }
 
 /**
- * Package manager capable of updating the packages installed as part of the CLI.
+ * Package manager capable of updating the packages, in the scope of this package.
  */
-export const cliPackageManager = new PackageManager();
+export const packageManager = new PackageManager();
 
 /**
  * Provides information about a package, as listed in the npm registry.
