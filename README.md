@@ -46,7 +46,7 @@ Alias:
 - [link](#-link)<br />Links the plugin to Stream Deck.
 - [restart](#%EF%B8%8F-restart)<br />Starts the plugin in Stream Deck; if the plugin is already running, it is stopped first.
 - [stop](#-stop)<br />Stops the plugin in Stream Deck.
-- [validate](#command-validate)<br />Validates the Stream Deck plugin.
+- [validate](#-validate)<br />Validates the Stream Deck plugin.
 - [dev](#%EF%B8%8F-dev)<br />Enables developer mode.
 - [config](#%EF%B8%8F-config)<br />Manage the local configuration.
 
@@ -127,7 +127,7 @@ Instructs Stream Deck to stop the plugin, as determined by the UUID. When stoppe
 
 - [restart](#%EF%B8%8F-restart)
 
-## <a id="command-validate">✅ validate</a>
+## ✅ validate
 
 Validates the Stream Deck plugin.
 
