@@ -1,13 +1,8 @@
 import { program } from "commander";
-import { cliVersion, config, create, link, restart, setDeveloperMode, stop, validate } from "./commands";
+import { config, create, link, restart, setDeveloperMode, stop, validate } from "./commands";
+import { packageManager } from "./package-manager";
 
-program.option("-v, --version", "display CLI version").action((opts) => {
-	if (opts.version) {
-		cliVersion();
-	} else {
-		program.help();
-	}
-});
+program.version(packageManager.getVersion(), "-v, --version", "display CLI version");
 
 program
 	.command("create")

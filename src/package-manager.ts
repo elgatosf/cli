@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { Readable } from "node:stream";
 import semver from "semver";
 import tar from "tar";
-import { dependencies } from "../package.json";
+import { dependencies, version } from "../package.json";
 import { relative } from "./common/path";
 
 /**
@@ -36,6 +36,14 @@ class PackageManager {
 		if (installed === undefined || semver.gt(latestVersion.version, installed.version)) {
 			return latestVersion;
 		}
+	}
+
+	/**
+	 * Gets the version of the current package; when installed as part of a development environment, the version is suffixed appropriately.
+	 * @returns Version.
+	 */
+	public getVersion(): string {
+		return existsSync(relative("../src")) ? `${version} (dev)` : version;
 	}
 
 	/**
