@@ -27,9 +27,7 @@ export const link = command<LinkOptions>(
 			return feedback
 				.error("Linking failed")
 				.log(`Invalid directory name: ${basename(options.path)}`)
-				.log(
-					'Name should represent a reverse DNS format and have a suffix of ".sdPlugin". Name must only contain lowercase alphanumeric characters (a-z, 0-9), hyphens (-), underscores (_), and periods (.).'
-				)
+				.log('Name must be in reverse DNS format, be suffixed with ".sdPlugin", and must only contain lowercase alphanumeric characters (a-z, 0-9), hyphens (-), and periods (.).')
 				.log(`Examples: ${chalk.green("com.elgato.wave-link.sdPlugin")}, ${chalk.green("tv.twitch.studio.sdPlugin")}`)
 				.exit(1);
 		}
