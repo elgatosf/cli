@@ -139,7 +139,7 @@ export function isValidPluginId(uuid: string | undefined): boolean {
 		return false;
 	}
 
-	return /^([a-z0-9\-_]*[a-z0-9][a-z0-9\-_]*\.){2}[a-z0-9\-_]*[a-z0-9][a-z0-9\-_]*$/.test(uuid);
+	return /^([a-z0-9-]+)(\.[a-z0-9-]+)+$/.test(uuid);
 }
 
 /**

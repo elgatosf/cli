@@ -18,8 +18,8 @@ export const pathIsDirectoryAndUuid = rule<PluginContext>(function (plugin: Plug
 	}
 
 	if (!isValidPluginId(plugin.uuid)) {
-		this.addError(this.path, "Name must be a valid UUID in reverse DNS format", {
-			suggestion: "UUIDs must only contain lowercase alphanumeric characters (a-z, 0-9), hyphens (-), underscores (_), and periods (.), for example 'com.elgato.wave-link'"
+		this.addError(this.path, "Name must be in reverse DNS format, and must only contain lowercase alphanumeric characters (a-z, 0-9), hyphens (-), and periods (.)", {
+			suggestion: "Example: 'com.elgato.wave-link'"
 		});
 	}
 });
