@@ -15,7 +15,7 @@
 		"node": "^20.1.0"
 	},
 	"scripts": {
-		"build": "rollup --config rollup.config.ts --configPlugin typescript",
+		"build": "rm -rf ./dist && rollup --config rollup.config.ts --configPlugin typescript",
 		"watch": "rollup --config rollup.config.ts --configPlugin typescript --watch",
 		"lint": "eslint . --ext .ts --max-warnings 0",
 		"lint:fix": "prettier --config .prettierrc \"./src/**/*.ts\" --write",

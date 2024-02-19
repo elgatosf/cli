@@ -3,7 +3,7 @@ import { createRequire } from "node:module";
 import { basename, dirname, join, resolve } from "node:path";
 import { JsonLocation, LocationRef } from "../../common/location";
 import { JsonFileContext, JsonSchema } from "../../json";
-import { isPredefinedLayoutLike } from "../../stream-deck";
+import { isPredefinedLayoutLike, isValidPluginId } from "../../stream-deck";
 
 const r = createRequire(import.meta.url);
 const layoutSchema = r("@elgato/schemas/streamdeck/plugins/layout.json");
@@ -20,11 +20,12 @@ export const directorySuffix = ".sdPlugin";
  * @returns Plugin context.
  */
 export function createContext(path: string): PluginContext {
-	const uuid = basename(path).replace(/\.sdPlugin$/, "");
+	const id = basename(path).replace(/\.sdPlugin$/, "");
 
 	return {
-		uuid,
-		manifest: new ManifestJsonFileContext(join(path, "manifest.json"))
+		hasValidId: isValidPluginId(id),
+		manifest: new ManifestJsonFileContext(join(path, "manifest.json")),
+		id
 	};
 }
 
@@ -72,6 +73,11 @@ export type LayoutFile = LocationRef<JsonLocation> & {
  */
 export type PluginContext = {
 	/**
+	 * Gets a value indicating whether the {@link id} is valid.
+	 */
+	readonly hasValidId: boolean;
+
+	/**
 	 * Manifest associated with the plugin.
 	 */
 	readonly manifest: ManifestJsonFileContext;
@@ -79,5 +85,5 @@ export type PluginContext = {
 	/**
 	 * Unique identifier parsed from the path to the plugin.
 	 */
-	readonly uuid: string;
+	readonly id: string;
 };

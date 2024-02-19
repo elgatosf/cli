@@ -4,11 +4,11 @@ import { createContext, type PluginContext } from "./plugin";
 import { layoutItemsAreWithinBoundsAndNoOverlap } from "./rules/layout-item-bounds";
 import { layoutItemKeysAreUnique } from "./rules/layout-item-keys";
 import { layoutsExistAndSchemasAreValid } from "./rules/layout-schema";
-import { actionUuidIsUniqueAndPrefixed } from "./rules/manifest-action-uuids";
 import { categoryMatchesName } from "./rules/manifest-category";
 import { manifestFilesExist } from "./rules/manifest-files-exist";
 import { manifestExistsAndSchemaIsValid } from "./rules/manifest-schema";
 import { manifestUrlsExist } from "./rules/manifest-urls-exist";
+import { manifestUuids } from "./rules/manifest-uuids";
 import { pathIsDirectoryAndUuid } from "./rules/path-input";
 
 /**
@@ -21,8 +21,8 @@ export function validatePlugin(path: string): Promise<ValidationResult> {
 		pathIsDirectoryAndUuid,
 		manifestExistsAndSchemaIsValid,
 		manifestFilesExist,
+		manifestUuids,
 		manifestUrlsExist,
-		actionUuidIsUniqueAndPrefixed,
 		categoryMatchesName,
 		layoutsExistAndSchemasAreValid,
 		layoutItemKeysAreUnique,
