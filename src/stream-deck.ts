@@ -124,7 +124,8 @@ export function getSafeValue(value: string | undefined): string | undefined {
 	const safeValue = value
 		.toLowerCase()
 		.replaceAll(" ", "-")
-		.replaceAll(/[^\-a-z0-9_]/g, "");
+		.replaceAll("_", "-")
+		.replaceAll(/[^-a-z0-9]/g, "");
 
 	return safeValue !== "" ? safeValue : undefined;
 }
