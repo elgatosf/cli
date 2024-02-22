@@ -1,8 +1,9 @@
 # Node.js
 node_modules/
 
-# Build output
+# Build and temporary files
 bin/
+/.tmp/
 
 # CLI
 /.cli.cache
