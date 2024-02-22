@@ -1,10 +1,11 @@
-import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
-import { join } from "node:path";
+import { createHash } from "node:crypto";
+import { createWriteStream, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
+import { dirname, join } from "node:path";
 import { Readable } from "node:stream";
 import semver from "semver";
 import tar from "tar";
 import { dependencies, version } from "../package.json";
-import { relative } from "./common/path";
+import { moveSync, relative } from "./common/path";
 
 /**
  * Light-weight package manager that wraps npm, capable of updating locally-scoped installed packages.
@@ -51,27 +52,39 @@ class PackageManager {
 	 * @param pkg Package to install.
 	 */
 	public async install(pkg: PackageMetadataVersion): Promise<void> {
-		const res = await fetch(pkg.dist.tarball);
-		await new Promise((resolve, reject) => {
-			if (res.body === null) {
-				reject(`Failed to download package ${pkg.name} from ${pkg.dist.tarball}`);
-				return;
+		// Download the package's tarball file to a temporary location.
+		const file = relative(`../.tmp/${crypto.randomUUID()}.tar.gz`);
+		mkdirSync(dirname(file), { recursive: true });
+
+		try {
+			await this.download(pkg, file);
+
+			// Determine the package paths.
+			const installationPath = relative(`../node_modules/${pkg.name}`);
+			const tempPath = relative("../.tmp/@elgato/schemas/");
+
+			try {
+				// Move the current installed package, and unpack the new package to node_modules.
+				moveSync(installationPath, tempPath, { overwrite: true });
+				mkdirSync(installationPath, { recursive: true });
+				await tar.extract({
+					file,
+					strip: 1,
+					cwd: installationPath
+				});
+			} catch (err) {
+				// When something goes wrong, fallback to the previous package.
+				moveSync(tempPath, installationPath, { overwrite: true });
+				throw err;
+			} finally {
+				// Cleanup the temporary cache.
+				if (existsSync(tempPath)) {
+					rmSync(tempPath, { recursive: true });
+				}
 			}
-
-			// Clean the installation directory.
-			const cwd = relative(`../node_modules/${pkg.name}`);
-			if (existsSync(cwd)) {
-				rmSync(cwd, { recursive: true });
-			}
-
-			mkdirSync(cwd, { recursive: true });
-
-			// Decompress the contents fo the installation directory.
-			const stream = Readable.fromWeb(res.body);
-			stream.on("close", () => resolve(true));
-			stream.on("error", (err) => reject(err));
-			stream.pipe(tar.extract({ strip: 1, cwd }));
-		});
+		} finally {
+			rmSync(file);
+		}
 	}
 
 	/**
@@ -110,6 +123,51 @@ class PackageManager {
 		}
 
 		return (await res.json()) as PackageMetadata;
+	}
+
+	/**
+	 * Downloads the contents of the specified {@link pkg} to the {@link dest} file.
+	 * @param pkg Package to download.
+	 * @param dest File where the packed (i.e. the tarball file) packaged will be downloaded to.
+	 */
+	private async download(pkg: PackageMetadataVersion, dest: string): Promise<void> {
+		if (existsSync(dest)) {
+			throw new Error(`File path already exists: ${dest}`);
+		}
+
+		const res = await fetch(pkg.dist.tarball);
+		if (res.body === null) {
+			throw new Error(`Failed to download package ${pkg.name} from ${pkg.dist.tarball}`);
+		}
+
+		// Create a hash to validate the download.
+		const fileStream = createWriteStream(dest, { encoding: "utf-8" });
+		const body = Readable.fromWeb(res.body);
+		const hash = createHash("sha1");
+
+		return new Promise((resolve, reject) => {
+			fileStream.on("open", () => {
+				// Read the contents of the body into both the file stream, and the hash in parallel.
+				body
+					.on("data", (data) => {
+						hash.update(data);
+						fileStream.write(data);
+					})
+					.on("error", reject)
+					.on("close", () => {
+						fileStream.close(() => {
+							// Validate the shasum.
+							const shasum = hash.digest("hex");
+							if (shasum !== pkg.dist.shasum) {
+								rmSync(dest);
+								reject(`Failed to download package ${pkg.name} from ${pkg.dist.tarball}: shasum mismatch`);
+							}
+
+							resolve();
+						});
+					});
+			});
+		});
 	}
 
 	/**
