@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: Release
+
+on:
+  push:
+    tags:
+      - "*"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  Release:
+    runs-on: "windows-latest"
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: "📥 Checkout"
+        uses: actions/checkout@v4
+
+      - name: "🗃️ Setup Node"
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.8.1"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: "📐 Install dependencies"
+        run: npm ci
+
+      - name: "🏗️ Build"
+        run: npm run build
+
+      - name: "🖌️ Lint"
+        run: npm run lint
+
+      - name: "📤 Publish"
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
