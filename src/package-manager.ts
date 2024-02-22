@@ -53,7 +53,7 @@ class PackageManager {
 	 */
 	public async install(pkg: PackageMetadataVersion): Promise<void> {
 		// Download the package's tarball file to a temporary location.
-		const file = relative(`../.tmp/${pkg.dist.shasum}.tar.gz`);
+		const file = relative(`../.tmp/${crypto.randomUUID()}.tar.gz`);
 		mkdirSync(dirname(file), { recursive: true });
 
 		try {
