@@ -6,7 +6,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir, platform } from "node:os";
 import { dirname, join } from "node:path";
 
-import { relative } from "./common/path";
+import { relative } from "./system/path";
 
 let __config: Config | undefined = undefined;
 
