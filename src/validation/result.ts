@@ -17,14 +17,6 @@ export class ValidationResult extends Array<ValidationEntryCollection> implement
 	private warningCount = 0;
 
 	/**
-	 * Determines whether the validation result is considered successful.
-	 * @returns `true` when validation passed; otherwise `false`.
-	 */
-	public get success(): boolean {
-		return this.errorCount === 0;
-	}
-
-	/**
 	 * Adds a new validation entry to the result.
 	 * @param path Directory or file path the entry is associated with.
 	 * @param entry Validation entry.
@@ -46,6 +38,22 @@ export class ValidationResult extends Array<ValidationEntryCollection> implement
 	}
 
 	/**
+	 * Determines whether the result contains errors.
+	 * @returns `true` when the result has errors.
+	 */
+	public hasErrors(): boolean {
+		return this.errorCount > 0;
+	}
+
+	/**
+	 * Determines whether the result contains warnings.
+	 * @returns `true` when the result has warnings.
+	 */
+	public hasWarnings(): boolean {
+		return this.warningCount > 0;
+	}
+
+	/**
 	 * Writes the results to the specified {@link output}.
 	 * @param output Output to write to.
 	 */
@@ -56,26 +64,26 @@ export class ValidationResult extends Array<ValidationEntryCollection> implement
 			this.forEach((collection) => collection.writeTo(output));
 		}
 
-		// Validation was successful.
-		if (this.errorCount === 0 && this.warningCount === 0) {
-			output.success("Validation successful");
+		// Both errors and warnings.
+		if (this.hasErrors() && this.hasWarnings()) {
+			output.error(`${pluralize("problem", this.errorCount + this.warningCount)} (${pluralize("error", this.errorCount)}, ${pluralize("warning", this.warningCount)})`);
 			return;
 		}
 
 		// Only errors.
-		if (this.warningCount === 0) {
+		if (this.hasErrors()) {
 			output.error(`Failed with ${pluralize("error", this.errorCount)}`);
 			return;
 		}
 
 		// Only warnings.
-		if (this.errorCount === 0) {
+		if (this.hasWarnings()) {
 			output.warn(pluralize("warning", this.warningCount));
 			return;
 		}
 
-		// Both errors and warnings.
-		output.error(`${pluralize("problem", this.errorCount + this.warningCount)} (${pluralize("error", this.errorCount)}, ${pluralize("warning", this.warningCount)})`);
+		// Validation was successful.
+		output.success("Validation successful");
 
 		/**
 		 * Pluralizes the {@link noun} based on the {@link count}.
