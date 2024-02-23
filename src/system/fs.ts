@@ -1,4 +1,4 @@
-import { cpSync, existsSync, lstatSync, mkdirSync, readdirSync, rmSync } from "node:fs";
+import { cpSync, existsSync, lstatSync, mkdirSync, readdirSync, readlinkSync, rmSync, type Stats } from "node:fs";
 import { platform } from "node:os";
 import { basename, resolve } from "node:path";
 
@@ -37,6 +37,24 @@ export function* getFiles(path: string): Generator<FileInfo> {
 			}
 		};
 	}
+}
+
+/**
+ * Determines whether the specified {@link path}, or the path it links to, is a directory.
+ * @param path The path.
+ * @returns `true` when the path, or the path it links to, is a directory; otherwise `false`.
+ */
+export function isDirectory(path: string): boolean {
+	return checkStats(path, (stats) => stats?.isDirectory() === true);
+}
+
+/**
+ * Determines whether the specified {@link path}, or the path it links to, is a file.
+ * @param path The path.
+ * @returns `true` when the path, or the path it links to, is a file; otherwise `false`.
+ */
+export function isFile(path: string): boolean {
+	return checkStats(path, (stats) => stats?.isFile() === true);
 }
 
 /**
@@ -101,6 +119,25 @@ export function sizeAsString(bytes: number): string {
 	} while (Math.round(bytes) >= unitSize);
 
 	return `${bytes.toFixed(1)} ${units[i]}`;
+}
+
+/**
+ * Checks the stats of a given path and applies the {@link check} to them to determine the result.
+ * @param path Path to check; when the path represents a symbolic link, the link is referenced.
+ * @param check Function used to determine if the stats fulfil the check.
+ * @returns `true` when the stats of the {@link path} fulfil the {@link check}; otherwise `false`.
+ */
+function checkStats(path: string, check: (stats?: Stats) => boolean): boolean {
+	const stats = lstatSync(path, { throwIfNoEntry: false });
+	if (stats === undefined) {
+		return false;
+	}
+
+	if (stats.isSymbolicLink()) {
+		return checkStats(readlinkSync(path), check);
+	}
+
+	return check(stats);
 }
 
 /**

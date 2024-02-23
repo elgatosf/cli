@@ -1,6 +1,7 @@
-import { existsSync, lstatSync, readdirSync, readlinkSync, Stats } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { delimiter, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { isDirectory, isFile } from "../system/fs";
 
 /**
  * Determines whether the specified {@link application} is accessible from the environment's PATH variable and can be executed.
@@ -15,24 +16,6 @@ export function isExecutable(application: string): boolean {
 	}
 
 	return false;
-}
-
-/**
- * Determines whether the specified {@link path}, or the path it links to, is a directory.
- * @param path The path.
- * @returns `true` when the path, or the path it links to, is a directory; otherwise `false`.
- */
-export function isDirectory(path: string): boolean {
-	return checkStats(path, (stats) => stats?.isDirectory() === true);
-}
-
-/**
- * Determines whether the specified {@link path}, or the path it links to, is a file.
- * @param path The path.
- * @returns `true` when the path, or the path it links to, is a file; otherwise `false`.
- */
-export function isFile(path: string): boolean {
-	return checkStats(path, (stats) => stats?.isFile() === true);
 }
 
 /**
@@ -62,25 +45,6 @@ export function isSafeBaseName(value: string): boolean {
  */
 export function relative(path: string): string {
 	return resolve(dirname(fileURLToPath(import.meta.url)), path);
-}
-
-/**
- * Checks the stats of a given path and applies the {@link check} to them to determine the result.
- * @param path Path to check; when the path represents a symbolic link, the link is referenced.
- * @param check Function used to determine if the stats fulfil the check.
- * @returns `true` when the stats of the {@link path} fulfil the {@link check}; otherwise `false`.
- */
-function checkStats(path: string, check: (stats?: Stats) => boolean): boolean {
-	const stats = lstatSync(path, { throwIfNoEntry: false });
-	if (stats === undefined) {
-		return false;
-	}
-
-	if (stats.isSymbolicLink()) {
-		return checkStats(readlinkSync(path), check);
-	}
-
-	return check(stats);
 }
 
 /**
