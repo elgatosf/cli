@@ -1,4 +1,4 @@
-import { existsSync, lstatSync, readdirSync } from "node:fs";
+import { cpSync, existsSync, lstatSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 import { platform } from "node:os";
 import { basename, resolve } from "node:path";
 
@@ -38,6 +38,45 @@ export function* getFiles(path: string): Generator<FileInfo> {
 		};
 	}
 }
+
+/**
+ * Synchronously moves the {@link source} to the {@link dest} path.
+ * @param source Source path being moved.
+ * @param dest Destination where the {@link source} will be moved to.
+ * @param options Options that define the move.
+ */
+export function moveSync(source: string, dest: string, options?: MoveOptions): void {
+	if (!existsSync(source)) {
+		throw new Error("Source does not exist");
+	}
+
+	if (!lstatSync(source).isDirectory()) {
+		throw new Error("Source must be a directory");
+	}
+
+	if (existsSync(dest)) {
+		if (options?.overwrite) {
+			rmSync(dest, { recursive: true });
+		} else {
+			throw new Error("Destination already exists");
+		}
+	}
+
+	// Ensure the new directory exists, copy the contents, and clean-up.
+	mkdirSync(dest, { recursive: true });
+	cpSync(source, dest, { recursive: true });
+	rmSync(source, { recursive: true });
+}
+
+/**
+ * Defines how a path will be relocated.
+ */
+type MoveOptions = {
+	/**
+	 * When the destination path already exists, it will be overwritten.
+	 */
+	overwrite?: boolean;
+};
 
 /**
  * Gets the platform-specific string representation of the file size, to 1 decimal place. For example, given 1060 bytes:
