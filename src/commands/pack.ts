@@ -12,59 +12,74 @@ import { defaultOptions, validate, type ValidateOptions } from "./validate";
 /**
  * TODO:
  * - Add an `-o|--output` option.
- * - Add a `--dry-run` option.
- * - Add output information, similar to `npm pack`.
  */
 
 /**
  * Packs the plugin to a `.streamDeckPlugin` files.
  */
-export const pack = command<PackOptions>(async (options, stdout) => {
-	// Validate the plugin.
-	await validate({
-		...options,
-		quietSuccess: true
-	});
+export const pack = command<PackOptions>(
+	async (options, stdout) => {
+		// Validate the plugin.
+		await validate({
+			...options,
+			quietSuccess: true
+		});
 
-	// Build the package.
-	const path = resolve(options.path);
-	const pkgBuilder = getPackageBuilder(path);
-	const contents = await getPackageContents(path, pkgBuilder.add);
-	pkgBuilder.close();
+		// Build the package.
+		const path = resolve(options.path);
+		const pkgBuilder = getPackageBuilder(path, options.dryRun);
+		const contents = await getPackageContents(path, pkgBuilder.add);
+		pkgBuilder.close();
 
-	// Output the contents.
-	stdout.log();
-	stdout.log(`📦 ${contents.manifest.Name} (v${contents.manifest.Version})`);
-	stdout.log();
-	stdout.log(chalk.cyan("Plugin Contents"));
+		// Output the contents.
+		stdout.log(`📦 ${contents.manifest.Name} (v${contents.manifest.Version})`);
+		stdout.log();
+		stdout.log(chalk.cyan("Plugin Contents"));
 
-	contents.files.forEach((file, i) => {
-		stdout.log(`${chalk.dim(i === contents.files.length - 1 ? "└─" : "├─")}  ${file.size.text.padEnd(contents.sizePad)}  ${file.path.relative}`);
-	});
+		contents.files.forEach((file, i) => {
+			stdout.log(`${chalk.dim(i === contents.files.length - 1 ? "└─" : "├─")}  ${file.size.text.padEnd(contents.sizePad)}  ${file.path.relative}`);
+		});
 
-	// Output the details.
-	stdout
-		.log()
-		.log(chalk.cyan("Plugin Details"))
-		.log(`  Name:           ${contents.manifest.Name}`)
-		.log(`  Version:        ${contents.manifest.Version}`)
-		.log(`  UUID:           ${contents.manifest.UUID}`)
-		.log(`  Filename:       ${basename(pkgBuilder.path)}`)
-		.log(`  Unpacked size:  ${sizeAsString(contents.size)}`)
-		.log(`  Total files:    ${contents.files.length}`)
-		.log();
+		// Output the details.
+		stdout
+			.log()
+			.log(chalk.cyan("Plugin Details"))
+			.log(`  Name:           ${contents.manifest.Name}`)
+			.log(`  Version:        ${contents.manifest.Version}`)
+			.log(`  UUID:           ${contents.manifest.UUID}`)
+			.log(`  Filename:       ${basename(pkgBuilder.path)}`)
+			.log(`  Unpacked size:  ${sizeAsString(contents.size)}`)
+			.log(`  Total files:    ${contents.files.length}`);
 
-	stdout.success("Successfully created package");
-}, defaultOptions);
+		if (!options.dryRun) {
+			stdout.log().success("Successfully packaged plugin");
+		}
+	},
+	{
+		...defaultOptions,
+		dryRun: false
+	}
+);
 
 /**
  * Gets a package builder capable of constructing a `.streamDeckPlugin` file.
  * @param path Path where the package will be output too.
+ * @param dryRun When `true`, the builder will not create a package output.
  * @returns The package builder.
  */
-function getPackageBuilder(path: string): PackageBuilder {
+function getPackageBuilder(path: string, dryRun = false): PackageBuilder {
 	const pkgPath = resolve(process.cwd(), `${getPluginId(path)}.streamDeckPlugin`);
 
+	// When a dry-run, return a mock builder.
+	if (dryRun) {
+		return {
+			path: pkgPath,
+			add: () => Promise.resolve(),
+			close: (): void => {}
+		};
+	}
+
+	// Otherwise prepare the builder
 	const entryPrefix = basename(path);
 	const zipStream = new ZipWriter(Writable.toWeb(createWriteStream(pkgPath)));
 
@@ -111,7 +126,12 @@ async function getPackageContents(path: string, fileFn?: (file: FileInfo) => Pro
 /**
  * Options available to {@link pack}.
  */
-type PackOptions = ValidateOptions;
+type PackOptions = ValidateOptions & {
+	/**
+	 * When `true`, the package will be evaluated, but not created.
+	 */
+	dryRun?: boolean;
+};
 
 /**
  * Information about the package.

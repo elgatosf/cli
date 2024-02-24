@@ -41,16 +41,17 @@ program
 	.argument("[path]", "Path of the plugin to validate")
 	.option("--force-update-check", "Forces an update check", false)
 	.option("--no-update-check", "Disables updating schemas", true)
-	.action((path, { forceUpdateCheck, updateCheck }) => validate({ forceUpdateCheck, path, updateCheck }));
+	.action((path, opts) => validate({ ...opts, path }));
 
 program
 	.command("pack")
 	.alias("bundle")
 	.description("Create a .streamDeckPlugin file from the plugin.")
 	.argument("[path]", "Path of the plugin to pack")
+	.option("--dry-run", "Generates a report without creating a package", false)
 	.option("--force-update-check", "Forces an update check", false)
 	.option("--no-update-check", "Disables updating schemas", true)
-	.action((path, { forceUpdateCheck, updateCheck }) => pack({ forceUpdateCheck, path, updateCheck }));
+	.action((path, opts) => pack({ ...opts, path }));
 
 const configCommand = program.command("config").description("Manage the local configuration.");
 
