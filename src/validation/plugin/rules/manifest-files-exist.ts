@@ -1,17 +1,26 @@
 import { existsSync } from "node:fs";
-import { extname, join, resolve } from "node:path";
+import { basename, extname, join, resolve } from "node:path";
 import { colorize } from "../../../common/stdout";
 import { aggregate } from "../../../common/utils";
 import { FilePathOptions } from "../../../json";
 import { isPredefinedLayoutLike } from "../../../stream-deck";
+import { getIgnores, streamDeckIgnoreFilename } from "../../../system/fs";
 import { rule } from "../../rule";
 import { type PluginContext } from "../plugin";
 
 /**
  * Validates the files defined within the manifest exist.
  */
-export const manifestFilesExist = rule<PluginContext>(function (plugin: PluginContext) {
+export const manifestFilesExist = rule<PluginContext>(async function (plugin: PluginContext) {
 	const missingHighRes = new Set<string>();
+	const ignores = await getIgnores(this.path);
+
+	// Validate the manifest is flagged to be ignored.
+	if (ignores(basename(plugin.manifest.path))) {
+		this.addError(plugin.manifest.path, "Manifest file must not be ignored", {
+			suggestion: `Review ${streamDeckIgnoreFilename} file`
+		});
+	}
 
 	// Determine the values that require validating based on the JSON schema.
 	const filePaths = new Map<string, FilePathOptions>(plugin.manifest.schema.filePathsKeywords);
@@ -60,6 +69,16 @@ export const manifestFilesExist = rule<PluginContext>(function (plugin: PluginCo
 			this.addError(plugin.manifest.path, `file not found, ${colorize(node.value)}`, {
 				...node,
 				suggestion: typeof opts === "object" ? `File must be ${aggregate(opts.extensions, "or")}` : undefined
+			});
+
+			return;
+		}
+
+		// Validate the file will be included when packing the plugin.
+		if (ignores(resolvedPath)) {
+			this.addError(plugin.manifest.path, `file must not be ignored, ${colorize(resolvedPath)}`, {
+				...node,
+				suggestion: `Review ${streamDeckIgnoreFilename} file`
 			});
 
 			return;

@@ -68,6 +68,7 @@
 		"eslint-plugin-jsdoc": "^46.8.2",
 		"eslint-plugin-prettier": "^5.0.0",
 		"find-process": "^1.4.7",
+		"ignore": "^5.3.1",
 		"inquirer": "^9.2.11",
 		"is-interactive": "^2.0.0",
 		"lodash": "^4.17.21",
