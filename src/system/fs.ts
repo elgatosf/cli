@@ -1,6 +1,6 @@
 import ignore from "ignore";
 import { cpSync, createReadStream, existsSync, lstatSync, mkdirSync, readlinkSync, rmSync, type Stats } from "node:fs";
-import { lstat, readdir } from "node:fs/promises";
+import { lstat, readdir, readFile } from "node:fs/promises";
 import { platform } from "node:os";
 import { basename, join, resolve } from "node:path";
 import { createInterface } from "node:readline";
@@ -130,6 +130,24 @@ export function moveSync(source: string, dest: string, options?: MoveOptions): v
 	mkdirSync(dest, { recursive: true });
 	cpSync(source, dest, { recursive: true });
 	rmSync(source, { recursive: true });
+}
+
+/**
+ * Reads the specified {@link path} and parses the contents as JSON.
+ * @param path Path to the JSON file.
+ * @returns Contents parsed as JSON.
+ */
+export async function readJsonFile<T>(path: string): Promise<T> {
+	if (!existsSync(path)) {
+		throw new Error(`JSON file not found, ${path}`);
+	}
+
+	try {
+		const contents = await readFile(path, { encoding: "utf-8" });
+		return JSON.parse(contents);
+	} catch (cause) {
+		throw new Error(`Failed to pase JSON file, ${path}`, { cause });
+	}
 }
 
 /**
