@@ -11,7 +11,9 @@ import { defaultOptions, validate, type ValidateOptions } from "./validate";
 
 /**
  * TODO:
- * - Add an `-o|--output` option.
+ * - Add an `-f|--force` option; generate the file even if it already exists.
+ * - Add an `-o|--output` option; output directory where the file will be created.
+ * - Add an `-v|--version` option; version the manifest.json file. Optional, when empty reads package.json, or value is used.
  */
 
 /**
