@@ -1,5 +1,6 @@
 import { resolve } from "node:path";
 import { command } from "../common/command";
+import { StdoutError } from "../common/stdout";
 import { store } from "../common/storage";
 import { packageManager } from "../package-manager";
 import { validatePlugin } from "../validation/plugin";
@@ -23,10 +24,21 @@ export const defaultOptions = {
  * Validates the given path, and outputs the results.
  */
 export const validate = command<ValidateOptions>(async (options, stdout) => {
+	/**
+	 * Exits the validation command with a failure.
+	 */
+	const fail = (): never => {
+		if (!options.quietSuccess) {
+			stdout.exit(1);
+		}
+
+		throw new StdoutError();
+	};
+
 	// Check for conflicting options.
 	if (!options.updateCheck && options.forceUpdateCheck) {
 		console.log(`error: option '--force-update-check' cannot be used with option '--no-update-check'`);
-		process.exit(1);
+		fail();
 	}
 
 	// Determine whether the schemas should be updated.
@@ -50,7 +62,7 @@ export const validate = command<ValidateOptions>(async (options, stdout) => {
 	}
 
 	if (result.hasErrors()) {
-		stdout.exit(1);
+		fail();
 	}
 }, defaultOptions);
 

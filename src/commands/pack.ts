@@ -1,36 +1,40 @@
 import { Manifest } from "@elgato/schemas/streamdeck/plugins";
 import { ZipWriter } from "@zip.js/zip.js";
 import chalk from "chalk";
-import { createReadStream, createWriteStream, existsSync } from "node:fs";
-import { rm } from "node:fs/promises";
+import { createReadStream, createWriteStream, existsSync, writeFileSync } from "node:fs";
+import { readFile, rm } from "node:fs/promises";
 import { basename, dirname, join, resolve } from "node:path";
 import { Readable, Writable } from "node:stream";
 import { command } from "../common/command";
+import { StdoutError } from "../common/stdout";
 import { getPluginId } from "../stream-deck";
 import { getFiles, mkdirIfNotExists, readJsonFile, sizeAsString, type FileInfo } from "../system/fs";
 import { defaultOptions, validate, type ValidateOptions } from "./validate";
-
-/**
- * TODO:
- * - Add an `-f|--force` option; generate the file even if it already exists.
- * - Add an `-o|--output` option; output directory where the file will be created.
- * - Add an `-v|--version` option; version the manifest.json file. Optional, when empty reads package.json, or value is used.
- */
 
 /**
  * Packs the plugin to a `.streamDeckPlugin` files.
  */
 export const pack = command<PackOptions>(
 	async (options, stdout) => {
-		// Validate the plugin.
-		await validate({
-			...options,
-			quietSuccess: true
-		});
-
 		// Determine the source, and output.
 		const sourcePath = resolve(options.path);
 		const outputPath = resolve(options.output, `${getPluginId(sourcePath)}.streamDeckPlugin`);
+
+		// Version (optionally) and validate.
+		const versioner = options.version !== null ? await version(sourcePath, options.version) : undefined;
+		try {
+			await validate({
+				...options,
+				quietSuccess: true
+			});
+		} catch (err) {
+			if (err instanceof StdoutError) {
+				versioner?.undo();
+				stdout.exit(1);
+			}
+
+			throw err;
+		}
 
 		// Check if there is already a file at the desired save location.
 		if (existsSync(outputPath)) {
@@ -78,7 +82,8 @@ export const pack = command<PackOptions>(
 		...defaultOptions,
 		dryRun: false,
 		force: false,
-		output: process.cwd()
+		output: process.cwd(),
+		version: null
 	}
 );
 
@@ -142,6 +147,34 @@ async function getPackageContents(path: string, fileFn?: (file: FileInfo) => Pro
 }
 
 /**
+ * Versions the manifest at the specified {@link path}.
+ * @param path Path to the directory where the manifest is contained.
+ * @param version Desired version.
+ * @returns Object that allows for the versioning to be undone.
+ */
+async function version(path: string, version: string): Promise<VersionReverter> {
+	const manifestPath = resolve(path, "manifest.json");
+	const write = (contents: string): void => writeFileSync(manifestPath, contents, { encoding: "utf-8" });
+	let original: string | undefined;
+
+	if (existsSync(manifestPath)) {
+		original = await readFile(manifestPath, { encoding: "utf-8" });
+
+		const manifest = JSON.parse(original);
+		manifest.Version = version;
+		write(JSON.stringify(manifest, undefined, "\t"));
+	}
+
+	return {
+		undo: (): void => {
+			if (original !== undefined) {
+				write(original);
+			}
+		}
+	};
+}
+
+/**
  * Options available to {@link pack}.
  */
 type PackOptions = ValidateOptions & {
@@ -159,6 +192,11 @@ type PackOptions = ValidateOptions & {
 	 * Output directory where the plugin package will be written too; defaults to cwd.
 	 */
 	output?: string;
+
+	/**
+	 * Optional version of the plugin; this will be set in the manifest before bundling.
+	 */
+	version?: string | null;
 };
 
 /**
@@ -200,4 +238,14 @@ type PackageBuilder = {
 	 * Closes the package builder.
 	 */
 	close(): void;
+};
+
+/**
+ * Version reverter capable of undoing the versioning of a manifest.
+ */
+type VersionReverter = {
+	/**
+	 * Reverts the manifest to the original instance.
+	 */
+	undo(): void;
 };

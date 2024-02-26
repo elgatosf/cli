@@ -2,7 +2,7 @@ import { program } from "commander";
 import { config, create, link, pack, restart, setDeveloperMode, stop, validate } from "./commands";
 import { packageManager } from "./package-manager";
 
-program.version(packageManager.getVersion(), "-v, --version", "display CLI version");
+program.version(packageManager.getVersion(), "-v", "display CLI version");
 
 program
 	.command("create")
@@ -51,6 +51,7 @@ program
 	.option("--dry-run", "Generates a report without creating a package", false)
 	.option("-f|--force", "Forces saving, overwriting an package if it exists", false)
 	.option("-o|--output <output>", "Specifies the path for the output directory")
+	.option("--version <version>")
 	.option("--force-update-check", "Forces an update check", false)
 	.option("--no-update-check", "Disables updating schemas", true)
 	.action((path, opts) => pack({ ...opts, path }));
