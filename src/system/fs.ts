@@ -1,6 +1,6 @@
 import ignore from "ignore";
 import { cpSync, createReadStream, existsSync, lstatSync, mkdirSync, readlinkSync, rmSync, type Stats } from "node:fs";
-import { lstat, readdir, readFile } from "node:fs/promises";
+import { lstat, mkdir, readdir, readFile } from "node:fs/promises";
 import { platform } from "node:os";
 import { basename, join, resolve } from "node:path";
 import { createInterface } from "node:readline";
@@ -130,6 +130,18 @@ export function moveSync(source: string, dest: string, options?: MoveOptions): v
 	mkdirSync(dest, { recursive: true });
 	cpSync(source, dest, { recursive: true });
 	rmSync(source, { recursive: true });
+}
+
+/**
+ * Makes the directory specified by the {@link path} when it does not exist; when it exists, the path is validated to ensure it is a directory.
+ * @param path Path of the directory to make.
+ */
+export async function mkdirIfNotExists(path: string): Promise<void> {
+	if (!existsSync(path)) {
+		await mkdir(path, { recursive: true });
+	} else if (!isDirectory(path)) {
+		throw new Error("Path exists, but is not a directory");
+	}
 }
 
 /**

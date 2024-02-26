@@ -49,6 +49,8 @@ program
 	.description("Create a .streamDeckPlugin file from the plugin.")
 	.argument("[path]", "Path of the plugin to pack")
 	.option("--dry-run", "Generates a report without creating a package", false)
+	.option("-f|--force", "Forces saving, overwriting an package if it exists", false)
+	.option("-o|--output <output>", "Specifies the path for the output directory")
 	.option("--force-update-check", "Forces an update check", false)
 	.option("--no-update-check", "Disables updating schemas", true)
 	.action((path, opts) => pack({ ...opts, path }));

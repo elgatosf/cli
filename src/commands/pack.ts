@@ -1,12 +1,13 @@
 import { Manifest } from "@elgato/schemas/streamdeck/plugins";
 import { ZipWriter } from "@zip.js/zip.js";
 import chalk from "chalk";
-import { createReadStream, createWriteStream } from "node:fs";
-import { basename, join, resolve } from "node:path";
+import { createReadStream, createWriteStream, existsSync } from "node:fs";
+import { rm } from "node:fs/promises";
+import { basename, dirname, join, resolve } from "node:path";
 import { Readable, Writable } from "node:stream";
 import { command } from "../common/command";
 import { getPluginId } from "../stream-deck";
-import { getFiles, readJsonFile, sizeAsString, type FileInfo } from "../system/fs";
+import { getFiles, mkdirIfNotExists, readJsonFile, sizeAsString, type FileInfo } from "../system/fs";
 import { defaultOptions, validate, type ValidateOptions } from "./validate";
 
 /**
@@ -27,13 +28,26 @@ export const pack = command<PackOptions>(
 			quietSuccess: true
 		});
 
-		// Build the package.
-		const path = resolve(options.path);
-		const pkgBuilder = getPackageBuilder(path, options.dryRun);
-		const contents = await getPackageContents(path, pkgBuilder.add);
+		// Determine the source, and output.
+		const sourcePath = resolve(options.path);
+		const outputPath = resolve(options.output, `${getPluginId(sourcePath)}.streamDeckPlugin`);
+
+		// Check if there is already a file at the desired save location.
+		if (existsSync(outputPath)) {
+			if (options.force) {
+				await rm(outputPath);
+			} else {
+				stdout.error("File already exists").log("Specify a different -o|-output location, or -f|--force saving to overwrite the existing file").exit(1);
+			}
+		}
+
+		// Create the package
+		await mkdirIfNotExists(dirname(outputPath));
+		const pkgBuilder = getPackageBuilder(sourcePath, outputPath, options.dryRun);
+		const contents = await getPackageContents(sourcePath, pkgBuilder.add);
 		pkgBuilder.close();
 
-		// Output the contents.
+		// Print a summary of the contents.
 		stdout.log(`📦 ${contents.manifest.Name} (v${contents.manifest.Version})`);
 		stdout.log();
 		stdout.log(chalk.cyan("Plugin Contents"));
@@ -42,51 +56,53 @@ export const pack = command<PackOptions>(
 			stdout.log(`${chalk.dim(i === contents.files.length - 1 ? "└─" : "├─")}  ${file.size.text.padEnd(contents.sizePad)}  ${file.path.relative}`);
 		});
 
-		// Output the details.
+		// Print the package details.
 		stdout
 			.log()
 			.log(chalk.cyan("Plugin Details"))
 			.log(`  Name:           ${contents.manifest.Name}`)
 			.log(`  Version:        ${contents.manifest.Version}`)
 			.log(`  UUID:           ${contents.manifest.UUID}`)
-			.log(`  Filename:       ${basename(pkgBuilder.path)}`)
+			.log(`  Filename:       ${basename(outputPath)}`)
 			.log(`  Unpacked size:  ${sizeAsString(contents.size)}`)
-			.log(`  Total files:    ${contents.files.length}`);
+			.log(`  Total files:    ${contents.files.length}`)
+			.log();
 
 		if (!options.dryRun) {
-			stdout.log().success("Successfully packaged plugin");
+			stdout.success("Successfully packaged plugin").log().log(outputPath);
+		} else {
+			stdout.log(chalk.dim(outputPath));
 		}
 	},
 	{
 		...defaultOptions,
-		dryRun: false
+		dryRun: false,
+		force: false,
+		output: process.cwd()
 	}
 );
 
 /**
  * Gets a package builder capable of constructing a `.streamDeckPlugin` file.
- * @param path Path where the package will be output too.
+ * @param sourcePath Source path to the package contents.
+ * @param outputPath Path where the package will be output too.
  * @param dryRun When `true`, the builder will not create a package output.
  * @returns The package builder.
  */
-function getPackageBuilder(path: string, dryRun = false): PackageBuilder {
-	const pkgPath = resolve(process.cwd(), `${getPluginId(path)}.streamDeckPlugin`);
-
+function getPackageBuilder(sourcePath: string, outputPath: string, dryRun = false): PackageBuilder {
 	// When a dry-run, return a mock builder.
 	if (dryRun) {
 		return {
-			path: pkgPath,
 			add: () => Promise.resolve(),
 			close: (): void => {}
 		};
 	}
 
 	// Otherwise prepare the builder
-	const entryPrefix = basename(path);
-	const zipStream = new ZipWriter(Writable.toWeb(createWriteStream(pkgPath)));
+	const entryPrefix = basename(sourcePath);
+	const zipStream = new ZipWriter(Writable.toWeb(createWriteStream(outputPath)));
 
 	return {
-		path: pkgPath,
 		add: async (file: FileInfo): Promise<void> => {
 			const name = join(entryPrefix, file.path.relative).replaceAll("\\", "/");
 			await zipStream.add(name, Readable.toWeb(createReadStream(file.path.absolute)));
@@ -133,6 +149,16 @@ type PackOptions = ValidateOptions & {
 	 * When `true`, the package will be evaluated, but not created.
 	 */
 	dryRun?: boolean;
+
+	/**
+	 * When `true`, the output will overwrite an existing `.streamDeckPlugin` file if it already exists.
+	 */
+	force?: boolean;
+
+	/**
+	 * Output directory where the plugin package will be written too; defaults to cwd.
+	 */
+	output?: string;
 };
 
 /**
@@ -164,11 +190,6 @@ type PackageInfo = {
  * Package builder capable of adding files to a package, and outputting them to a `.streamDeckPlugin` file.
  */
 type PackageBuilder = {
-	/**
-	 * Path to the `.streamDeckPlugin` file.
-	 */
-	path: string;
-
 	/**
 	 * Adds the specified {@link file} to the package.
 	 * @param file File to add.
