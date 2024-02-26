@@ -45,6 +45,8 @@ export const pack = command<PackOptions>(
 			}
 		}
 
+		stdout.spin("Preparing plugin");
+
 		// Create the package
 		await mkdirIfNotExists(dirname(outputPath));
 		const pkgBuilder = getPackageBuilder(sourcePath, outputPath, options.dryRun);
@@ -67,15 +69,15 @@ export const pack = command<PackOptions>(
 			.log(`  Name:           ${contents.manifest.Name}`)
 			.log(`  Version:        ${contents.manifest.Version}`)
 			.log(`  UUID:           ${contents.manifest.UUID}`)
-			.log(`  Filename:       ${basename(outputPath)}`)
-			.log(`  Unpacked size:  ${sizeAsString(contents.size)}`)
 			.log(`  Total files:    ${contents.files.length}`)
+			.log(`  Unpacked size:  ${sizeAsString(contents.size)}`)
+			.log(`  File name:      ${basename(outputPath)}`)
 			.log();
 
-		if (!options.dryRun) {
-			stdout.success("Successfully packaged plugin").log().log(outputPath);
+		if (options.dryRun) {
+			stdout.info("No package created, --dry-run flag is present").log().log(chalk.dim(outputPath));
 		} else {
-			stdout.log(chalk.dim(outputPath));
+			stdout.success("Successfully packaged plugin").log().log(outputPath);
 		}
 	},
 	{
