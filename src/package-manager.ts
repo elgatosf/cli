@@ -5,7 +5,8 @@ import { Readable } from "node:stream";
 import semver from "semver";
 import tar from "tar";
 import { dependencies, version } from "../package.json";
-import { moveSync, relative } from "./common/path";
+import { relative } from "./system/path";
+import { moveSync } from "./system/fs";
 
 /**
  * Light-weight package manager that wraps npm, capable of updating locally-scoped installed packages.

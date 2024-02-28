@@ -72,6 +72,19 @@ type ConsoleStdOutOptions = {
 export type StdOut = ConsoleStdOut;
 
 /**
+ * Error thrown when the stdout should exit with an error code.
+ */
+export class StdoutError extends Error {
+	/**
+	 * Initializes a new instance of the {@link StdoutError} class.
+	 * @param message Message associated with the error.
+	 */
+	constructor(message?: string) {
+		super(message);
+	}
+}
+
+/**
  * Provides interactive console writer that writes to the stdout, including a spinner and status results.
  */
 class ConsoleStdOut {

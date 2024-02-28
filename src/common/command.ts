@@ -14,7 +14,7 @@ import { createConsole, createQuietConsole, StdOut } from "./stdout";
 export function command<T = void>(
 	fn: (options: Options<T>, output: StdOut) => Promise<void> | void,
 	...[defaultOptions]: OptionalWhenEmpty<PickOptional<T>, never, Required<PickOptional<T>>>
-): (...[options]: OptionalWhenEmpty<PickRequired<T>, GlobalOptions & T>) => void {
+): (...[options]: OptionalWhenEmpty<PickRequired<T>, GlobalOptions & T>) => Promise<void> | void {
 	return async (...[options]: OptionalWhenEmpty<PickRequired<T>, GlobalOptions & T>) => {
 		const opts = _.merge({ quiet: false }, defaultOptions as Required<PickOptional<T>>, options as GlobalOptions & PickRequired<T>);
 

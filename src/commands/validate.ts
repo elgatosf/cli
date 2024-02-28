@@ -1,6 +1,6 @@
 import { resolve } from "node:path";
-import { cwd } from "node:process";
 import { command } from "../common/command";
+import { StdoutError } from "../common/stdout";
 import { store } from "../common/storage";
 import { packageManager } from "../package-manager";
 import { validatePlugin } from "../validation/plugin";
@@ -11,35 +11,60 @@ import { validatePlugin } from "../validation/plugin";
 const LAST_UPDATE_CHECK_STORE_KEY = "validateSchemasLastUpdateCheck";
 
 /**
+ * Default {@link ValidateOptions}.
+ */
+export const defaultOptions = {
+	forceUpdateCheck: false,
+	quietSuccess: false,
+	path: process.cwd(),
+	updateCheck: true
+} satisfies ValidateOptions;
+
+/**
  * Validates the given path, and outputs the results.
  */
-export const validate = command<ValidateOptions>(
-	async (options, stdout) => {
-		// Determine whether the schemas should be updated.
-		if (canUpdateCheck(options)) {
-			const update = await packageManager.checkUpdate("@elgato/schemas");
-			if (update) {
-				await stdout.spin("Updating validation rules", async () => {
-					await packageManager.install(update);
-					stdout.info(`Validation rules updated`);
-				});
-			}
-
-			// Log the update check.
-			store.set(LAST_UPDATE_CHECK_STORE_KEY, new Date());
+export const validate = command<ValidateOptions>(async (options, stdout) => {
+	/**
+	 * Exits the validation command with a failure.
+	 */
+	const fail = (): never => {
+		if (!options.quietSuccess) {
+			stdout.exit(1);
 		}
 
-		// Validate the plugin, and log the result.
-		const result = await validatePlugin(resolve(options.path));
-		result.writeTo(stdout);
-		stdout.exit(result.success ? 0 : 1);
-	},
-	{
-		forceUpdateCheck: false,
-		path: cwd(),
-		updateCheck: true
+		throw new StdoutError();
+	};
+
+	// Check for conflicting options.
+	if (!options.updateCheck && options.forceUpdateCheck) {
+		console.log(`error: option '--force-update-check' cannot be used with option '--no-update-check'`);
+		fail();
 	}
-);
+
+	// Determine whether the schemas should be updated.
+	if (canUpdateCheck(options)) {
+		const update = await packageManager.checkUpdate("@elgato/schemas");
+		if (update) {
+			await stdout.spin("Updating validation rules", async () => {
+				await packageManager.install(update);
+				stdout.info(`Validation rules updated`);
+			});
+		}
+
+		// Log the update check.
+		store.set(LAST_UPDATE_CHECK_STORE_KEY, new Date());
+	}
+
+	// Validate the plugin and write the output (ignoring success if we should be quiet).
+	const result = await validatePlugin(resolve(options.path));
+	if (result.hasErrors() || result.hasWarnings() || !options.quietSuccess) {
+		result.writeTo(stdout);
+	}
+
+	if (result.hasErrors()) {
+		fail();
+	}
+}, defaultOptions);
 
 /**
  * Determines whether an update check can occur for the JSON schemas used to validate files.
@@ -70,7 +95,7 @@ function canUpdateCheck(opts: Required<ValidateOptions>): boolean {
 /**
  * Options available to {@link validate}.
  */
-type ValidateOptions = {
+export type ValidateOptions = {
 	/**
 	 * Determines whether an update check **must** happen.
 	 */
@@ -80,6 +105,11 @@ type ValidateOptions = {
 	 * Path to the plugin to validate.
 	 */
 	readonly path?: string;
+
+	/**
+	 * Determines whether to hide the success message
+	 */
+	readonly quietSuccess?: boolean;
 
 	/**
 	 * Determines whether an update check can occur.

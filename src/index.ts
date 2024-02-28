@@ -1,8 +1,8 @@
 import { program } from "commander";
-import { config, create, link, restart, setDeveloperMode, stop, validate } from "./commands";
+import { config, create, link, pack, restart, setDeveloperMode, stop, validate } from "./commands";
 import { packageManager } from "./package-manager";
 
-program.version(packageManager.getVersion(), "-v, --version", "display CLI version");
+program.version(packageManager.getVersion(), "-v", "display CLI version");
 
 program
 	.command("create")
@@ -41,15 +41,20 @@ program
 	.argument("[path]", "Path of the plugin to validate")
 	.option("--force-update-check", "Forces an update check", false)
 	.option("--no-update-check", "Disables updating schemas", true)
-	.action((path, { forceUpdateCheck, updateCheck }) => {
-		// Check for conflicting options.
-		if (!updateCheck && forceUpdateCheck) {
-			console.log(`error: option '--force-update-check' cannot be used with option '--no-update-check'`);
-			process.exit(1);
-		}
+	.action((path, opts) => validate({ ...opts, path }));
 
-		validate({ forceUpdateCheck, path, updateCheck });
-	});
+program
+	.command("pack")
+	.alias("bundle")
+	.description("Create a .streamDeckPlugin file from the plugin.")
+	.argument("[path]", "Path of the plugin to pack")
+	.option("--dry-run", "Generates a report without creating a package", false)
+	.option("-f|--force", "Forces saving, overwriting an package if it exists", false)
+	.option("-o|--output <output>", "Specifies the path for the output directory")
+	.option("--version <version>")
+	.option("--force-update-check", "Forces an update check", false)
+	.option("--no-update-check", "Disables updating schemas", true)
+	.action((path, opts) => pack({ ...opts, path }));
 
 const configCommand = program.command("config").description("Manage the local configuration.");
 

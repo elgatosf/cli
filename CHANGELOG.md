@@ -16,7 +16,7 @@
 ### ✨ New
 
 - Add `streamdeck validate` command for validating Stream Deck plugins.
-- Add `-v, --version` option to display current version of CLI.
+- Add `-v` option to display current version of CLI.
 - Add "Open in VSCode" prompt, as part of creation wizard, for macOS.
 
 ### 🐞 Bug Fixes
