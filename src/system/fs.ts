@@ -6,14 +6,16 @@ import { basename, join, resolve } from "node:path";
 import { createInterface } from "node:readline";
 
 export const streamDeckIgnoreFilename = ".sdignore";
+export const defaultIgnorePatterns = [streamDeckIgnoreFilename, ".git", "/.env*", "*.log", "*.js.map"];
 
 /**
  * Gets files within the specified {@link path}, and their associated information, for example file size. When a `.sdignore` file is found within the {@link path}, it is respected,
  * and the files are ignored.
  * @param path Path to the directory to read.
+ * @param ignorePatterns Collection of default ignore patterns; this will be concatenated with patterns defined in a `.sdignore` file if one exists.
  * @yields Files in the directory.
  */
-export async function* getFiles(path: string): AsyncGenerator<FileInfo> {
+export async function* getFiles(path: string, ignorePatterns?: string[]): AsyncGenerator<FileInfo> {
 	if (!existsSync(path)) {
 		return;
 	}
@@ -22,7 +24,7 @@ export async function* getFiles(path: string): AsyncGenerator<FileInfo> {
 		throw new Error("Path is not a directory");
 	}
 
-	const ignores = await getIgnores(path);
+	const ignores = await getIgnores(path, ignorePatterns);
 
 	// We don't use withFileTypes as this yields incomplete results in Node.js 20.5.1; as we need the size anyway, we instead can rely on lstatSync as a direct call.
 	for (const entry of await readdir(path, { encoding: "utf-8", recursive: true })) {
@@ -56,30 +58,29 @@ export async function* getFiles(path: string): AsyncGenerator<FileInfo> {
 /**
  * Builds an ignore predicate from the `.sdignore` file located within the specified {@link path}. The predicate will return `true` when the path supplied to it should be ignored.
  * @param path Path to the directory that contains the optional `.sdignore` file.
+ * @param defaultPatterns Collection of default ignore patterns.
  * @returns Predicate that determines whether the path should be ignored; returns `true` when the path should be ignored.
  */
-export async function getIgnores(path: string): Promise<(path: string) => boolean> {
+export async function getIgnores(path: string, defaultPatterns: string[] = defaultIgnorePatterns): Promise<(path: string) => boolean> {
+	const i = ignore().add(defaultPatterns);
+
+	// When a ".sdignore" file is present, add the ignore patterns.
 	const file = join(path, streamDeckIgnoreFilename);
-	if (!existsSync(file)) {
-		return () => false;
-	}
+	if (existsSync(file)) {
+		const fileStream = createReadStream(file);
+		try {
+			const rl = createInterface({
+				input: fileStream,
+				crlfDelay: Infinity
+			});
 
-	// Open the ".sdignore" to determine the ignore patterns.
-	const fileStream = createReadStream(file);
-	const i = ignore().add(streamDeckIgnoreFilename);
-
-	try {
-		const rl = createInterface({
-			input: fileStream,
-			crlfDelay: Infinity
-		});
-
-		// Treat each line as a pattern, adding it to the ignore.
-		for await (const line of rl) {
-			i.add(line);
+			// Treat each line as a pattern, adding it to the ignore.
+			for await (const line of rl) {
+				i.add(line);
+			}
+		} finally {
+			fileStream.close();
 		}
-	} finally {
-		fileStream.close();
 	}
 
 	return (p) => i.ignores(p);
