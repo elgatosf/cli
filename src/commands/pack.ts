@@ -5,6 +5,7 @@ import { createReadStream, createWriteStream, existsSync, writeFileSync } from "
 import { readFile, rm } from "node:fs/promises";
 import { basename, dirname, join, resolve } from "node:path";
 import { Readable, Writable } from "node:stream";
+import type { ReadableStream } from "node:stream/web";
 import { command } from "../common/command";
 import { StdoutError } from "../common/stdout";
 import { getPluginId } from "../stream-deck";
@@ -110,9 +111,9 @@ function getPackageBuilder(sourcePath: string, outputPath: string, dryRun = fals
 	const zipStream = new ZipWriter(Writable.toWeb(createWriteStream(outputPath)));
 
 	return {
-		add: async (file: FileInfo): Promise<void> => {
+		add: async (file: FileInfo, stream?: ReadableStream): Promise<void> => {
 			const name = join(entryPrefix, file.path.relative).replaceAll("\\", "/");
-			await zipStream.add(name, Readable.toWeb(createReadStream(file.path.absolute)));
+			await zipStream.add(name, stream ?? Readable.toWeb(createReadStream(file.path.absolute)));
 		},
 		close: () => zipStream.close()
 	};
@@ -124,7 +125,7 @@ function getPackageBuilder(sourcePath: string, outputPath: string, dryRun = fals
  * @param fileFn Optional function called for each file that is considered part of the package.
  * @returns Information about the package contents.
  */
-async function getPackageContents(path: string, fileFn?: (file: FileInfo) => Promise<void> | void): Promise<PackageInfo> {
+async function getPackageContents(path: string, fileFn?: (file: FileInfo, stream?: ReadableStream) => Promise<void> | void): Promise<PackageInfo> {
 	// Get the manifest, and generate the base contents.
 	const manifest = await readJsonFile<Manifest>(join(path, "manifest.json"));
 	const contents: PackageInfo = {
@@ -138,10 +139,23 @@ async function getPackageContents(path: string, fileFn?: (file: FileInfo) => Pro
 	for await (const file of getFiles(path)) {
 		contents.files.push(file);
 		contents.sizePad = Math.max(contents.sizePad, file.size.text.length);
-		contents.size += file.size.bytes;
 
 		if (fileFn) {
-			await fileFn(file);
+			// When the entry is the manifest, remove the `Nodejs.Debug` flag.
+			if (file.path.relative === "manifest.json") {
+				delete manifest.Nodejs?.Debug;
+				const sanitizedManifest = JSON.stringify(manifest, undefined, "".repeat(4));
+
+				const stream = new Readable();
+				stream.push(sanitizedManifest, "utf-8");
+				stream.push(null); // End-of-file.
+
+				contents.size += sanitizedManifest.length;
+				await fileFn(file, Readable.toWeb(stream));
+			} else {
+				contents.size += file.size.bytes;
+				await fileFn(file);
+			}
 		}
 	}
 
