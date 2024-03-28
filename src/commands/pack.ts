@@ -77,6 +77,7 @@ export const pack = command<PackOptions>(
 
 		if (options.dryRun) {
 			stdout.info("No package created, --dry-run flag is present").log().log(chalk.dim(outputPath));
+			versioner?.undo();
 		} else {
 			stdout.success("Successfully packaged plugin").log().log(outputPath);
 		}
@@ -177,7 +178,7 @@ async function version(path: string, version: string): Promise<VersionReverter> 
 		original = await readFile(manifestPath, { encoding: "utf-8" });
 
 		const manifest = JSON.parse(original);
-		manifest.Version = version;
+		manifest.Version = `${version}${".0".repeat(Math.max(0, 4 - version.split(".").length))}`;
 		write(JSON.stringify(manifest, undefined, "\t"));
 	}
 
