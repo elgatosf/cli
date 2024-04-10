@@ -5,8 +5,8 @@ import { Readable } from "node:stream";
 import semver from "semver";
 import tar from "tar";
 import { dependencies, version } from "../package.json";
-import { relative } from "./system/path";
 import { moveSync } from "./system/fs";
+import { relative } from "./system/path";
 
 /**
  * Light-weight package manager that wraps npm, capable of updating locally-scoped installed packages.
@@ -62,7 +62,7 @@ class PackageManager {
 
 			// Determine the package paths.
 			const installationPath = relative(`../node_modules/${pkg.name}`);
-			const tempPath = relative("../.tmp/@elgato/schemas/");
+			const tempPath = relative(`../.tmp/${pkg.name}/`);
 
 			try {
 				// Move the current installed package, and unpack the new package to node_modules.
