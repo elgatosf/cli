@@ -64,6 +64,11 @@ class PackageManager {
 			const installationPath = relative(`../node_modules/${pkg.name}`);
 			const tempPath = relative(`../.tmp/${pkg.name}/`);
 
+			// Ensure we have a node_modules folder local to the package.
+			if (!existsSync(installationPath)) {
+				mkdirSync(installationPath, { recursive: true });
+			}
+
 			try {
 				// Move the current installed package, and unpack the new package to node_modules.
 				moveSync(installationPath, tempPath, { overwrite: true });
