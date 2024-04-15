@@ -5,9 +5,7 @@ import { JsonLocation, LocationRef } from "../../common/location";
 import { JsonFileContext, JsonSchema } from "../../json";
 import { isPredefinedLayoutLike, isValidPluginId } from "../../stream-deck";
 
-const r = createRequire(import.meta.url);
-const layoutSchema = r("@elgato/schemas/streamdeck/plugins/layout.json");
-const manifestSchema = r("@elgato/schemas/streamdeck/plugins/manifest.json");
+const nodeRequire = createRequire(import.meta.url);
 
 /**
  * Suffixed associated with a plugin directory.
@@ -43,9 +41,9 @@ class ManifestJsonFileContext extends JsonFileContext<Manifest> {
 	 * @param path Path to the manifest file.
 	 */
 	constructor(path: string) {
-		super(path, new JsonSchema<Manifest>(manifestSchema));
+		super(path, new JsonSchema<Manifest>(nodeRequire("@elgato/schemas/streamdeck/plugins/manifest.json")));
 
-		const compiledLayoutSchema = new JsonSchema<Layout>(layoutSchema);
+		const compiledLayoutSchema = new JsonSchema<Layout>(nodeRequire("@elgato/schemas/streamdeck/plugins/layout.json"));
 		this.value.Actions?.forEach((action) => {
 			if (action.Encoder?.layout !== undefined && !isPredefinedLayoutLike(action.Encoder?.layout.value)) {
 				const filePath = resolve(dirname(path), action.Encoder.layout.value);
