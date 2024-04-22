@@ -3,7 +3,7 @@ import { createWriteStream, existsSync, mkdirSync, readFileSync, rmSync } from "
 import { dirname, join } from "node:path";
 import { Readable } from "node:stream";
 import semver from "semver";
-import tar from "tar";
+import { extract } from "tar";
 import { dependencies, version } from "../package.json";
 import { moveSync } from "./system/fs";
 import { relative } from "./system/path";
@@ -73,7 +73,7 @@ class PackageManager {
 				// Move the current installed package, and unpack the new package to node_modules.
 				moveSync(installationPath, tempPath, { overwrite: true });
 				mkdirSync(installationPath, { recursive: true });
-				await tar.extract({
+				await extract({
 					file,
 					strip: 1,
 					cwd: installationPath
