@@ -14,7 +14,7 @@ export class ValidationEntryCollection {
 		(x) => x.level,
 		(x) => x.details?.location?.line ?? Infinity,
 		(x) => x.details?.location?.column ?? Infinity,
-		(x) => x.message
+		(x) => x.message,
 	);
 
 	/**

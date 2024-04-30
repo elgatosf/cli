@@ -8,8 +8,8 @@ import { type PluginContext } from "../plugin";
 export const manifestUrlsExist = rule<PluginContext>(async function (plugin: PluginContext) {
 	const {
 		manifest: {
-			value: { URL: url }
-		}
+			value: { URL: url },
+		},
 	} = plugin;
 
 	if (url?.value == undefined) {
@@ -23,7 +23,7 @@ export const manifestUrlsExist = rule<PluginContext>(async function (plugin: Plu
 	} catch {
 		this.addError(plugin.manifest.path, "must be valid URL", {
 			...url,
-			suggestion: !url.value.toLowerCase().startsWith("http") ? "Protocol must be http or https" : undefined
+			suggestion: !url.value.toLowerCase().startsWith("http") ? "Protocol must be http or https" : undefined,
 		});
 
 		return;
@@ -42,12 +42,18 @@ export const manifestUrlsExist = rule<PluginContext>(async function (plugin: Plu
 		if (status < 200 || status >= 300) {
 			this.addWarning(plugin.manifest.path, `should return success (received ${chalk.yellow(status)})`, {
 				...url,
-				suggestion: "Status code should be 2xx"
+				suggestion: "Status code should be 2xx",
 			});
 		}
 	} catch (err) {
 		// Check if resolving the DNS failed.
-		if (err instanceof Error && typeof err.cause === "object" && err.cause && "code" in err.cause && err.cause.code === "ENOTFOUND") {
+		if (
+			err instanceof Error &&
+			typeof err.cause === "object" &&
+			err.cause &&
+			"code" in err.cause &&
+			err.cause.code === "ENOTFOUND"
+		) {
 			this.addError(plugin.manifest.path, "must be resolvable", url);
 		} else {
 			throw err;

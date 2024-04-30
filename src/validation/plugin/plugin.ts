@@ -23,7 +23,7 @@ export function createContext(path: string): PluginContext {
 	return {
 		hasValidId: isValidPluginId(id),
 		manifest: new ManifestJsonFileContext(join(path, "manifest.json")),
-		id
+		id,
 	};
 }
 
@@ -49,7 +49,7 @@ class ManifestJsonFileContext extends JsonFileContext<Manifest> {
 				const filePath = resolve(dirname(path), action.Encoder.layout.value);
 				this.layoutFiles.push({
 					location: action.Encoder.layout.location,
-					layout: new JsonFileContext<Layout>(filePath, compiledLayoutSchema)
+					layout: new JsonFileContext<Layout>(filePath, compiledLayoutSchema),
 				});
 			}
 		});

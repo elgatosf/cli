@@ -16,7 +16,11 @@ export function command<T = void>(
 	...[defaultOptions]: OptionalWhenEmpty<PickOptional<T>, never, Required<PickOptional<T>>>
 ): (...[options]: OptionalWhenEmpty<PickRequired<T>, GlobalOptions & T>) => Promise<void> | void {
 	return async (...[options]: OptionalWhenEmpty<PickRequired<T>, GlobalOptions & T>) => {
-		const opts = _.merge({ quiet: false }, defaultOptions as Required<PickOptional<T>>, options as GlobalOptions & PickRequired<T>);
+		const opts = _.merge(
+			{ quiet: false },
+			defaultOptions as Required<PickOptional<T>>,
+			options as GlobalOptions & PickRequired<T>,
+		);
 
 		const { reduceMotion } = getConfig();
 		const output = opts.quiet ? createQuietConsole() : createConsole(reduceMotion);
@@ -49,7 +53,8 @@ export type GlobalOptions = {
 /**
  * Determines whether {@template T} contains any properties, when it does not, {@template TOptional} is returned as an optional; otherwise {@template TRequired} is returned.
  */
-type OptionalWhenEmpty<T, TOptional = T, TRequired = TOptional> = T extends Record<string, never> ? [TOptional?] : [TRequired];
+type OptionalWhenEmpty<T, TOptional = T, TRequired = TOptional> =
+	T extends Record<string, never> ? [TOptional?] : [TRequired];
 
 /**
  * Defines the complete set of (merged) options sent to a command.

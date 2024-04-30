@@ -26,7 +26,7 @@ export const pack = command<PackOptions>(
 		try {
 			await validate({
 				...options,
-				quietSuccess: true
+				quietSuccess: true,
 			});
 		} catch (err) {
 			if (err instanceof StdoutError) {
@@ -42,7 +42,10 @@ export const pack = command<PackOptions>(
 			if (options.force) {
 				await rm(outputPath);
 			} else {
-				stdout.error("File already exists").log("Specify a different -o|-output location, or -f|--force saving to overwrite the existing file").exit(1);
+				stdout
+					.error("File already exists")
+					.log("Specify a different -o|-output location, or -f|--force saving to overwrite the existing file")
+					.exit(1);
 			}
 		}
 
@@ -60,7 +63,9 @@ export const pack = command<PackOptions>(
 		stdout.log(chalk.cyan("Plugin Contents"));
 
 		contents.files.forEach((file, i) => {
-			stdout.log(`${chalk.dim(i === contents.files.length - 1 ? "└─" : "├─")}  ${file.size.text.padEnd(contents.sizePad)}  ${file.path.relative}`);
+			stdout.log(
+				`${chalk.dim(i === contents.files.length - 1 ? "└─" : "├─")}  ${file.size.text.padEnd(contents.sizePad)}  ${file.path.relative}`,
+			);
 		});
 
 		// Print the package details.
@@ -87,8 +92,8 @@ export const pack = command<PackOptions>(
 		dryRun: false,
 		force: false,
 		output: process.cwd(),
-		version: null
-	}
+		version: null,
+	},
 );
 
 /**
@@ -103,7 +108,7 @@ function getPackageBuilder(sourcePath: string, outputPath: string, dryRun = fals
 	if (dryRun) {
 		return {
 			add: () => Promise.resolve(),
-			close: (): void => {}
+			close: (): void => {},
 		};
 	}
 
@@ -116,7 +121,7 @@ function getPackageBuilder(sourcePath: string, outputPath: string, dryRun = fals
 			const name = join(entryPrefix, file.path.relative).replaceAll("\\", "/");
 			await zipStream.add(name, stream ?? Readable.toWeb(createReadStream(file.path.absolute)));
 		},
-		close: () => zipStream.close()
+		close: () => zipStream.close(),
 	};
 }
 
@@ -126,14 +131,17 @@ function getPackageBuilder(sourcePath: string, outputPath: string, dryRun = fals
  * @param fileFn Optional function called for each file that is considered part of the package.
  * @returns Information about the package contents.
  */
-async function getPackageContents(path: string, fileFn?: (file: FileInfo, stream?: ReadableStream) => Promise<void> | void): Promise<PackageInfo> {
+async function getPackageContents(
+	path: string,
+	fileFn?: (file: FileInfo, stream?: ReadableStream) => Promise<void> | void,
+): Promise<PackageInfo> {
 	// Get the manifest, and generate the base contents.
 	const manifest = await readJsonFile<Manifest>(join(path, "manifest.json"));
 	const contents: PackageInfo = {
 		files: [],
 		manifest,
 		size: 0,
-		sizePad: 0
+		sizePad: 0,
 	};
 
 	// Add each file to the contents.
@@ -189,7 +197,7 @@ async function version(path: string, version: string | null): Promise<VersionRev
 			if (original !== undefined) {
 				write(original);
 			}
-		}
+		},
 	};
 }
 

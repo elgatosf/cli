@@ -76,7 +76,7 @@ class PackageManager {
 				await extract({
 					file,
 					strip: 1,
-					cwd: installationPath
+					cwd: installationPath,
 				});
 			} catch (err) {
 				// When something goes wrong, fallback to the previous package.
@@ -120,8 +120,8 @@ class PackageManager {
 	public async search(name: string): Promise<PackageMetadata> {
 		const res = await fetch(`https://registry.npmjs.org/${name}`, {
 			headers: {
-				Accept: "application/vnd.npm.install-v1+json"
-			}
+				Accept: "application/vnd.npm.install-v1+json",
+			},
 		});
 
 		if (res.status !== 200) {
@@ -191,7 +191,7 @@ class PackageManager {
 
 				return update;
 			},
-			undefined as PackageMetadataVersion | undefined
+			undefined as PackageMetadataVersion | undefined,
 		);
 	}
 }

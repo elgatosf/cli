@@ -20,7 +20,7 @@ export class ValidationEntry {
 	constructor(
 		public readonly level: ValidationLevel,
 		public readonly message: string,
-		public readonly details?: ValidationEntryDetails
+		public readonly details?: ValidationEntryDetails,
 	) {
 		if (message.endsWith(".")) {
 			this.message = message.slice(0, -1);
@@ -75,7 +75,7 @@ export enum ValidationLevel {
 	/**
 	 * Warning.
 	 */
-	warning = 1
+	warning = 1,
 }
 
 /**

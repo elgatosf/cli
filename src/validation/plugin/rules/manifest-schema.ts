@@ -22,7 +22,7 @@ export const manifestExistsAndSchemaIsValid = rule<PluginContext>(function (plug
 		if (plugin.hasValidId && location?.instancePath === "" && message === "must contain property: UUID") {
 			this.addError(plugin.manifest.path, message, {
 				location,
-				suggestion: `Expected: ${plugin.id}`
+				suggestion: `Expected: ${plugin.id}`,
 			});
 
 			return;

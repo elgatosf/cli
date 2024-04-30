@@ -17,7 +17,7 @@ export const defaultOptions = {
 	forceUpdateCheck: false,
 	quietSuccess: false,
 	path: process.cwd(),
-	updateCheck: true
+	updateCheck: true,
 } satisfies ValidateOptions;
 
 /**

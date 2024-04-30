@@ -26,6 +26,6 @@ export function validatePlugin(path: string): Promise<ValidationResult> {
 		categoryMatchesName,
 		layoutsExistAndSchemasAreValid,
 		layoutItemKeysAreUnique,
-		layoutItemsAreWithinBoundsAndNoOverlap
+		layoutItemsAreWithinBoundsAndNoOverlap,
 	]);
 }

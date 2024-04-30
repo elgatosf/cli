@@ -10,7 +10,11 @@ import { isDirectory, isFile } from "../system/fs";
  */
 export function isExecutable(application: string): boolean {
 	for (const path of process.env.PATH?.split(delimiter) || []) {
-		if (existsSync(path) && isDirectory(path) && readdirSync(path).find((entry) => entry === application && isFile(join(path, entry)))) {
+		if (
+			existsSync(path) &&
+			isDirectory(path) &&
+			readdirSync(path).find((entry) => entry === application && isFile(join(path, entry)))
+		) {
 			return true;
 		}
 	}

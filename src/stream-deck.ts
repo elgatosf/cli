@@ -101,7 +101,7 @@ export function getPluginId(path: string): string | undefined {
 export function generatePluginId(author: string | undefined, name: string | undefined): string | undefined {
 	const sections = {
 		author: getSafeValue(author),
-		name: getSafeValue(name)
+		name: getSafeValue(name),
 	};
 
 	if (sections.author === undefined || sections.name === undefined) {
@@ -174,7 +174,7 @@ class PluginInfo {
 	constructor(
 		private readonly path: string,
 		private readonly entry: Dirent,
-		public readonly uuid: string
+		public readonly uuid: string,
 	) {}
 
 	/**

@@ -31,7 +31,7 @@ export class ValidationContext {
 	 */
 	constructor(
 		public readonly path: string,
-		private readonly result: ValidationResult
+		private readonly result: ValidationResult,
 	) {}
 
 	/**

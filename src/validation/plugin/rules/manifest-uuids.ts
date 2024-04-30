@@ -12,7 +12,7 @@ export const manifestUuids = rule<PluginContext>(async function (plugin: PluginC
 	if (plugin.hasValidId && manifest.UUID?.value !== undefined && plugin.id !== manifest.UUID.value) {
 		this.addError(plugin.manifest.path, "must match parent directory name", {
 			location: manifest.UUID.location,
-			suggestion: `Expected: ${plugin.id}`
+			suggestion: `Expected: ${plugin.id}`,
 		});
 	}
 

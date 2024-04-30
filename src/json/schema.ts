@@ -41,7 +41,7 @@ export class JsonSchema<T extends object> {
 		const ajv = new Ajv({
 			allErrors: true,
 			messages: false,
-			strict: false
+			strict: false,
 		});
 
 		ajv.addKeyword(keywordDefinitions.markdownDescription);
@@ -90,12 +90,12 @@ export class JsonSchema<T extends object> {
 							keyword: "false schema",
 							instancePath: "",
 							schemaPath: "",
-							params: {}
+							params: {},
 						},
 						message: "Contents must be a valid JSON string",
-						location: { instancePath: "/", key: undefined }
-					}
-				]
+						location: { instancePath: "/", key: undefined },
+					},
+				],
 			};
 		}
 
@@ -110,8 +110,8 @@ export class JsonSchema<T extends object> {
 				this.filter(this._validate.errors).map((source) => ({
 					location: map.find(source.instancePath)?.location,
 					message: this.getMessage(source as DefinedError),
-					source: source as DefinedError
-				})) ?? []
+					source: source as DefinedError,
+				})) ?? [],
 		};
 	}
 
@@ -130,7 +130,7 @@ export class JsonSchema<T extends object> {
 		// Remove ignored keywords, and remove duplicate errors.
 		return uniqWith(
 			errors.filter(({ keyword }) => !ignoredKeywords.includes(keyword)),
-			(a, b) => a.instancePath === b.instancePath && a.keyword === b.keyword && isEqual(a.params, b.params)
+			(a, b) => a.instancePath === b.instancePath && a.keyword === b.keyword && isEqual(a.params, b.params),
 		);
 	}
 
@@ -143,7 +143,9 @@ export class JsonSchema<T extends object> {
 		const { keyword, message, params, instancePath } = error;
 
 		if (keyword === "additionalProperties") {
-			return params.additionalProperty !== undefined ? `must not contain property: ${params.additionalProperty}` : "must not contain additional properties";
+			return params.additionalProperty !== undefined
+				? `must not contain property: ${params.additionalProperty}`
+				: "must not contain additional properties";
 		}
 
 		if (keyword === "enum") {
@@ -199,13 +201,18 @@ function captureKeyword(def: KeywordDefinition, map: Map<string, unknown>): Keyw
 	return {
 		keyword,
 		schemaType,
-		validate: (schema: unknown, data: unknown, parentSchema?: AnySchemaObject, dataCtx?: DataValidationCxt): boolean => {
+		validate: (
+			schema: unknown,
+			data: unknown,
+			parentSchema?: AnySchemaObject,
+			dataCtx?: DataValidationCxt,
+		): boolean => {
 			if (dataCtx?.instancePath !== undefined) {
 				map.set(dataCtx.instancePath, schema);
 			}
 
 			return true;
-		}
+		},
 	};
 }
 
