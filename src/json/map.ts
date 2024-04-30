@@ -8,6 +8,7 @@ import {
 	type ValueNode,
 } from "@humanwhocodes/momoa";
 import { type AnyValidateFunction } from "ajv/dist/types";
+
 import { type JsonLocation, type LocationRef } from "../common/location";
 
 /**

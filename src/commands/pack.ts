@@ -6,10 +6,11 @@ import { readFile, rm } from "node:fs/promises";
 import { basename, dirname, join, resolve } from "node:path";
 import { Readable, Writable } from "node:stream";
 import type { ReadableStream } from "node:stream/web";
+
 import { command } from "../common/command";
 import { StdoutError } from "../common/stdout";
 import { getPluginId } from "../stream-deck";
-import { getFiles, mkdirIfNotExists, readJsonFile, sizeAsString, type FileInfo } from "../system/fs";
+import { type FileInfo, getFiles, mkdirIfNotExists, readJsonFile, sizeAsString } from "../system/fs";
 import { defaultOptions, validate, type ValidateOptions } from "./validate";
 
 /**

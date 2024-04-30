@@ -2,7 +2,7 @@ import chalk from "chalk";
 import { existsSync, rmSync } from "fs";
 import _ from "lodash";
 
-import { GlobalOptions, command } from "../common/command";
+import { command, GlobalOptions } from "../common/command";
 import { createConsole, createQuietConsole } from "../common/stdout";
 import { defaultConfig, getFilePath, getLocalConfig, updateConfig } from "../config";
 

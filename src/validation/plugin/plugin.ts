@@ -1,6 +1,7 @@
 import type { Layout, Manifest } from "@elgato/schemas/streamdeck/plugins";
 import { createRequire } from "node:module";
 import { basename, dirname, join, resolve } from "node:path";
+
 import { JsonLocation, LocationRef } from "../../common/location";
 import { JsonFileContext, JsonSchema } from "../../json";
 import { isPredefinedLayoutLike, isValidPluginId } from "../../stream-deck";

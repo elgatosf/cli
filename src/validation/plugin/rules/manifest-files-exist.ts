@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import { basename, extname, join, resolve } from "node:path";
+
 import { colorize } from "../../../common/stdout";
 import { aggregate } from "../../../common/utils";
 import { FilePathOptions } from "../../../json";

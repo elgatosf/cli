@@ -1,4 +1,5 @@
 import chalk from "chalk";
+
 import { rule } from "../../rule";
 import { type PluginContext } from "../plugin";
 

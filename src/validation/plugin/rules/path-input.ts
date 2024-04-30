@@ -1,5 +1,6 @@
 import { existsSync, lstatSync } from "node:fs";
 import { basename } from "node:path";
+
 import { colorize } from "../../../common/stdout";
 import { isValidPluginId } from "../../../stream-deck";
 import { rule } from "../../rule";

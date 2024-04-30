@@ -1,4 +1,4 @@
-import { ValidationEntry, ValidationLevel, type ValidationEntryDetails } from "./entry";
+import { ValidationEntry, type ValidationEntryDetails, ValidationLevel } from "./entry";
 import { ValidationResult } from "./result";
 import { type ValidationRule } from "./rule";
 

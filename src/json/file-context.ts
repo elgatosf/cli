@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
-import { JsonObjectMap, type JsonObject } from "./map";
+
+import { type JsonObject, JsonObjectMap } from "./map";
 import type { JsonSchema, JsonSchemaError } from "./schema";
 
 /**

@@ -1,8 +1,8 @@
 import { DefinedError } from "ajv";
+import { existsSync } from "node:fs";
+
 import { rule } from "../../rule";
 import { type PluginContext } from "../plugin";
-
-import { existsSync } from "node:fs";
 
 /**
  * Validate the layout files referenced in the manifest exist, and log any JSON schema errors that were encountered when validating their content.

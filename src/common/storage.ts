@@ -1,4 +1,5 @@
 import { readFileSync, writeFileSync } from "fs";
+
 import { relative } from "../system/path";
 
 const storePath = relative("../.cli.cache");

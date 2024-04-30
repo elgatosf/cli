@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 import { Readable } from "node:stream";
 import semver from "semver";
 import { extract } from "tar";
+
 import { dependencies, version } from "../package.json";
 import { moveSync } from "./system/fs";
 import { relative } from "./system/path";

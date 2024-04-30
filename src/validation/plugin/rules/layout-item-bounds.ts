@@ -1,5 +1,6 @@
 import { type Layout } from "@elgato/schemas/streamdeck/plugins";
 import chalk from "chalk";
+
 import { JsonElement, JsonObject } from "../../../json";
 import { rule } from "../../rule";
 import { type PluginContext } from "../plugin";

@@ -1,5 +1,5 @@
 import { StdOut } from "../common/stdout";
-import { ValidationLevel, type ValidationEntry } from "./entry";
+import { type ValidationEntry, ValidationLevel } from "./entry";
 import { ValidationEntryCollection } from "./entry-collection";
 
 /**
