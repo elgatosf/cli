@@ -22,7 +22,7 @@ export const pack = command<PackOptions>(
 		const outputPath = resolve(options.output, `${getPluginId(sourcePath)}.streamDeckPlugin`);
 
 		// Version (optionally) and validate.
-		const versioner = options.version !== null ? await version(sourcePath, options.version) : undefined;
+		const versioner = await version(sourcePath, options.version);
 		try {
 			await validate({
 				...options,
@@ -30,7 +30,7 @@ export const pack = command<PackOptions>(
 			});
 		} catch (err) {
 			if (err instanceof StdoutError) {
-				versioner?.undo();
+				versioner.undo();
 				stdout.exit(1);
 			}
 
@@ -166,18 +166,20 @@ async function getPackageContents(path: string, fileFn?: (file: FileInfo, stream
 /**
  * Versions the manifest at the specified {@link path}.
  * @param path Path to the directory where the manifest is contained.
- * @param version Desired version.
+ * @param version Optional preferred version.
  * @returns Object that allows for the versioning to be undone.
  */
-async function version(path: string, version: string): Promise<VersionReverter> {
+async function version(path: string, version: string | null): Promise<VersionReverter> {
 	const manifestPath = resolve(path, "manifest.json");
 	const write = (contents: string): void => writeFileSync(manifestPath, contents, { encoding: "utf-8" });
 	let original: string | undefined;
 
 	if (existsSync(manifestPath)) {
 		original = await readFile(manifestPath, { encoding: "utf-8" });
+		const manifest = JSON.parse(original) as Partial<Manifest>;
 
-		const manifest = JSON.parse(original);
+		// Ensure the version in the manifest has the correct number of segments, [{major}.{minor}.{patch}.{build}]
+		version ??= manifest.Version?.toString() || "";
 		manifest.Version = `${version}${".0".repeat(Math.max(0, 4 - version.split(".").length))}`;
 		write(JSON.stringify(manifest, undefined, "\t"));
 	}
