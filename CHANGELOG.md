@@ -22,6 +22,7 @@
 
 ### ♻️ Update
 
+- Update template to `{major}.{minor}.{patch}.{build}` version format.
 - Update `streamdeck pack` to automatically adjust version format.
 
 ### 🐞 Bug Fixes
