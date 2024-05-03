@@ -17,7 +17,7 @@ export function createConsole(reduceMotion: boolean): StdOut {
 	return new ConsoleStdOut({
 		interactive,
 		level: MessageLevel.LOG,
-		reduceMotion: reduceMotion || !interactive
+		reduceMotion: reduceMotion || !interactive,
 	});
 }
 
@@ -29,7 +29,7 @@ export function createQuietConsole(): StdOut {
 	return new ConsoleStdOut({
 		interactive: false,
 		level: MessageLevel.WARN,
-		reduceMotion: true
+		reduceMotion: true,
 	});
 }
 
@@ -388,5 +388,5 @@ enum MessageLevel {
 	/**
 	 * Miscellaneous information that is not represented by a symbol.
 	 */
-	LOG = 4
+	LOG = 4,
 }

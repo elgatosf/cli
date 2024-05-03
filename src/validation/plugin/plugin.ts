@@ -1,6 +1,7 @@
 import type { Layout, Manifest } from "@elgato/schemas/streamdeck/plugins";
 import { createRequire } from "node:module";
 import { basename, dirname, join, resolve } from "node:path";
+
 import { JsonLocation, LocationRef } from "../../common/location";
 import { JsonFileContext, JsonSchema } from "../../json";
 import { isPredefinedLayoutLike, isValidPluginId } from "../../stream-deck";
@@ -23,7 +24,7 @@ export function createContext(path: string): PluginContext {
 	return {
 		hasValidId: isValidPluginId(id),
 		manifest: new ManifestJsonFileContext(join(path, "manifest.json")),
-		id
+		id,
 	};
 }
 
@@ -49,7 +50,7 @@ class ManifestJsonFileContext extends JsonFileContext<Manifest> {
 				const filePath = resolve(dirname(path), action.Encoder.layout.value);
 				this.layoutFiles.push({
 					location: action.Encoder.layout.location,
-					layout: new JsonFileContext<Layout>(filePath, compiledLayoutSchema)
+					layout: new JsonFileContext<Layout>(filePath, compiledLayoutSchema),
 				});
 			}
 		});

@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import { basename, extname, join, resolve } from "node:path";
+
 import { colorize } from "../../../common/stdout";
 import { aggregate } from "../../../common/utils";
 import { FilePathOptions } from "../../../json";
@@ -18,7 +19,7 @@ export const manifestFilesExist = rule<PluginContext>(async function (plugin: Pl
 	// Validate the manifest is flagged to be ignored.
 	if (ignores(basename(plugin.manifest.path))) {
 		this.addError(plugin.manifest.path, "Manifest file must not be ignored", {
-			suggestion: `Review ${streamDeckIgnoreFilename} file`
+			suggestion: `Review ${streamDeckIgnoreFilename} file`,
 		});
 	}
 
@@ -42,12 +43,18 @@ export const manifestFilesExist = rule<PluginContext>(async function (plugin: Pl
 
 		// When the value type is incorrect, or there is already a schema error, we can rely on schema validation.
 		const { node } = nodeRef;
-		if (typeof node.value !== "string" || plugin.manifest.errors.find((e) => e.location?.instancePath === instancePath)) {
+		if (
+			typeof node.value !== "string" ||
+			plugin.manifest.errors.find((e) => e.location?.instancePath === instancePath)
+		) {
 			return;
 		}
 
 		// Determine the possible paths from the file path options.
-		const possiblePaths = typeof opts === "object" && !opts.includeExtension ? opts.extensions.map((ext) => `${node.value}${ext}`) : [node.value];
+		const possiblePaths =
+			typeof opts === "object" && !opts.includeExtension
+				? opts.extensions.map((ext) => `${node.value}${ext}`)
+				: [node.value];
 
 		// Attempt to resolve the possible paths the value can represent.
 		let resolvedPath: string | undefined = undefined;
@@ -56,7 +63,11 @@ export const manifestFilesExist = rule<PluginContext>(async function (plugin: Pl
 			if (existsSync(path)) {
 				// If the path has already been resolved, there are files with duplicate names, e.g. "my-image.png" and "my-image.svg". Warn, and highlighted the resolved path.
 				if (resolvedPath !== undefined) {
-					this.addWarning(plugin.manifest.path, `multiple files named ${colorize(node.value)} found, using ${colorize(resolvedPath)}`, node);
+					this.addWarning(
+						plugin.manifest.path,
+						`multiple files named ${colorize(node.value)} found, using ${colorize(resolvedPath)}`,
+						node,
+					);
 					break;
 				}
 
@@ -68,7 +79,7 @@ export const manifestFilesExist = rule<PluginContext>(async function (plugin: Pl
 		if (resolvedPath === undefined) {
 			this.addError(plugin.manifest.path, `file not found, ${colorize(node.value)}`, {
 				...node,
-				suggestion: typeof opts === "object" ? `File must be ${aggregate(opts.extensions, "or")}` : undefined
+				suggestion: typeof opts === "object" ? `File must be ${aggregate(opts.extensions, "or")}` : undefined,
 			});
 
 			return;
@@ -78,7 +89,7 @@ export const manifestFilesExist = rule<PluginContext>(async function (plugin: Pl
 		if (ignores(resolvedPath)) {
 			this.addError(plugin.manifest.path, `file must not be ignored, ${colorize(resolvedPath)}`, {
 				...node,
-				suggestion: `Review ${streamDeckIgnoreFilename} file`
+				suggestion: `Review ${streamDeckIgnoreFilename} file`,
 			});
 
 			return;
@@ -94,8 +105,8 @@ export const manifestFilesExist = rule<PluginContext>(async function (plugin: Pl
 			if (!existsSync(join(this.path, `${node.value}@2x.png`))) {
 				this.addWarning(fullPath, "should have high-resolution (@2x) variant", {
 					location: {
-						key: node.location.key
-					}
+						key: node.location.key,
+					},
 				});
 				missingHighRes.add(fullPath);
 			}

@@ -20,6 +20,11 @@
 - Add `-v` option to display current version of CLI.
 - Add "Open in VSCode" prompt, as part of creation wizard, for macOS.
 
+### ♻️ Update
+
+- Update template to `{major}.{minor}.{patch}.{build}` version format.
+- Update `streamdeck pack` to automatically adjust version format.
+
 ### 🐞 Bug Fixes
 
 - Fix support for Visual Studio integrated terminal.

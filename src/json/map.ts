@@ -1,5 +1,14 @@
-import { type ArrayNode, type DocumentNode, type ElementNode, type MemberNode, type NullNode, type ObjectNode, type ValueNode } from "@humanwhocodes/momoa";
+import {
+	type ArrayNode,
+	type DocumentNode,
+	type ElementNode,
+	type MemberNode,
+	type NullNode,
+	type ObjectNode,
+	type ValueNode,
+} from "@humanwhocodes/momoa";
 import { type AnyValidateFunction } from "ajv/dist/types";
+
 import { type JsonLocation, type LocationRef } from "../common/location";
 
 /**
@@ -56,14 +65,14 @@ export class JsonObjectMap<T> {
 	private aggregate(
 		node: ArrayNode | DocumentNode | ElementNode | NullNode | ObjectNode | ValueNode,
 		pointer: string,
-		errors: AnyValidateFunction<T>["errors"]
+		errors: AnyValidateFunction<T>["errors"],
 	): JsonElement | JsonElement[] | JsonObject {
 		const nodeRef: NodeRef = {
 			location: {
 				...node.loc?.start,
 				instancePath: pointer,
-				key: getPath(pointer)
-			}
+				key: getPath(pointer),
+			},
 		};
 
 		this.nodes.set(pointer, nodeRef);
@@ -76,10 +85,13 @@ export class JsonObjectMap<T> {
 
 		// Object node, recursively reduce each member.
 		if (node.type === "Object") {
-			return node.members.reduce((obj: Record<string, JsonElement | JsonElement[] | JsonObject>, member: MemberNode) => {
-				obj[member.name.value] = this.aggregate(member.value, `${pointer}/${member.name.value}`, errors);
-				return obj;
-			}, {});
+			return node.members.reduce(
+				(obj: Record<string, JsonElement | JsonElement[] | JsonObject>, member: MemberNode) => {
+					obj[member.name.value] = this.aggregate(member.value, `${pointer}/${member.name.value}`, errors);
+					return obj;
+				},
+				{},
+			);
 		}
 
 		// Array node, recursively reduce each element.
@@ -99,7 +111,9 @@ export class JsonObjectMap<T> {
 			return nodeRef.node;
 		}
 
-		throw new Error(`Encountered unhandled node type '${node.type}' when mapping abstract-syntax tree node to JSON object`);
+		throw new Error(
+			`Encountered unhandled node type '${node.type}' when mapping abstract-syntax tree node to JSON object`,
+		);
 	}
 }
 
@@ -128,7 +142,8 @@ export type JsonObject<T = unknown> = {
 /**
  * JSON property within a JSON string, including it's parsed value, and the location it was parsed from.
  */
-export type JsonElement<T = unknown> = T extends Array<infer E> ? JsonElement<E>[] : T extends object | undefined ? JsonObject<T> : JsonValueNode<T>;
+export type JsonElement<T = unknown> =
+	T extends Array<infer E> ? JsonElement<E>[] : T extends object | undefined ? JsonObject<T> : JsonValueNode<T>;
 
 /**
  * Represents a node within a JSON structure.
@@ -141,7 +156,7 @@ class JsonValueNode<T> implements LocationRef<JsonLocation> {
 	 */
 	constructor(
 		public readonly value: T,
-		public readonly location: JsonLocation
+		public readonly location: JsonLocation,
 	) {}
 
 	/** @inheritdoc */

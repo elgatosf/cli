@@ -17,15 +17,15 @@ export const defaultConfig: Config = Object.freeze({
 	npm: {
 		cli: {
 			mode: "prod" as const,
-			version: `^${JSON.parse(readFileSync(relative("../package.json"), { encoding: "utf-8" })).version}`
+			version: `^${JSON.parse(readFileSync(relative("../package.json"), { encoding: "utf-8" })).version}`,
 		},
 		streamDeck: {
 			mode: "prod" as const,
-			version: "^0.3.0"
-		}
+			version: "^0.3.0",
+		},
 	},
 	reduceMotion: false,
-	packageManager: "npm"
+	packageManager: "npm",
 });
 
 /**
@@ -129,7 +129,9 @@ function exitWithError(message: string, errors?: string[]): never {
 	}
 
 	console.log();
-	console.log(`Please repair the configuration file or run ${chalk.cyan("streamdeck config reset")} to reset all configuration values.`);
+	console.log(
+		`Please repair the configuration file or run ${chalk.cyan("streamdeck config reset")} to reset all configuration values.`,
+	);
 	console.log();
 	console.log(getFilePath());
 
@@ -149,21 +151,21 @@ const validateSchema = new Ajv({ allErrors: true }).compile({
 					additionalProperties: true,
 					optionalProperties: {
 						mode: { enum: ["dev", "prod"] },
-						version: { type: "string" }
-					}
+						version: { type: "string" },
+					},
 				},
 				streamDeck: {
 					additionalProperties: true,
 					optionalProperties: {
 						mode: { enum: ["dev", "prod"] },
-						version: { type: "string" }
-					}
-				}
-			}
+						version: { type: "string" },
+					},
+				},
+			},
 		},
 		reduceMotion: { type: "boolean" },
-		packageManager: { enum: ["npm", "yarn", "pnpm", "bun"] }
-	}
+		packageManager: { enum: ["npm", "yarn", "pnpm", "bun"] },
+	},
 } satisfies JTDSchemaType<DeepPartial<Config>>);
 
 /**
@@ -180,7 +182,7 @@ function validate(config: unknown): never | void {
 		validateSchema.errors?.map(({ instancePath, message, params: { allowedValues } }) => {
 			const detail = allowedValues ? `: ${allowedValues.join(", ")}` : "";
 			return `[${instancePath.replaceAll("/", ".").substring(1)}] ${message}${detail}`;
-		})
+		}),
 	);
 }
 

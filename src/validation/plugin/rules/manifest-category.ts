@@ -7,18 +7,18 @@ import { type PluginContext } from "../plugin";
 export const categoryMatchesName = rule<PluginContext>(function (plugin) {
 	const {
 		manifest: {
-			value: { Category: category, Name: name }
-		}
+			value: { Category: category, Name: name },
+		},
 	} = plugin;
 
 	if (name?.value !== undefined && category?.value !== name?.value) {
 		const val = category?.value === undefined ? undefined : `'${category}'`;
 		this.addWarning(plugin.manifest.path, `should match plugin name`, {
 			location: {
-				key: "Category"
+				key: "Category",
 			},
 			...category,
-			suggestion: `Expected '${name}', but was ${val}`
+			suggestion: `Expected '${name}', but was ${val}`,
 		});
 	}
 });

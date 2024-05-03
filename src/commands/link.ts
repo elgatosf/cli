@@ -27,7 +27,9 @@ export const link = command<LinkOptions>(
 			return feedback
 				.error("Linking failed")
 				.log(`Invalid directory name: ${basename(options.path)}`)
-				.log('Name must be in reverse DNS format, be suffixed with ".sdPlugin", and must only contain lowercase alphanumeric characters (a-z, 0-9), hyphens (-), and periods (.).')
+				.log(
+					'Name must be in reverse DNS format, be suffixed with ".sdPlugin", and must only contain lowercase alphanumeric characters (a-z, 0-9), hyphens (-), and periods (.).',
+				)
 				.log(`Examples: ${chalk.green("com.elgato.wave-link.sdPlugin")}, ${chalk.green("tv.twitch.studio.sdPlugin")}`)
 				.exit(1);
 		}
@@ -42,7 +44,9 @@ export const link = command<LinkOptions>(
 				return feedback
 					.error("Linking failed")
 					.log(`Plugin already installed: ${uuid}`)
-					.log(`Another plugin with this UUID is already installed. Please uninstall the plugin, or rename the directory being linked, and try again.`)
+					.log(
+						`Another plugin with this UUID is already installed. Please uninstall the plugin, or rename the directory being linked, and try again.`,
+					)
 					.exit(1);
 			}
 		}
@@ -51,8 +55,8 @@ export const link = command<LinkOptions>(
 		feedback.success("Linked successfully");
 	},
 	{
-		path: process.cwd()
-	}
+		path: process.cwd(),
+	},
 );
 
 /**

@@ -1,4 +1,5 @@
 import { readFileSync, writeFileSync } from "fs";
+
 import { relative } from "../system/path";
 
 const storePath = relative("../.cli.cache");
@@ -33,7 +34,7 @@ export const store = {
 		const cache = readStore();
 		cache[key] = value;
 		writeFileSync(storePath, JSON.stringify(cache), { encoding: "utf-8", flag: "w" });
-	}
+	},
 };
 
 /**

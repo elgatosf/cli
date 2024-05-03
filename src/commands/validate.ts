@@ -1,4 +1,5 @@
 import { resolve } from "node:path";
+
 import { command } from "../common/command";
 import { StdoutError } from "../common/stdout";
 import { store } from "../common/storage";
@@ -17,7 +18,7 @@ export const defaultOptions = {
 	forceUpdateCheck: false,
 	quietSuccess: false,
 	path: process.cwd(),
-	updateCheck: true
+	updateCheck: true,
 } satisfies ValidateOptions;
 
 /**

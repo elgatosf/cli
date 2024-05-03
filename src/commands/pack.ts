@@ -6,10 +6,11 @@ import { readFile, rm } from "node:fs/promises";
 import { basename, dirname, join, resolve } from "node:path";
 import { Readable, Writable } from "node:stream";
 import type { ReadableStream } from "node:stream/web";
+
 import { command } from "../common/command";
 import { StdoutError } from "../common/stdout";
 import { getPluginId } from "../stream-deck";
-import { getFiles, mkdirIfNotExists, readJsonFile, sizeAsString, type FileInfo } from "../system/fs";
+import { type FileInfo, getFiles, mkdirIfNotExists, readJsonFile, sizeAsString } from "../system/fs";
 import { defaultOptions, validate, type ValidateOptions } from "./validate";
 
 /**
@@ -22,15 +23,15 @@ export const pack = command<PackOptions>(
 		const outputPath = resolve(options.output, `${getPluginId(sourcePath)}.streamDeckPlugin`);
 
 		// Version (optionally) and validate.
-		const versioner = options.version !== null ? await version(sourcePath, options.version) : undefined;
+		const versioner = await version(sourcePath, options.version);
 		try {
 			await validate({
 				...options,
-				quietSuccess: true
+				quietSuccess: true,
 			});
 		} catch (err) {
 			if (err instanceof StdoutError) {
-				versioner?.undo();
+				versioner.undo();
 				stdout.exit(1);
 			}
 
@@ -42,7 +43,10 @@ export const pack = command<PackOptions>(
 			if (options.force) {
 				await rm(outputPath);
 			} else {
-				stdout.error("File already exists").log("Specify a different -o|-output location, or -f|--force saving to overwrite the existing file").exit(1);
+				stdout
+					.error("File already exists")
+					.log("Specify a different -o|-output location, or -f|--force saving to overwrite the existing file")
+					.exit(1);
 			}
 		}
 
@@ -60,7 +64,9 @@ export const pack = command<PackOptions>(
 		stdout.log(chalk.cyan("Plugin Contents"));
 
 		contents.files.forEach((file, i) => {
-			stdout.log(`${chalk.dim(i === contents.files.length - 1 ? "└─" : "├─")}  ${file.size.text.padEnd(contents.sizePad)}  ${file.path.relative}`);
+			stdout.log(
+				`${chalk.dim(i === contents.files.length - 1 ? "└─" : "├─")}  ${file.size.text.padEnd(contents.sizePad)}  ${file.path.relative}`,
+			);
 		});
 
 		// Print the package details.
@@ -87,8 +93,8 @@ export const pack = command<PackOptions>(
 		dryRun: false,
 		force: false,
 		output: process.cwd(),
-		version: null
-	}
+		version: null,
+	},
 );
 
 /**
@@ -103,7 +109,7 @@ function getPackageBuilder(sourcePath: string, outputPath: string, dryRun = fals
 	if (dryRun) {
 		return {
 			add: () => Promise.resolve(),
-			close: (): void => {}
+			close: (): void => {},
 		};
 	}
 
@@ -116,7 +122,7 @@ function getPackageBuilder(sourcePath: string, outputPath: string, dryRun = fals
 			const name = join(entryPrefix, file.path.relative).replaceAll("\\", "/");
 			await zipStream.add(name, stream ?? Readable.toWeb(createReadStream(file.path.absolute)));
 		},
-		close: () => zipStream.close()
+		close: () => zipStream.close(),
 	};
 }
 
@@ -126,14 +132,17 @@ function getPackageBuilder(sourcePath: string, outputPath: string, dryRun = fals
  * @param fileFn Optional function called for each file that is considered part of the package.
  * @returns Information about the package contents.
  */
-async function getPackageContents(path: string, fileFn?: (file: FileInfo, stream?: ReadableStream) => Promise<void> | void): Promise<PackageInfo> {
+async function getPackageContents(
+	path: string,
+	fileFn?: (file: FileInfo, stream?: ReadableStream) => Promise<void> | void,
+): Promise<PackageInfo> {
 	// Get the manifest, and generate the base contents.
 	const manifest = await readJsonFile<Manifest>(join(path, "manifest.json"));
 	const contents: PackageInfo = {
 		files: [],
 		manifest,
 		size: 0,
-		sizePad: 0
+		sizePad: 0,
 	};
 
 	// Add each file to the contents.
@@ -166,18 +175,20 @@ async function getPackageContents(path: string, fileFn?: (file: FileInfo, stream
 /**
  * Versions the manifest at the specified {@link path}.
  * @param path Path to the directory where the manifest is contained.
- * @param version Desired version.
+ * @param version Optional preferred version.
  * @returns Object that allows for the versioning to be undone.
  */
-async function version(path: string, version: string): Promise<VersionReverter> {
+async function version(path: string, version: string | null): Promise<VersionReverter> {
 	const manifestPath = resolve(path, "manifest.json");
 	const write = (contents: string): void => writeFileSync(manifestPath, contents, { encoding: "utf-8" });
 	let original: string | undefined;
 
 	if (existsSync(manifestPath)) {
 		original = await readFile(manifestPath, { encoding: "utf-8" });
+		const manifest = JSON.parse(original) as Partial<Manifest>;
 
-		const manifest = JSON.parse(original);
+		// Ensure the version in the manifest has the correct number of segments, [{major}.{minor}.{patch}.{build}]
+		version ??= manifest.Version?.toString() || "";
 		manifest.Version = `${version}${".0".repeat(Math.max(0, 4 - version.split(".").length))}`;
 		write(JSON.stringify(manifest, undefined, "\t"));
 	}
@@ -187,7 +198,7 @@ async function version(path: string, version: string): Promise<VersionReverter> 
 			if (original !== undefined) {
 				write(original);
 			}
-		}
+		},
 	};
 }
 

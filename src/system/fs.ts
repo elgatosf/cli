@@ -45,12 +45,12 @@ export async function* getFiles(path: string, ignorePatterns?: string[]): AsyncG
 			name: basename(absolute),
 			path: {
 				absolute,
-				relative: entry
+				relative: entry,
 			},
 			size: {
 				bytes: stats.size,
-				text: sizeAsString(stats.size)
-			}
+				text: sizeAsString(stats.size),
+			},
 		};
 	}
 }
@@ -61,7 +61,10 @@ export async function* getFiles(path: string, ignorePatterns?: string[]): AsyncG
  * @param defaultPatterns Collection of default ignore patterns.
  * @returns Predicate that determines whether the path should be ignored; returns `true` when the path should be ignored.
  */
-export async function getIgnores(path: string, defaultPatterns: string[] = defaultIgnorePatterns): Promise<(path: string) => boolean> {
+export async function getIgnores(
+	path: string,
+	defaultPatterns: string[] = defaultIgnorePatterns,
+): Promise<(path: string) => boolean> {
 	const i = ignore().add(defaultPatterns);
 
 	// When a ".sdignore" file is present, add the ignore patterns.
@@ -71,7 +74,7 @@ export async function getIgnores(path: string, defaultPatterns: string[] = defau
 		try {
 			const rl = createInterface({
 				input: fileStream,
-				crlfDelay: Infinity
+				crlfDelay: Infinity,
 			});
 
 			// Treat each line as a pattern, adding it to the ignore.

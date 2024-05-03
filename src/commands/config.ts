@@ -2,7 +2,7 @@ import chalk from "chalk";
 import { existsSync, rmSync } from "fs";
 import _ from "lodash";
 
-import { GlobalOptions, command } from "../common/command";
+import { command, GlobalOptions } from "../common/command";
 import { createConsole, createQuietConsole } from "../common/stdout";
 import { defaultConfig, getFilePath, getLocalConfig, updateConfig } from "../config";
 
@@ -48,7 +48,10 @@ export const list = command((options, output) => {
  * @param options Options associated with the
  * @param output Output whereby the result will be sent.
  */
-export function reset(options: GlobalOptions = { quiet: false }, output = options.quiet ? createQuietConsole() : createConsole(false)): void {
+export function reset(
+	options: GlobalOptions = { quiet: false },
+	output = options.quiet ? createQuietConsole() : createConsole(false),
+): void {
 	const filePath = getFilePath();
 	if (existsSync(filePath)) {
 		rmSync(filePath);

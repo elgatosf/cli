@@ -5,11 +5,11 @@ import path from "node:path";
 
 import { command } from "../common/command";
 import { createCopier } from "../common/file-copier";
-import { invalidCharacters, isExecutable, isSafeBaseName, relative } from "../system/path";
 import { run } from "../common/runner";
 import { StdOut } from "../common/stdout";
 import { getConfig } from "../config";
 import { generatePluginId, getPlugins, isValidPluginId } from "../stream-deck";
+import { invalidCharacters, isExecutable, isSafeBaseName, relative } from "../system/path";
 import { setDeveloperMode } from "./dev";
 import { link } from "./link";
 
@@ -80,13 +80,13 @@ async function promptForPluginInfo(): Promise<PluginInfo> {
 			name: "author",
 			message: "Author:",
 			validate: required("Please enter the author."),
-			type: "input"
+			type: "input",
 		},
 		{
 			name: "name",
 			message: "Plugin Name:",
 			validate: required("Please enter the name of the plugin."),
-			type: "input"
+			type: "input",
 		},
 		{
 			name: "uuid",
@@ -103,14 +103,14 @@ async function promptForPluginInfo(): Promise<PluginInfo> {
 
 				return true;
 			},
-			type: "input"
+			type: "input",
 		},
 		{
 			name: "description",
 			message: "Description:",
 			validate: required("Please enter a brief description of what the plugin will do."),
-			type: "input"
-		}
+			type: "input",
+		},
 	]);
 }
 
@@ -130,7 +130,7 @@ async function validateDestination(dirName: string, stdout: StdOut): Promise<str
 			name: "directory",
 			message: "Directory:",
 			validate,
-			type: "input"
+			type: "input",
 		});
 
 		dirName = directory;
@@ -186,7 +186,7 @@ async function isPluginInfoCorrect(stdout: StdOut): Promise<boolean> {
 			name: "confirm",
 			message: "Create Stream Deck plugin from information above?",
 			default: true,
-			type: "confirm"
+			type: "confirm",
 		})
 	).confirm;
 }
@@ -198,7 +198,11 @@ async function isPluginInfoCorrect(stdout: StdOut): Promise<boolean> {
  * @param options Supporting data supplied to the renderer.
  * @returns The file copier capable of rendering the template.
  */
-function createTemplateRenderer(destination: string, pluginInfo: PluginInfo, options = { isPreBuild: true }): ReturnType<typeof createCopier> {
+function createTemplateRenderer(
+	destination: string,
+	pluginInfo: PluginInfo,
+	options = { isPreBuild: true },
+): ReturnType<typeof createCopier> {
 	const config = getConfig();
 	return createCopier({
 		dest: destination,
@@ -208,9 +212,9 @@ function createTemplateRenderer(destination: string, pluginInfo: PluginInfo, opt
 			...options,
 			npm: {
 				cli: config.npm.cli.version,
-				streamDeck: config.npm.streamDeck.version
-			}
-		}
+				streamDeck: config.npm.streamDeck.version,
+			},
+		},
 	});
 }
 
@@ -229,7 +233,7 @@ async function renderTemplate(destination: string, pluginInfo: PluginInfo): Prom
 		template.copy("_.gitignore", ".gitignore"),
 		template.copy("package.json.ejs"),
 		template.copy("rollup.config.mjs.ejs"),
-		template.copy("tsconfig.json.ejs")
+		template.copy("tsconfig.json.ejs"),
 	]);
 }
 
@@ -243,7 +247,7 @@ async function finalize(destination: string, pluginInfo: PluginInfo): Promise<vo
 
 	link({
 		path: path.join(destination, `${pluginInfo.uuid}.sdPlugin`),
-		quiet: true
+		quiet: true,
 	});
 }
 
@@ -262,7 +266,7 @@ async function tryOpenVSCode(destination: string, stdout: StdOut): Promise<void>
 		name: "confirm",
 		message: "Would you like to open the plugin in VS Code?",
 		default: true,
-		type: "confirm"
+		type: "confirm",
 	});
 
 	if (vsCode.confirm) {

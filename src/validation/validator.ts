@@ -1,4 +1,4 @@
-import { ValidationEntry, ValidationLevel, type ValidationEntryDetails } from "./entry";
+import { ValidationEntry, type ValidationEntryDetails, ValidationLevel } from "./entry";
 import { ValidationResult } from "./result";
 import { type ValidationRule } from "./rule";
 
@@ -31,7 +31,7 @@ export class ValidationContext {
 	 */
 	constructor(
 		public readonly path: string,
-		private readonly result: ValidationResult
+		private readonly result: ValidationResult,
 	) {}
 
 	/**

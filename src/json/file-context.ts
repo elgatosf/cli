@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
-import { JsonObjectMap, type JsonObject } from "./map";
+
+import { type JsonObject, JsonObjectMap } from "./map";
 import type { JsonSchema, JsonSchemaError } from "./schema";
 
 /**
@@ -23,7 +24,7 @@ export class JsonFileContext<T extends object> {
 	 */
 	constructor(
 		public readonly path: string,
-		public readonly schema: JsonSchema<T>
+		public readonly schema: JsonSchema<T>,
 	) {
 		if (existsSync(this.path)) {
 			const json = readFileSync(this.path, { encoding: "utf-8" });

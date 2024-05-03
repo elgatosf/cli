@@ -1,11 +1,14 @@
 import { StdOut } from "../common/stdout";
-import { ValidationLevel, type ValidationEntry } from "./entry";
+import { type ValidationEntry, ValidationLevel } from "./entry";
 import { ValidationEntryCollection } from "./entry-collection";
 
 /**
  * Validation result containing a collection of {@link ValidationEntryCollection} grouped by the directory or file path they're associated with.
  */
-export class ValidationResult extends Array<ValidationEntryCollection> implements ReadonlyArray<ValidationEntryCollection> {
+export class ValidationResult
+	extends Array<ValidationEntryCollection>
+	implements ReadonlyArray<ValidationEntryCollection>
+{
 	/**
 	 * Private backing field for {@link Result.errorCount}.
 	 */
@@ -66,7 +69,9 @@ export class ValidationResult extends Array<ValidationEntryCollection> implement
 
 		// Both errors and warnings.
 		if (this.hasErrors() && this.hasWarnings()) {
-			output.error(`${pluralize("problem", this.errorCount + this.warningCount)} (${pluralize("error", this.errorCount)}, ${pluralize("warning", this.warningCount)})`);
+			output.error(
+				`${pluralize("problem", this.errorCount + this.warningCount)} (${pluralize("error", this.errorCount)}, ${pluralize("warning", this.warningCount)})`,
+			);
 			return;
 		}
 

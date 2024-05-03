@@ -1,4 +1,9 @@
-import child_process, { ChildProcessByStdio, SpawnOptionsWithStdioTuple, StdioNull, StdioPipe } from "node:child_process";
+import child_process, {
+	ChildProcessByStdio,
+	SpawnOptionsWithStdioTuple,
+	StdioNull,
+	StdioPipe,
+} from "node:child_process";
 import { Readable } from "node:stream";
 
 /**
@@ -54,16 +59,19 @@ function forget(command: string, args: string[], options: RunOptions): Promise<n
  * @param stderr The desired stderr of the child process.
  * @returns The merged options.
  */
-function mergeOptions<T extends StdioNull | StdioPipe>(options: RunOptions, stderr: T): SpawnOptionsWithStdioTuple<StdioNull, StdioNull, T> {
+function mergeOptions<T extends StdioNull | StdioPipe>(
+	options: RunOptions,
+	stderr: T,
+): SpawnOptionsWithStdioTuple<StdioNull, StdioNull, T> {
 	return {
 		...{
 			shell: true,
-			windowsHide: true
+			windowsHide: true,
 		},
 		...options,
 		...{
-			stdio: ["ignore", "ignore", stderr]
-		}
+			stdio: ["ignore", "ignore", stderr],
+		},
 	};
 }
 

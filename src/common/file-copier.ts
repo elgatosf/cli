@@ -10,7 +10,7 @@ import { dirname, extname, resolve } from "path";
 export function createCopier(options: Options): FileCopier {
 	return new FileCopier({
 		data: {},
-		...options
+		...options,
 	});
 }
 
@@ -32,7 +32,7 @@ class FileCopier {
 	public async copy(path: string, destination?: string): Promise<void> {
 		const opts = {
 			source: resolve(this.options.source, path),
-			dest: resolve(this.options.dest, destination || path)
+			dest: resolve(this.options.dest, destination || path),
 		};
 
 		if (fs.lstatSync(opts.source).isDirectory()) {
@@ -61,7 +61,7 @@ class FileCopier {
 
 		fs.cpSync(source, dest, {
 			filter,
-			recursive: true
+			recursive: true,
 		});
 
 		templates.forEach((opts) => this.copyFile(opts));

@@ -1,5 +1,6 @@
 import { existsSync, lstatSync } from "node:fs";
 import { basename } from "node:path";
+
 import { colorize } from "../../../common/stdout";
 import { isValidPluginId } from "../../../stream-deck";
 import { rule } from "../../rule";
@@ -27,8 +28,12 @@ export const pathIsDirectoryAndUuid = rule<PluginContext>(function (plugin: Plug
 
 	// Directory name is a valid identifier.
 	if (!isValidPluginId(plugin.id)) {
-		this.addError(this.path, "Name must be in reverse DNS format, and must only contain lowercase alphanumeric characters (a-z, 0-9), hyphens (-), and periods (.)", {
-			suggestion: "Example: com.elgato.wave-link"
-		});
+		this.addError(
+			this.path,
+			"Name must be in reverse DNS format, and must only contain lowercase alphanumeric characters (a-z, 0-9), hyphens (-), and periods (.)",
+			{
+				suggestion: "Example: com.elgato.wave-link",
+			},
+		);
 	}
 });

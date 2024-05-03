@@ -1,5 +1,6 @@
 import { type Layout } from "@elgato/schemas/streamdeck/plugins";
 import chalk from "chalk";
+
 import { JsonElement, JsonObject } from "../../../json";
 import { rule } from "../../rule";
 import { type PluginContext } from "../plugin";
@@ -12,14 +13,14 @@ export const layoutItemsAreWithinBoundsAndNoOverlap = rule<PluginContext>(functi
 		for (let i = items.length - 1; i >= 0; i--) {
 			const {
 				node,
-				vertices: { x1, x2, y1, y2 }
+				vertices: { x1, x2, y1, y2 },
 			} = items[i];
 
 			// First check the bounds of the rectangle are within the canvas.
 			if (x1 < 0 || x2 > 200 || y1 < 0 || y2 > 100) {
 				this.addError(layout.path, "must not be outside of the canvas", {
 					...node,
-					suggestion: "Width and height, relative to the x and y, must be within the 200x100 px canvas"
+					suggestion: "Width and height, relative to the x and y, must be within the 200x100 px canvas",
 				});
 			}
 
@@ -48,8 +49,8 @@ function getItemBounds(layout: JsonObject<Layout>): Bounds[] {
 						x2: rect[0].value + rect[2].value,
 						y1: rect[1].value,
 						y2: rect[1].value + rect[3].value,
-						z: zOrder?.value ?? 0
-					}
+						z: zOrder?.value ?? 0,
+					},
 				});
 			}
 
