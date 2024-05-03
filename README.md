@@ -34,7 +34,7 @@ Commands:
   stop|s <uuid>                 Stops the plugin in Stream Deck.
   dev [options]                 Enables developer mode.
   validate [options] [path]     Validates the Stream Deck plugin.
-  pack|bundle [options] [path]  Create a .streamDeckPlugin file from the plugin.
+  pack|bundle [options] [path]  Creates a .streamDeckPlugin file from the plugin.
   config                        Manage the local configuration.
   help [command]                display help for command
 
@@ -45,14 +45,14 @@ Alias:
 
 ## Commands
 
-- [create](#%EF%B8%8F-create)<br />Creation wizard.
-- [link](#-link)<br />Links the plugin to Stream Deck.
-- [restart](#%EF%B8%8F-restart)<br />Starts the plugin in Stream Deck; if the plugin is already running, it is stopped first.
-- [stop](#-stop)<br />Stops the plugin in Stream Deck.
-- [validate](#sd-validate) (beta)<br />Validates the Stream Deck plugin.
-- [pack](#sd-pack) (beta)<br />Create a .streamDeckPlugin file from the plugin.
-- [dev](#%EF%B8%8F-dev)<br />Enables developer mode.
-- [config](#%EF%B8%8F-config)<br />Manage the local configuration.
+-   [create](#%EF%B8%8F-create)<br />Creation wizard.
+-   [link](#-link)<br />Links the plugin to Stream Deck.
+-   [restart](#%EF%B8%8F-restart)<br />Starts the plugin in Stream Deck; if the plugin is already running, it is stopped first.
+-   [stop](#-stop)<br />Stops the plugin in Stream Deck.
+-   [validate](#sd-validate)<br />Validates the Stream Deck plugin.
+-   [pack](#sd-pack)<br />Creates a .streamDeckPlugin file from the plugin.
+-   [dev](#%EF%B8%8F-dev)<br />Enables developer mode.
+-   [config](#%EF%B8%8F-config)<br />Manage the local configuration.
 
 ## ✏️ create
 
@@ -72,8 +72,8 @@ The creation wizard will guide you through creating Stream Deck plugins with our
 
 #### See Also
 
-- [dev](#%EF%B8%8F-dev)
-- [link](#-link)
+-   [dev](#%EF%B8%8F-dev)
+-   [link](#-link)
 
 ## 🔗 link
 
@@ -109,7 +109,7 @@ Instructs Stream Deck to start the plugin, as determined by the UUID. If the plu
 
 #### See Also
 
-- [stop](#-stop)
+-   [stop](#-stop)
 
 ## 🛑 stop
 
@@ -129,10 +129,10 @@ Instructs Stream Deck to stop the plugin, as determined by the UUID. When stoppe
 
 #### See Also
 
-- [restart](#%EF%B8%8F-restart)
+-   [restart](#%EF%B8%8F-restart)
 
 <h3 id="sd-validate">
-	✅ validate (beta)
+	✅ validate
 </h3>
 
 Validates the Stream Deck plugin.
@@ -158,20 +158,20 @@ Validates the Stream Deck plugin in the current working directory, or `path` whe
 
 #### `--force-update-check`
 
-- Default: `false`
-- Type: Boolean
+-   Default: `false`
+-   Type: Boolean
 
 Forces an update check of new validation rules; by default, an update check will occur once a day. Cannot be used in conjunction with `--no-update-check`.
 
 #### `--no-update-check`
 
-- Default: `false`
-- Type: Boolean
+-   Default: `false`
+-   Type: Boolean
 
 Prevents an update check of new validation rules. This configuration option is recommended when using the CLI as part of a build pipeline. Cannot be used in conjunction with `--force-update-check`.
 
 <h3 id="sd-pack">
-	📦 pack (beta)
+	📦 pack
 </h3>
 
 Creates a .streamDeckPlugin file from the plugin.
@@ -225,43 +225,43 @@ streamdeck pack --dry-run
 
 #### `--dry-run`
 
-- Default: `false`
-- Type: Boolean
+-   Default: `false`
+-   Type: Boolean
 
 Generates a report without creating a package.
 
 #### `-f|--force`
 
-- Default: `false`
-- Type: Boolean
+-   Default: `false`
+-   Type: Boolean
 
 Determines whether to overwrite the existing `.streamDeckPlugin` file if one already exists at the specified `output` directory.
 
 #### `-o|--output <output>`
 
-- Default: `cwd`
-- Type: String
+-   Default: `cwd`
+-   Type: String
 
 Specifies the path for the output directory where the `.streamDeckPlugin` file will be created.
 
 #### `--version <version>`
 
-- Default: `undefined`
-- Type: String (semver)
+-   Default: `undefined`
+-   Type: String (semver)
 
 Plugin version; value will be written to the manifest's `Version` property prior to packaging the plugin.
 
 #### `--force-update-check`
 
-- Default: `false`
-- Type: Boolean
+-   Default: `false`
+-   Type: Boolean
 
 Forces an update check of new validation rules; by default, an update check will occur once a day. Cannot be used in conjunction with `--no-update-check`.
 
 #### `--no-update-check`
 
-- Default: `false`
-- Type: Boolean
+-   Default: `false`
+-   Type: Boolean
 
 Prevents an update check of new validation rules. This configuration option is recommended when using the CLI as part of a build pipeline. Cannot be used in conjunction with `--force-update-check`.
 
@@ -334,14 +334,14 @@ Lists the defined configuration, eg. values defined using [config set](#set).
 
 #### reduceMotion
 
-- Default: `false`
-- Type: Boolean
+-   Default: `false`
+-   Type: Boolean
 
 Determines whether feedback provided should prefer reduced motion; when `true`, the busy indicator will be rendered as a static indicator.
 
 #### packageManager
 
-- Default: `npm`
-- Type: bun | npm | pnpm | yarn
+-   Default: `npm`
+-   Type: bun | npm | pnpm | yarn
 
 Determines the package manager to use when installing dependencies for every new project.
