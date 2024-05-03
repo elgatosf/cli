@@ -8,6 +8,6 @@ export {
 	type ValidationResult,
 } from "./validation";
 
-export { validatePlugin } from "./validation/plugin";
+export { validatePlugin as validateStreamDeckPlugin } from "./validation/plugin";
 
 chalk.level = 0;
