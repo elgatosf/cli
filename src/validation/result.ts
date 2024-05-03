@@ -1,14 +1,11 @@
 import { StdOut } from "../common/stdout";
 import { type ValidationEntry, ValidationLevel } from "./entry";
-import { ValidationEntryCollection } from "./entry-collection";
+import { FileValidationResult } from "./file-result";
 
 /**
- * Validation result containing a collection of {@link ValidationEntryCollection} grouped by the directory or file path they're associated with.
+ * Validation result containing a collection of {@link FileValidationResult} grouped by the directory or file path they're associated with.
  */
-export class ValidationResult
-	extends Array<ValidationEntryCollection>
-	implements ReadonlyArray<ValidationEntryCollection>
-{
+export class ValidationResult extends Array<FileValidationResult> implements ReadonlyArray<FileValidationResult> {
 	/**
 	 * Private backing field for {@link Result.errorCount}.
 	 */
@@ -31,13 +28,13 @@ export class ValidationResult
 			this.warningCount++;
 		}
 
-		let collection = this.find((c) => c.path === path);
-		if (collection === undefined) {
-			collection = new ValidationEntryCollection(path);
-			this.push(collection);
+		let fileResult = this.find((c) => c.path === path);
+		if (fileResult === undefined) {
+			fileResult = new FileValidationResult(path);
+			this.push(fileResult);
 		}
 
-		collection.add(entry);
+		fileResult.push(entry);
 	}
 
 	/**

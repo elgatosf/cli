@@ -6,9 +6,12 @@
         "streamdeck": "bin/streamdeck.mjs",
         "sd": "bin/streamdeck.mjs"
     },
+    "main": "./dist/index.js",
     "files": [
-        "bin/streamdeck.mjs",
-        "template"
+        "./bin/streamdeck.mjs",
+        "./dist/*.js",
+        "./dist/*.d.ts",
+        "./template"
     ],
     "type": "module",
     "engines": {
@@ -75,6 +78,7 @@
         "log-symbols": "^5.1.0",
         "rage-edit": "^1.2.0",
         "rollup": "^4.0.2",
+        "rollup-plugin-dts": "^6.1.0",
         "semver": "^7.6.0",
         "tar": "^7.0.1",
         "tslib": "^2.6.2",
