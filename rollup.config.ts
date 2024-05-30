@@ -7,8 +7,10 @@ import path, { extname } from "node:path";
 import url from "node:url";
 import { RollupOptions } from "rollup";
 import dts from "rollup-plugin-dts";
+import {inlineRequires} from "./scripts/inlineRequires"
 
 const isWatching = !!process.env.ROLLUP_WATCH;
+const shouldInlineRequires = !!process.env.INLINE_REQUIRES;
 
 /**
  * Ignore @elgato/schema to enable auto-update.
@@ -58,6 +60,7 @@ function getOptions(opts: Options): RollupOptions[] {
 							comments: false,
 						},
 					}),
+				shouldInlineRequires && inlineRequires(),
 			],
 		},
 	];
