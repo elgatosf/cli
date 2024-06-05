@@ -16,8 +16,9 @@ import { pathIsDirectoryAndUuid } from "./rules/path-input";
  * @param path Path to the plugin.
  * @returns The validation result.
  */
-export function validatePlugin(path: string): Promise<ValidationResult> {
-	return validate<PluginContext>(path, createContext(path), [
+export async function validatePlugin(path: string): Promise<ValidationResult> {
+	const ctx = await createContext(path);
+	return validate<PluginContext>(path, ctx, [
 		pathIsDirectoryAndUuid,
 		manifestExistsAndSchemaIsValid,
 		manifestFilesExist,

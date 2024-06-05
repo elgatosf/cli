@@ -7,10 +7,8 @@ import path, { extname } from "node:path";
 import url from "node:url";
 import { RollupOptions } from "rollup";
 import dts from "rollup-plugin-dts";
-import {inlineRequires} from "./scripts/inlineRequires"
 
 const isWatching = !!process.env.ROLLUP_WATCH;
-const shouldInlineRequires = !!process.env.INLINE_REQUIRES;
 
 /**
  * Ignore @elgato/schema to enable auto-update.
@@ -18,8 +16,7 @@ const shouldInlineRequires = !!process.env.INLINE_REQUIRES;
 const external = [
 	"@elgato/schemas",
 	"@elgato/schemas/streamdeck/plugins/",
-	"@elgato/schemas/streamdeck/plugins/layout.json",
-	"@elgato/schemas/streamdeck/plugins/manifest.json",
+	"@elgato/schemas/streamdeck/plugins/json",
 ];
 
 /**
@@ -60,7 +57,6 @@ function getOptions(opts: Options): RollupOptions[] {
 							comments: false,
 						},
 					}),
-				shouldInlineRequires && inlineRequires(),
 			],
 		},
 	];
