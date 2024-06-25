@@ -11,6 +11,12 @@
 
 # Change Log
 
+## 0.3.1
+
+### ✨ New
+
+-   Enable validation of Stream Deck plugins programmatically.
+
 ## 0.3.0
 
 ### ✨ New
