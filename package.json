@@ -6,9 +6,12 @@
         "streamdeck": "bin/streamdeck.mjs",
         "sd": "bin/streamdeck.mjs"
     },
+    "main": "./dist/index.js",
     "files": [
-        "bin/streamdeck.mjs",
-        "template"
+        "./bin/streamdeck.mjs",
+        "./dist/*.js",
+        "./dist/*.d.ts",
+        "./template"
     ],
     "type": "module",
     "engines": {
@@ -62,7 +65,7 @@
         "ajv": "^8.12.0",
         "chalk": "^5.3.0",
         "commander": "^11.0.0",
-        "ejs": "^3.1.9",
+        "ejs": "^3.1.10",
         "eslint": "^8.51.0",
         "eslint-config-prettier": "^9.0.0",
         "eslint-plugin-jsdoc": "^46.8.2",
@@ -75,12 +78,13 @@
         "log-symbols": "^5.1.0",
         "rage-edit": "^1.2.0",
         "rollup": "^4.0.2",
+        "rollup-plugin-dts": "^6.1.0",
         "semver": "^7.6.0",
         "tar": "^7.0.1",
         "tslib": "^2.6.2",
         "typescript": "^5.2.2"
     },
     "dependencies": {
-        "@elgato/schemas": "^0.3.0"
+        "@elgato/schemas": "^0.3.5"
     }
 }

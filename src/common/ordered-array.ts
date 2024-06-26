@@ -5,7 +5,7 @@ export class OrderedArray<T> extends Array<T> {
 	/**
 	 * Delegates responsible for determining the sort order.
 	 */
-	private readonly compareOn: ((value: T) => number | string)[];
+	readonly #compareOn: ((value: T) => number | string)[];
 
 	/**
 	 * Initializes a new instance of the {@link OrderedArray} class.
@@ -13,7 +13,7 @@ export class OrderedArray<T> extends Array<T> {
 	 */
 	constructor(...compareOn: ((value: T) => number | string)[]) {
 		super();
-		this.compareOn = compareOn;
+		this.#compareOn = compareOn;
 	}
 
 	/**
@@ -22,7 +22,7 @@ export class OrderedArray<T> extends Array<T> {
 	 * @returns New length of the array.
 	 */
 	public push(value: T): number {
-		super.splice(this.sortedIndex(value), 0, value);
+		super.splice(this.#sortedIndex(value), 0, value);
 		return this.length;
 	}
 
@@ -32,8 +32,8 @@ export class OrderedArray<T> extends Array<T> {
 	 * @param b Item B.
 	 * @returns `-1` when {@link a} is less than {@link b}, `1` when {@link a} is greater than {@link b}, otherwise `0`
 	 */
-	private compare(a: T, b: T): number {
-		for (const compareOn of this.compareOn) {
+	#compare(a: T, b: T): number {
+		for (const compareOn of this.#compareOn) {
 			const x = compareOn(a);
 			const y = compareOn(b);
 
@@ -53,13 +53,13 @@ export class OrderedArray<T> extends Array<T> {
 	 * @param value The value.
 	 * @returns Index.
 	 */
-	private sortedIndex(value: T): number {
+	#sortedIndex(value: T): number {
 		let low = 0;
 		let high = this.length;
 
 		while (low < high) {
 			const mid = (low + high) >>> 1;
-			const comparison = this.compare(value, this[mid]);
+			const comparison = this.#compare(value, this[mid]);
 
 			if (comparison === 0) {
 				return mid;

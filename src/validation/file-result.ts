@@ -5,37 +5,35 @@ import { StdOut } from "../common/stdout";
 import type { ValidationEntry } from "./entry";
 
 /**
- * Collection of {@link ValidationEntry}.
+ * Provides validation results for a specific file path.
  */
-export class ValidationEntryCollection {
-	/**
-	 * Entries within this collection.
-	 */
-	private entries = new OrderedArray<ValidationEntry>(
-		(x) => x.level,
-		(x) => x.details?.location?.line ?? Infinity,
-		(x) => x.details?.location?.column ?? Infinity,
-		(x) => x.message,
-	);
-
+export class FileValidationResult extends OrderedArray<ValidationEntry> {
 	/**
 	 * Tracks the padding required for the location of a validation entry, i.e. the text before the entry level.
 	 */
 	private padding = 0;
 
 	/**
-	 * Initializes a new instance of the {@link ValidationEntryCollection} class.
+	 * Initializes a new instance of the {@link FileValidationResult} class.
 	 * @param path Path that groups the entries together.
 	 */
-	constructor(public readonly path: string) {}
+	constructor(public readonly path: string) {
+		super(
+			(x) => x.level,
+			(x) => x.details?.location?.line ?? Infinity,
+			(x) => x.details?.location?.column ?? Infinity,
+			(x) => x.message,
+		);
+	}
 
 	/**
 	 * Adds the specified {@link entry} to the collection.
 	 * @param entry Entry to add.
+	 * @returns New length of the validation results.
 	 */
-	public add(entry: ValidationEntry): void {
+	public push(entry: ValidationEntry): number {
 		this.padding = Math.max(this.padding, entry.location.length);
-		this.entries.push(entry);
+		return super.push(entry);
 	}
 
 	/**
@@ -43,7 +41,7 @@ export class ValidationEntryCollection {
 	 * @param output Output to write to.
 	 */
 	public writeTo(output: StdOut): void {
-		if (this.entries.length === 0) {
+		if (this.length === 0) {
 			return;
 		}
 
@@ -54,7 +52,7 @@ export class ValidationEntryCollection {
 			output.log();
 		}
 
-		this.entries.forEach((entry) => output.log(entry.toString(this.padding)));
+		this.forEach((entry) => output.log(entry.toSummary(this.padding)));
 		output.log();
 	}
 }
