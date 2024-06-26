@@ -1,9 +1,9 @@
 import { keywordDefinitions } from "@elgato/schemas";
 import { parse } from "@humanwhocodes/momoa";
-import Ajv, { type AnySchema, AnySchemaObject, type DefinedError, ErrorObject, KeywordDefinition } from "ajv";
-import { type AnyValidateFunction, DataValidationCxt } from "ajv/dist/types";
+import Ajv, { AnySchemaObject, ErrorObject, KeywordDefinition, type AnySchema, type DefinedError } from "ajv";
+import { DataValidationCxt, type AnyValidateFunction } from "ajv/dist/types";
 import { type LimitNumberError } from "ajv/dist/vocabularies/validation/limitNumber";
-import { isEqual, uniqWith } from "lodash";
+import _ from "lodash";
 
 import { type JsonLocation, type LocationRef } from "../common/location";
 import { colorize } from "../common/stdout";
@@ -129,9 +129,9 @@ export class JsonSchema<T extends object> {
 		const ignoredKeywords = ["allOf", "anyOf", "if"];
 
 		// Remove ignored keywords, and remove duplicate errors.
-		return uniqWith(
+		return _.uniqWith(
 			errors.filter(({ keyword }) => !ignoredKeywords.includes(keyword)),
-			(a, b) => a.instancePath === b.instancePath && a.keyword === b.keyword && isEqual(a.params, b.params),
+			(a, b) => a.instancePath === b.instancePath && a.keyword === b.keyword && _.isEqual(a.params, b.params),
 		);
 	}
 

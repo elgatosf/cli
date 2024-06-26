@@ -6,11 +6,17 @@
         "streamdeck": "bin/streamdeck.mjs",
         "sd": "bin/streamdeck.mjs"
     },
-    "main": "./dist/index.js",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js",
+            "require": "./dist/index.cjs"
+        },
+        "./package.json": "./package.json"
+    },
     "files": [
-        "./bin/streamdeck.mjs",
-        "./dist/*.js",
-        "./dist/*.d.ts",
+        "./{bin,dist}/*.{js,cjs,mjs}",
+        "./{bin,dist}/*.d.{cts,ts}",
         "./template"
     ],
     "type": "module",
@@ -18,8 +24,8 @@
         "node": "^20.1.0"
     },
     "scripts": {
-        "build": "rm -rf ./dist && rollup --config rollup.config.ts --configPlugin typescript",
-        "watch": "rollup --config rollup.config.ts --configPlugin typescript --watch",
+        "build": "tsup",
+        "watch": "tsup --watch",
         "lint": "eslint . --ext .ts --max-warnings 0",
         "lint:fix": "prettier \"./src/**/*.ts\" --write",
         "preversion": "npm run build && npm run lint"
@@ -46,30 +52,14 @@
         "url": "https://github.com/elgatosf/cli/issues"
     },
     "homepage": "https://github.com/elgatosf/cli#readme",
-    "devDependencies": {
-        "@elgato/prettier-config": "^0.2.1",
+    "dependencies": {
+        "@elgato/schemas": "^0.3.5",
         "@humanwhocodes/momoa": "^3.0.0",
-        "@rollup/plugin-commonjs": "^25.0.5",
-        "@rollup/plugin-json": "^6.0.1",
-        "@rollup/plugin-node-resolve": "^15.2.2",
-        "@rollup/plugin-terser": "^0.4.4",
-        "@rollup/plugin-typescript": "^11.1.5",
-        "@tsconfig/node20": "^20.1.2",
-        "@types/ejs": "^3.1.3",
-        "@types/inquirer": "^9.0.3",
-        "@types/lodash": "^4.14.199",
-        "@types/node": "^20.8.10",
-        "@typescript-eslint/eslint-plugin": "^6.7.4",
-        "@typescript-eslint/parser": "^6.7.4",
         "@zip.js/zip.js": "^2.7.34",
         "ajv": "^8.12.0",
         "chalk": "^5.3.0",
         "commander": "^11.0.0",
         "ejs": "^3.1.10",
-        "eslint": "^8.51.0",
-        "eslint-config-prettier": "^9.0.0",
-        "eslint-plugin-jsdoc": "^46.8.2",
-        "eslint-plugin-prettier": "^5.0.0",
         "find-process": "^1.4.7",
         "ignore": "^5.3.1",
         "inquirer": "^9.2.11",
@@ -77,14 +67,23 @@
         "lodash": "^4.17.21",
         "log-symbols": "^5.1.0",
         "rage-edit": "^1.2.0",
-        "rollup": "^4.0.2",
-        "rollup-plugin-dts": "^6.1.0",
         "semver": "^7.6.0",
-        "tar": "^7.0.1",
-        "tslib": "^2.6.2",
-        "typescript": "^5.2.2"
+        "tar": "^7.0.1"
     },
-    "dependencies": {
-        "@elgato/schemas": "^0.3.5"
+    "devDependencies": {
+        "@elgato/prettier-config": "^0.2.1",
+        "@tsconfig/node20": "^20.1.2",
+        "@types/ejs": "^3.1.3",
+        "@types/inquirer": "^9.0.3",
+        "@types/lodash": "^4.14.199",
+        "@types/node": "^20.8.10",
+        "@typescript-eslint/eslint-plugin": "^7.14.1",
+        "@typescript-eslint/parser": "^7.14.1",
+        "eslint": "^8.51.0",
+        "eslint-config-prettier": "^9.0.0",
+        "eslint-plugin-jsdoc": "^46.8.2",
+        "eslint-plugin-prettier": "^5.0.0",
+        "tsup": "^8.1.0",
+        "typescript": "^5.5.2"
     }
 }

@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { program } from "commander";
 
 import { config, create, link, pack, restart, setDeveloperMode, stop, validate } from "./commands";

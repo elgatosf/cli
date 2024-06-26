@@ -1,4 +1,4 @@
-import Ajv, { JTDSchemaType } from "ajv/dist/jtd";
+import Ajv, { JTDSchemaType } from "ajv/dist/jtd.js";
 import chalk from "chalk";
 import _ from "lodash";
 import logSymbols from "log-symbols";
