@@ -29,32 +29,32 @@ const external = [
  * CLI bundling.
  */
 const options: RollupOptions = {
-    input: "src/cli.ts",
-    output: {
-        banner,
-        file: "bin/streamdeck.mjs",
-        sourcemap: isWatching,
-        sourcemapPathTransform: (relativeSourcePath: string, sourcemapPath: string): string => {
-            return url.pathToFileURL(path.resolve(path.dirname(sourcemapPath), relativeSourcePath)).href;
-        },
-    },
-    external,
-    plugins: [
-        typescript(),
-        json(),
-        commonjs(),
-        nodeResolve({
-            browser: false,
-            exportConditions: ["node"],
-            preferBuiltins: true,
-        }),
-        !isWatching &&
-            terser({
-                format: {
-                    comments: false,
-                },
-            }),
-    ],
+	input: "src/cli.ts",
+	output: {
+		banner,
+		file: "bin/streamdeck.mjs",
+		sourcemap: isWatching,
+		sourcemapPathTransform: (relativeSourcePath: string, sourcemapPath: string): string => {
+			return url.pathToFileURL(path.resolve(path.dirname(sourcemapPath), relativeSourcePath)).href;
+		},
+	},
+	external,
+	plugins: [
+		typescript(),
+		json(),
+		commonjs(),
+		nodeResolve({
+			browser: false,
+			exportConditions: ["node"],
+			preferBuiltins: true,
+		}),
+		!isWatching &&
+			terser({
+				format: {
+					comments: false,
+				},
+			}),
+	],
 }
 
 export default options;
