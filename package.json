@@ -6,11 +6,17 @@
         "streamdeck": "bin/streamdeck.mjs",
         "sd": "bin/streamdeck.mjs"
     },
-    "main": "./dist/index.js",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js",
+            "require": "./dist/index.cjs"
+        },
+        "./package.json": "./package.json"
+    },
     "files": [
-        "./bin/streamdeck.mjs",
-        "./dist/*.js",
-        "./dist/*.d.ts",
+        "./{bin,dist}/*.{js,cjs,mjs}",
+        "./{bin,dist}/*.d.{cts,ts}",
         "./template"
     ],
     "type": "module",
@@ -18,8 +24,12 @@
         "node": "^20.1.0"
     },
     "scripts": {
-        "build": "rm -rf ./dist && rollup --config rollup.config.ts --configPlugin typescript",
-        "watch": "rollup --config rollup.config.ts --configPlugin typescript --watch",
+        "build": "npm run build:bin && npm run build:exports",
+        "build:bin": "rm -rf ./dist && rollup --config rollup.config.ts --configPlugin typescript",
+        "build:exports": "tsup",
+        "watch": "npm run watch:bin & npm run watch:exports",
+        "watch:bin": "rollup --config rollup.config.ts --configPlugin typescript --watch",
+        "watch:exports": "tsup --watch",
         "lint": "eslint . --ext .ts --max-warnings 0",
         "lint:fix": "prettier \"./src/**/*.ts\" --write",
         "preversion": "npm run build && npm run lint"
@@ -84,6 +94,7 @@
         "eslint-plugin-prettier": "^5.0.0",
         "rollup": "^4.0.2",
         "tslib": "^2.6.2",
+        "tsup": "^8.1.0",
         "typescript": "^5.2.2"
     }
 }
