@@ -83,7 +83,6 @@
         "eslint-plugin-jsdoc": "^46.8.2",
         "eslint-plugin-prettier": "^5.0.0",
         "rollup": "^4.0.2",
-        "rollup-plugin-dts": "^6.1.0",
         "tslib": "^2.6.2",
         "typescript": "^5.2.2"
     }
