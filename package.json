@@ -6,20 +6,14 @@
         "streamdeck": "bin/streamdeck.mjs",
         "sd": "bin/streamdeck.mjs"
     },
-    "exports": {
-        ".": {
-            "types": "./dist/index.d.ts",
-            "import": "./dist/index.js",
-            "require": "./dist/index.cjs"
-        },
-        "./package.json": "./package.json"
-    },
+    "type": "module",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
     "files": [
         "./{bin,dist}/*.{js,cjs,mjs}",
         "./{bin,dist}/*.d.{cts,ts}",
         "./template"
     ],
-    "type": "module",
     "engines": {
         "node": "^20.1.0"
     },

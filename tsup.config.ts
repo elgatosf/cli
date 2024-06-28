@@ -18,7 +18,7 @@ export default defineConfig([
 			index: "src/index.ts",
 		},
 		outDir: "dist",
-		format: ["cjs", "esm"],
+		format: ["esm"],
 		banner,
 		clean: true,
 		dts: true,
