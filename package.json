@@ -26,7 +26,8 @@
         "watch:exports": "tsup --watch",
         "lint": "eslint . --ext .ts --max-warnings 0",
         "lint:fix": "prettier \"./src/**/*.ts\" --write",
-        "preversion": "npm run build && npm run lint"
+        "preversion": "npm run lint",
+        "version": "npm run build"
     },
     "prettier": "@elgato/prettier-config",
     "repository": {

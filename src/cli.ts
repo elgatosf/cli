@@ -3,7 +3,7 @@ import { program } from "commander";
 import { config, create, link, pack, restart, setDeveloperMode, stop, validate } from "./commands";
 import { packageManager } from "./package-manager";
 
-program.version(packageManager.getVersion(), "-v", "display CLI version");
+program.version(packageManager.getVersion({ checkEnvironment: true }), "-v", "display CLI version");
 
 program
 	.command("create")

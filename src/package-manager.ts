@@ -42,11 +42,16 @@ class PackageManager {
 	}
 
 	/**
-	 * Gets the version of the current package; when installed as part of a development environment, the version is suffixed appropriately.
-	 * @returns Version.
+	 * Gets the current version of the CLI from the package JSON file.
+	 * @param opts Version format options.
+	 * @returns The version, for example `0.3.0`.
 	 */
-	public getVersion(): string {
-		return existsSync(relative("../src")) ? `${version} (dev)` : version;
+	public getVersion(opts: GetVersionOptions = {}): string {
+		if (opts.checkEnvironment && existsSync(relative("../src"))) {
+			return `${version} (dev)`;
+		}
+
+		return version;
 	}
 
 	/**
@@ -250,4 +255,14 @@ export type PackageMetadataVersion = {
 		 */
 		tarball: string;
 	};
+};
+
+/**
+ * Options for {@link PackageManager.getVersion}.
+ */
+type GetVersionOptions = {
+	/**
+	 * Determines whether to check the if the CLI is in development mode; when `true` the version will include a suffix of `(dev)`.
+	 */
+	checkEnvironment?: boolean;
 };
