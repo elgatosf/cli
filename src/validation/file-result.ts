@@ -11,7 +11,7 @@ export class FileValidationResult extends OrderedArray<ValidationEntry> {
 	/**
 	 * Tracks the padding required for the location of a validation entry, i.e. the text before the entry level.
 	 */
-	private padding = 0;
+	#padding = 0;
 
 	/**
 	 * Initializes a new instance of the {@link FileValidationResult} class.
@@ -32,7 +32,7 @@ export class FileValidationResult extends OrderedArray<ValidationEntry> {
 	 * @returns New length of the validation results.
 	 */
 	public push(entry: ValidationEntry): number {
-		this.padding = Math.max(this.padding, entry.location.length);
+		this.#padding = Math.max(this.#padding, entry.location.length);
 		return super.push(entry);
 	}
 
@@ -52,7 +52,7 @@ export class FileValidationResult extends OrderedArray<ValidationEntry> {
 			output.log();
 		}
 
-		this.forEach((entry) => output.log(entry.toSummary(this.padding)));
+		this.forEach((entry) => output.log(entry.toSummary(this.#padding)));
 		output.log();
 	}
 }
