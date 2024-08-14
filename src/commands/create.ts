@@ -228,6 +228,7 @@ async function renderTemplate(destination: string, pluginInfo: PluginInfo): Prom
 	await Promise.allSettled([
 		template.copy(".vscode"),
 		template.copy(`${TEMPLATE_PLUGIN_UUID}.sdPlugin/imgs`, `${pluginInfo.uuid}.sdPlugin/imgs`),
+		template.copy(`${TEMPLATE_PLUGIN_UUID}.sdPlugin/ui`, `${pluginInfo.uuid}.sdPlugin/ui`),
 		template.copy(`${TEMPLATE_PLUGIN_UUID}.sdPlugin/manifest.json.ejs`, `${pluginInfo.uuid}.sdPlugin/manifest.json`),
 		template.copy("src"),
 		template.copy("_.gitignore", ".gitignore"),
