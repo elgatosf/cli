@@ -6,7 +6,7 @@ import { action, KeyDownEvent, SingletonAction, WillAppearEvent } from "@elgato/
 @action({ UUID: "<%- uuid %>.increment" })
 export class IncrementCounter extends SingletonAction<CounterSettings> {
 	/**
-	 * The {@link SingletonAction.onWillAppear} event is useful for setting the visual representation of an action when it become visible. This could be due to the Stream Deck first
+	 * The {@link SingletonAction.onWillAppear} event is useful for setting the visual representation of an action when it becomes visible. This could be due to the Stream Deck first
 	 * starting up, or the user navigating between pages / folders etc.. There is also an inverse of this event in the form of {@link streamDeck.client.onWillDisappear}. In this example,
 	 * we're setting the title to the "count" that is incremented in {@link IncrementCounter.onKeyDown}.
 	 */
@@ -21,13 +21,14 @@ export class IncrementCounter extends SingletonAction<CounterSettings> {
 	 * settings using `setSettings` and `getSettings`.
 	 */
 	async onKeyDown(ev: KeyDownEvent<CounterSettings>): Promise<void> {
-		// Determine the current count from the settings.
-		let count = ev.payload.settings.count ?? 0;
-		count++;
+		// Update the count from the settings.
+		const { settings } = ev.payload;
+		settings.incrementBy ??= 1;
+		settings.count = (settings.count ?? 0) + settings.incrementBy;
 
 		// Update the current count in the action's settings, and change the title.
-		await ev.action.setSettings({ count });
-		await ev.action.setTitle(`${count}`);
+		await ev.action.setSettings(settings);
+		await ev.action.setTitle(`${settings.count}`);
 	}
 }
 
@@ -35,5 +36,6 @@ export class IncrementCounter extends SingletonAction<CounterSettings> {
  * Settings for {@link IncrementCounter}.
  */
 type CounterSettings = {
-	count: number;
+	count?: number;
+	incrementBy?: number;
 };
