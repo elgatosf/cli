@@ -11,6 +11,14 @@
 
 # Change Log
 
+## 0.3.2
+
+### ♻️ Update
+
+-   Update template to include a property inspector.
+-   Update template to auto-resolve JSON schemas for the manifest and layouts.
+-   Remove subjective VS Code settings.
+
 ## 0.3.1
 
 ### ✨ New
