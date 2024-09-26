@@ -18,7 +18,7 @@
 -   Update new plugins to use `@elgato/streamdeck` version 1.
 -   Update CDN of property inspectors.
 -   Bump dependencies of Stream Deck CLI.
--   Bump dependencies of plugins.
+-   Bump dependencies of plugins scaffolded with `streamdeck create`.
 
 ## 0.3.2
 
