@@ -11,6 +11,15 @@
 
 # Change Log
 
+## 1.0.0
+
+### ♻️ Update
+
+-   Update new plugins to use `@elgato/streamdeck` version 1.
+-   Update CDN of property inspectors.
+-   Bump dependencies of Stream Deck CLI.
+-   Bump dependencies of plugins.
+
 ## 0.3.2
 
 ### ♻️ Update
