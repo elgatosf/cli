@@ -15,7 +15,7 @@
         "./template"
     ],
     "engines": {
-        "node": "^20.1.0"
+        "node": ">=20.1.0"
     },
     "scripts": {
         "build": "npm run build:bin && npm run build:exports",
@@ -52,7 +52,7 @@
     },
     "homepage": "https://github.com/elgatosf/cli#readme",
     "dependencies": {
-        "@elgato/schemas": "^0.3.5",
+        "@elgato/schemas": "^0.4.0",
         "@humanwhocodes/momoa": "^3.0.0",
         "@zip.js/zip.js": "^2.7.34",
         "ajv": "^8.12.0",
