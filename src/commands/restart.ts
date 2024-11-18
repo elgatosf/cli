@@ -15,7 +15,7 @@ export const restart = command<RestartOptions>(async ({ uuid }, output) => {
 		return output.error("Restarting failed").log(`Plugin not found: ${uuid}`).exit(1);
 	}
 
-	const appPath = `"${getStreamDeckPath()}"`;
+	const appPath = `"${await getStreamDeckPath()}"`;
 
 	// When Stream Deck isn't running, start it.
 	if (!(await isStreamDeckRunning())) {

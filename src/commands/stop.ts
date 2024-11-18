@@ -21,7 +21,7 @@ export const stop = command<StopOptions>(async ({ uuid }, output) => {
 	}
 
 	// Stop the plugin.
-	await run(`"${getStreamDeckPath()}"`, ["-s", uuid]);
+	await run(`"${await getStreamDeckPath()}"`, ["-s", uuid]);
 	output.success(`Stopped ${chalk.green(uuid)}`);
 });
 
