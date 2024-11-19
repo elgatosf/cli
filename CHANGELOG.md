@@ -11,6 +11,12 @@
 
 # Change Log
 
+## 1.1.0
+
+### ✨ New
+
+-   Add support for non-standard installation paths on Windows.
+
 ## 1.0.1
 
 ### ♻️ Update
