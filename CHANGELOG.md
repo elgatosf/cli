@@ -11,6 +11,10 @@
 
 # Change Log
 
+## 1.2.0
+
+-	Update default minimum macOS version
+
 ## 1.1.0
 
 ### ✨ New
