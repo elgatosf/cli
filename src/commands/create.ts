@@ -91,7 +91,7 @@ async function promptForPluginInfo(): Promise<PluginInfo> {
 		{
 			name: "uuid",
 			message: "Plugin UUID:",
-			default: ({ author, name }): string | undefined => generatePluginId(author, name),
+			default: ({ author, name }: Partial<PluginInfo>): string | undefined => generatePluginId(author, name),
 			validate: (uuid: string): boolean | string => {
 				if (!isValidPluginId(uuid)) {
 					return "UUID must be in reverse DNS format, and must only contain lowercase alphanumeric characters (a-z, 0-9), hyphens (-), and periods (.).";
