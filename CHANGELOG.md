@@ -11,10 +11,10 @@
 
 # Change Log
 
-## 1.2.0
+## 1.1.1
 
--	Update default minimum macOS version
--	Update dependencies
+-   Update default macOS minimum version to 12.
+-   Update dependencies.
 
 ## 1.1.0
 
