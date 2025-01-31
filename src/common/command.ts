@@ -64,8 +64,7 @@ type Options<T> = GlobalOptions & PickRequired<T> & Required<PickOptional<T>>;
 /**
  * Picks all optional properties from the specified type.
  */
-// eslint-disable-next-line @typescript-eslint/ban-types
-type PickOptional<T> = Pick<T, { [K in keyof T]-?: {} extends Pick<T, K> ? K : never }[keyof T]>;
+type PickOptional<T> = Pick<T, { [K in keyof T]-?: object extends Pick<T, K> ? K : never }[keyof T]>;
 
 /**
  * Picks all required properties from the specified type.
