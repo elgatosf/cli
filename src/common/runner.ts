@@ -4,6 +4,7 @@ import child_process, {
 	StdioNull,
 	StdioPipe,
 } from "node:child_process";
+import { platform } from "node:os";
 import { Readable } from "node:stream";
 
 /**
@@ -86,6 +87,19 @@ async function stderrReader(process: ChildProcessByStdio<null, null, Readable>):
 		process.stderr.on("data", (data) => (stderr = stderr.concat(data)));
 		process.stderr.once("close", () => resolve(Buffer.concat(stderr).toString()));
 	});
+}
+
+/**
+ * Gets the command used to open a URL in the default browser for the current platform.
+ * @returns The command used to open a URL in the default browser for the current platform.
+ */
+export function getPlatformUrlCommand(): string {
+	const os = platform();
+
+	if (os === "darwin") return "open";
+	if (os === "win32") return "start";
+
+	throw new Error("Unsupported platform: " + platform());
 }
 
 /**
