@@ -26,7 +26,7 @@ export const restart = command<RestartOptions>(async ({ uuid }, output) => {
 	const platformUrlCommand = getPlatformUrlCommand();
 
 	// Restart the plugin.
-	await run(platformUrlCommand, [`streamdeck://plugins/restart/${uuid}`]);
+	await run(platformUrlCommand, [`streamdeck://plugins/restart/${uuid}`, "-g"]);
 	output.success(`Restarted ${chalk.green(uuid)}`);
 });
 

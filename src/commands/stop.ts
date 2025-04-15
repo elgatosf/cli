@@ -23,7 +23,7 @@ export const stop = command<StopOptions>(async ({ uuid }, output) => {
 	const platformUrlCommand = getPlatformUrlCommand();
 
 	// Stop the plugin.
-	await run(platformUrlCommand, [`streamdeck://plugins/stop/${uuid}`]);
+	await run(platformUrlCommand, [`streamdeck://plugins/stop/${uuid}`, "-g"]);
 	output.success(`Stopped ${chalk.green(uuid)}`);
 });
 
