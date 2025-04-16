@@ -39,6 +39,19 @@ export function run(command: string, args: string[], options?: RunOptions): Prom
 }
 
 /**
+ * Runs the specified {@link url}.
+ * @param url URL to run.
+ * @returns The result of running the command.
+ */
+export function runUrl(url: string): Promise<number> {
+	const isWindows = platform() === "win32";
+	const command = isWindows ? "start" : "open";
+	const args = isWindows ? [url] : [url, "-g"];
+
+	return run(command, args);
+}
+
+/**
  * Spawns the command in a child process and detaches from the process.
  * @param command Command to run.
  * @param args Supporting arguments to be supplied to the {@link command}.
@@ -87,19 +100,6 @@ async function stderrReader(process: ChildProcessByStdio<null, null, Readable>):
 		process.stderr.on("data", (data) => (stderr = stderr.concat(data)));
 		process.stderr.once("close", () => resolve(Buffer.concat(stderr).toString()));
 	});
-}
-
-/**
- * Gets the command used to open a URL in the default browser for the current platform.
- * @returns The command used to open a URL in the default browser for the current platform.
- */
-export function getPlatformUrlCommand(): string {
-	const os = platform();
-
-	if (os === "darwin") return "open";
-	if (os === "win32") return "start";
-
-	throw new Error("Unsupported platform: " + platform());
 }
 
 /**

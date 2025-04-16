@@ -1,7 +1,7 @@
 import chalk from "chalk";
 
 import { command } from "../common/command";
-import { getPlatformUrlCommand, run } from "../common/runner";
+import { run, runUrl } from "../common/runner";
 import { getStreamDeckPath, isPluginInstalled, isStreamDeckRunning } from "../stream-deck";
 
 /**
@@ -23,10 +23,8 @@ export const restart = command<RestartOptions>(async ({ uuid }, output) => {
 		return output.info("Stream Deck is not running. Starting Stream Deck.").exit();
 	}
 
-	const platformUrlCommand = getPlatformUrlCommand();
-
 	// Restart the plugin.
-	await run(platformUrlCommand, [`streamdeck://plugins/restart/${uuid}`, "-g"]);
+	await runUrl(`streamdeck://plugins/restart/${uuid}`);
 	output.success(`Restarted ${chalk.green(uuid)}`);
 });
 

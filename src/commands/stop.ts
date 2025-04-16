@@ -1,7 +1,7 @@
 import chalk from "chalk";
 
 import { command } from "../common/command";
-import { getPlatformUrlCommand, run } from "../common/runner";
+import { runUrl } from "../common/runner";
 import { isPluginInstalled, isStreamDeckRunning } from "../stream-deck";
 
 /**
@@ -20,10 +20,8 @@ export const stop = command<StopOptions>(async ({ uuid }, output) => {
 		return output.info("Stream Deck is not running.").exit();
 	}
 
-	const platformUrlCommand = getPlatformUrlCommand();
-
 	// Stop the plugin.
-	await run(platformUrlCommand, [`streamdeck://plugins/stop/${uuid}`, "-g"]);
+	await runUrl(`streamdeck://plugins/stop/${uuid}`);
 	output.success(`Stopped ${chalk.green(uuid)}`);
 });
 
