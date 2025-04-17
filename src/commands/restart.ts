@@ -1,8 +1,8 @@
 import chalk from "chalk";
 
 import { command } from "../common/command";
-import { run, runUrl } from "../common/runner";
-import { getStreamDeckPath, isPluginInstalled, isStreamDeckRunning } from "../stream-deck";
+import { runUrl } from "../common/runner";
+import { isPluginInstalled, isStreamDeckRunning } from "../stream-deck";
 
 /**
  * Restarts the first plugin that matches the given {@link RestartOptions.uuid}.
@@ -15,11 +15,9 @@ export const restart = command<RestartOptions>(async ({ uuid }, output) => {
 		return output.error("Restarting failed").log(`Plugin not found: ${uuid}`).exit(1);
 	}
 
-	const appPath = `"${await getStreamDeckPath()}"`;
-
 	// When Stream Deck isn't running, start it.
 	if (!(await isStreamDeckRunning())) {
-		await run(appPath, [], { detached: true });
+		await runUrl(`streamdeck://plugins/restart/${uuid}`);
 		return output.info("Stream Deck is not running. Starting Stream Deck.").exit();
 	}
 
