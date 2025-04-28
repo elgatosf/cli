@@ -4,6 +4,7 @@ import child_process, {
 	StdioNull,
 	StdioPipe,
 } from "node:child_process";
+import { platform } from "node:os";
 import { Readable } from "node:stream";
 
 /**
@@ -35,6 +36,19 @@ export function run(command: string, args: string[], options?: RunOptions): Prom
 			}
 		});
 	});
+}
+
+/**
+ * Runs the specified {@link url}.
+ * @param url URL to run.
+ * @returns The result of running the command.
+ */
+export function runUrl(url: string): Promise<number> {
+	const isWindows = platform() === "win32";
+	const command = isWindows ? "start" : "open";
+	const args = isWindows ? [url] : [url, "-g"];
+
+	return run(command, args);
 }
 
 /**

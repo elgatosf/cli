@@ -1,8 +1,8 @@
 import chalk from "chalk";
 
 import { command } from "../common/command";
-import { run } from "../common/runner";
-import { getStreamDeckPath, isPluginInstalled, isStreamDeckRunning } from "../stream-deck";
+import { runUrl } from "../common/runner";
+import { isPluginInstalled, isStreamDeckRunning } from "../stream-deck";
 
 /**
  * Stops the first plugin that matches the given {@link StopOptions.uuid}.
@@ -21,7 +21,7 @@ export const stop = command<StopOptions>(async ({ uuid }, output) => {
 	}
 
 	// Stop the plugin.
-	await run(`"${await getStreamDeckPath()}"`, ["-s", uuid]);
+	await runUrl(`streamdeck://plugins/stop/${uuid}`);
 	output.success(`Stopped ${chalk.green(uuid)}`);
 });
 
