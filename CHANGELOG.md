@@ -11,6 +11,12 @@
 
 # Change Log
 
+## 1.2.0
+
+### ♻️ Update
+
+-   Update `restart` & `stop` commands utilize deeplinks
+
 ## 1.1.1
 
 -   Update default macOS minimum version to 12.
