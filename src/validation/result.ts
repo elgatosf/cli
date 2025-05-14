@@ -7,12 +7,12 @@ import { FileValidationResult } from "./file-result";
  */
 export class ValidationResult extends Array<FileValidationResult> implements ReadonlyArray<FileValidationResult> {
 	/**
-	 * Private backing field for {@link Result.errorCount}.
+	 * Private backing field for {@link ValidationResult.errorCount}.
 	 */
 	private errorCount = 0;
 
 	/**
-	 * Private backing field for {@link Result.warningCount}.
+	 * Private backing field for {@link ValidationResult.warningCount}.
 	 */
 	private warningCount = 0;
 
