@@ -15,12 +15,12 @@ import { JsonObjectMap } from "./map";
  */
 export class JsonSchema<T extends object> {
 	/**
-	 * Private backing field for {@link filePathsKeywords}.
+	 * Private backing field for {@link JsonSchema.filePathsKeywords}.
 	 */
 	private readonly _filePathsKeywords = new Map<string, FilePathOptions>();
 
 	/**
-	 * Private backing field for {@link imageDimensionKeywords}.
+	 * Private backing field for {@link JsonSchema.imageDimensionKeywords}.
 	 */
 	private readonly _imageDimensionKeywords = new Map<string, ImageDimensions>();
 
