@@ -11,11 +11,18 @@
 
 # Change Log
 
+## 1.3.0
+
+### ♻️ Update
+
+-   Update default minimum version of Stream Deck to 6.5.
+-   Update sdpi-components to version 4.
+
 ## 1.2.0
 
 ### ♻️ Update
 
--   Update `restart` & `stop` commands utilize deeplinks
+-   Update `restart` & `stop` commands utilize deep links.
 
 ## 1.1.1
 
