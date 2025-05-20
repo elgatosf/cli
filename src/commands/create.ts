@@ -12,6 +12,7 @@ import { generatePluginId, getPlugins, isValidPluginId } from "../stream-deck";
 import { invalidCharacters, isExecutable, isSafeBaseName, relative } from "../system/path";
 import { setDeveloperMode } from "./dev";
 import { link } from "./link";
+import { restart } from "./restart";
 
 const TEMPLATE_PLUGIN_UUID = "com.elgato.template";
 
@@ -246,8 +247,14 @@ async function renderTemplate(destination: string, pluginInfo: PluginInfo): Prom
 async function finalize(destination: string, pluginInfo: PluginInfo): Promise<void> {
 	createTemplateRenderer(destination, pluginInfo, { isPreBuild: false }).copy("rollup.config.mjs.ejs");
 
-	link({
+	await link({
 		path: path.join(destination, `${pluginInfo.uuid}.sdPlugin`),
+		quiet: true,
+	});
+
+	await restart({
+		uuid: pluginInfo.uuid,
+		noStart: true,
 		quiet: true,
 	});
 }

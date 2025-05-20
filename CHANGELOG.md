@@ -11,6 +11,12 @@
 
 # Change Log
 
+## 1.4.0
+
+### ♻️ Update
+
+-   Update `create` command to show newly created plugins within Stream Deck.
+
 ## 1.3.0
 
 ### ♻️ Update
