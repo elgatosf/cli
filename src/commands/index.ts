@@ -6,4 +6,5 @@ export { list } from "./list";
 export { pack } from "./pack";
 export { restart } from "./restart";
 export { stop } from "./stop";
+export { unlink } from "./unlink";
 export { validate } from "./validate";

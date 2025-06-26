@@ -1,6 +1,6 @@
 import { program } from "commander";
 
-import { config, create, link, list, pack, restart, setDeveloperMode, stop, validate } from "./commands";
+import { config, create, link, list, pack, restart, setDeveloperMode, stop, unlink, validate } from "./commands";
 import { packageManager } from "./package-manager";
 
 program.version(packageManager.getVersion({ checkEnvironment: true }), "-v", "display CLI version");
@@ -15,6 +15,12 @@ program
 	.argument("[path]", "Path of the plugin to link.")
 	.description("Links the plugin to Stream Deck.")
 	.action((path) => link({ path }));
+
+program
+	.command("unlink")
+	.argument("<uuid>")
+	.option("-d|--delete", "Enable deletion of non-linked plugins.")
+	.action((uuid, opts) => unlink({ uuid, ...opts }));
 
 program.option("-l,--list").description("Prints a list of installed plugins").action(list);
 program.command("list").description("Prints a list of installed plugins").action(list);
