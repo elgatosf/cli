@@ -9,7 +9,7 @@ import { getPlugins } from "../stream-deck";
  */
 export const list = command(async (options, output) => {
 	const plugins = getPlugins();
-	for (const { sourcePath, uuid } of plugins) {
+	for (const { targetPath: sourcePath, uuid } of plugins) {
 		output.log(uuid);
 		if (sourcePath) {
 			if (existsSync(sourcePath)) {

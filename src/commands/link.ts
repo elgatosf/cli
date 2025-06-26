@@ -37,7 +37,7 @@ export const link = command<LinkOptions>(
 		// Check if there is a conflict with an already installed plugin.
 		const existing = getPlugins().find((p) => p.uuid === uuid);
 		if (existing) {
-			if (existing.sourcePath !== null && resolve(existing.sourcePath) === resolve(options.path)) {
+			if (existing.targetPath !== null && resolve(existing.targetPath) === resolve(options.path)) {
 				feedback.success("Linked successfully");
 				return;
 			} else {

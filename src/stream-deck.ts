@@ -190,9 +190,9 @@ export class PathError extends Error {
  */
 class PluginInfo {
 	/**
-	 * Private backing field for {@link PluginInfo.sourcePath}.
+	 * Private backing field for {@link PluginInfo.targetPath}.
 	 */
-	private _sourcePath: string | null | undefined = undefined;
+	private _targetPath: string | null | undefined = undefined;
 
 	/**
 	 * Initializes a new instance of the {@link PluginInfo} class.
@@ -201,20 +201,20 @@ class PluginInfo {
 	 * @param uuid Unique identifier of the plugin.
 	 */
 	constructor(
-		private readonly path: string,
+		public readonly path: string,
 		private readonly entry: Dirent,
 		public readonly uuid: string,
 	) {}
 
 	/**
-	 * Gets the source path of the plugin, when the installation path is a symbolic link; otherwise `null`.
-	 * @returns The source path; otherwise `null`.
+	 * When the installed plugin is a symbolic link, the target path is the location of the file on disk.
+	 * @returns The target path; otherwise `null`.
 	 */
-	public get sourcePath(): string | null {
-		if (this._sourcePath === undefined) {
-			this._sourcePath = this.entry.isSymbolicLink() ? readlinkSync(this.path) : null;
+	public get targetPath(): string | null {
+		if (this._targetPath === undefined) {
+			this._targetPath = this.entry.isSymbolicLink() ? readlinkSync(this.path) : null;
 		}
 
-		return this._sourcePath;
+		return this._targetPath;
 	}
 }
