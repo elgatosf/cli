@@ -8,7 +8,7 @@ import { platform } from "node:os";
 import { Readable } from "node:stream";
 
 /**
- * Runs the specified {@link command} with the give {@link args}.
+ * Runs the specified {@link command}.
  * @param command Command to run.
  * @param options Options used to determine how the {@link command} should be run.
  * @returns The result of running the command. **NB.** when the command is detached, the result is always 0.
