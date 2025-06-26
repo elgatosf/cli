@@ -9,13 +9,13 @@ import { getPlugins } from "../stream-deck";
  */
 export const list = command(async (options, output) => {
 	const plugins = getPlugins();
-	for (const { targetPath: sourcePath, uuid } of plugins) {
+	for (const { targetPath, uuid } of plugins) {
 		output.log(uuid);
-		if (sourcePath) {
-			if (existsSync(sourcePath)) {
-				console.log(chalk.dim("  └"), chalk.green(sourcePath));
+		if (targetPath) {
+			if (existsSync(targetPath)) {
+				console.log(chalk.dim("  └"), chalk.green(targetPath));
 			} else {
-				console.log(chalk.dim("  └ Not Found:"), chalk.red(sourcePath));
+				console.log(chalk.dim("  └ Not Found:"), chalk.red(targetPath));
 			}
 		}
 	}
