@@ -10,18 +10,17 @@ import { Readable } from "node:stream";
 /**
  * Runs the specified {@link command} with the give {@link args}.
  * @param command Command to run.
- * @param args Supporting arguments to be supplied to the {@link command}.
  * @param options Options used to determine how the {@link command} should be run.
  * @returns The result of running the command. **NB.** when the command is detached, the result is always 0.
  */
-export function run(command: string, args: string[], options?: RunOptions): Promise<number> {
+export function run(command: string, options?: RunOptions): Promise<number> {
 	if (options?.detached) {
-		return forget(command, args, options);
+		return forget(command, options);
 	}
 
 	return new Promise((resolve, reject) => {
 		const opts = mergeOptions(options || {}, "pipe");
-		const child = child_process.spawn(command, args, opts);
+		const child = child_process.spawn(command, opts);
 
 		// Begin gathering the stderr, and wait for the child process to finish.
 		const stderr = stderrReader(child);
@@ -44,24 +43,23 @@ export function run(command: string, args: string[], options?: RunOptions): Prom
  * @returns The result of running the command.
  */
 export function runUrl(url: string): Promise<number> {
-	const isWindows = platform() === "win32";
-	const command = isWindows ? "start" : "open";
-	const args = isWindows ? [url] : [url, "-g"];
-
-	return run(command, args);
+	if (platform() === "win32") {
+		return run(`start ${url}`);
+	} else {
+		return run(`open ${url} -g`);
+	}
 }
 
 /**
  * Spawns the command in a child process and detaches from the process.
  * @param command Command to run.
- * @param args Supporting arguments to be supplied to the {@link command}.
  * @param options Options used to determine how the {@link command} should be run.
  * @returns Always 0 as the command is run in isolation.
  */
-function forget(command: string, args: string[], options: RunOptions): Promise<number> {
+function forget(command: string, options: RunOptions): Promise<number> {
 	const opts = mergeOptions(options, "ignore");
 
-	const child = child_process.spawn(command, args, opts);
+	const child = child_process.spawn(command, opts);
 	child.unref();
 
 	return Promise.resolve(0);
