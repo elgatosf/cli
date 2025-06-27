@@ -22,8 +22,12 @@ program
 	.option("-d|--delete", "Enable deletion of non-linked plugins.")
 	.action((uuid, opts) => unlink({ uuid, ...opts }));
 
-program.option("-l,--list").description("Prints a list of installed plugins").action(list);
-program.command("list").description("Prints a list of installed plugins").action(list);
+program.option("-l|--list").description("Prints a list of installed plugins").action(list);
+program
+	.command("list")
+	.option("-a|--all", "Show all plugins", false)
+	.description("Prints a list of installed plugins")
+	.action((opts) => list(opts));
 
 program
 	.command("restart")

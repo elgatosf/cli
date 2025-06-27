@@ -207,6 +207,14 @@ class PluginInfo {
 	) {}
 
 	/**
+	 * Gets a value indicating whether the plugin is a linked (dev) plugin.
+	 * @returns `true` when the plugin is linked; otherwise `false`.
+	 */
+	public get isLink(): boolean {
+		return this.targetPath !== null;
+	}
+
+	/**
 	 * When the installed plugin is a symbolic link, the target path is the location of the file on disk.
 	 * @returns The target path; otherwise `null`.
 	 */

@@ -7,16 +7,38 @@ import { getPlugins } from "../stream-deck";
 /**
  * Prints a list of installed plugins
  */
-export const list = command(async (options, output) => {
-	const plugins = getPlugins();
-	for (const { targetPath, uuid } of plugins) {
-		output.log(uuid);
-		if (targetPath) {
-			if (existsSync(targetPath)) {
-				console.log(chalk.dim("  └"), chalk.green(targetPath));
+export const list = command<Options>(
+	async (options, output) => {
+		const plugins = getPlugins();
+		for (const plugin of plugins) {
+			if (!plugin.isLink && !options.all) {
+				continue;
+			}
+
+			const { uuid, targetPath } = plugin;
+
+			if (targetPath) {
+				if (existsSync(targetPath)) {
+					output.log(`${uuid} ${chalk.dim("→")} ${chalk.green(targetPath)}`);
+				} else {
+					output.log(`${uuid} ${chalk.dim("→")} ${chalk.red(targetPath)} ${chalk.dim("(not found)")}`);
+				}
 			} else {
-				console.log(chalk.dim("  └ Not Found:"), chalk.red(targetPath));
+				output.log(uuid);
 			}
 		}
-	}
-});
+	},
+	{
+		all: false,
+	},
+);
+
+/**
+ * Options for the {@link list} command.
+ */
+type Options = {
+	/**
+	 * Determines whether to show all plugins; when `false` only linked plugins are shown. Default is `false`.
+	 */
+	all?: boolean;
+};

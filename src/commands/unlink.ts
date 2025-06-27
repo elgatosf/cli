@@ -14,7 +14,7 @@ export const unlink = command<Options>(
 			return output.error("Plugin not found").log(`No plugin found with UUID: ${options.uuid}`).exit(1);
 		}
 
-		if (!plugin.targetPath) {
+		if (!plugin.isLink) {
 			if (!options.delete) {
 				return output
 					.error("Plugin cannot be unlinked")
