@@ -2,6 +2,7 @@ import { unlinkSync } from "node:fs";
 
 import { command } from "../common/command";
 import { getPlugins } from "../stream-deck";
+import { rm } from "../system/fs";
 import { stop } from "./stop";
 
 /**
@@ -23,16 +24,21 @@ export const unlink = command<Options>(
 					.exit(1);
 			}
 
-			// TODO: Stop the plugin and remove it.
-			console.log("TODO: Stop the plugin and remove it.");
-			return;
+			// Stop the plugin and remove it.
+			await output.spin("Uninstalling", async (_, spinner) => {
+				await stop({ quiet: true, uuid: options.uuid });
+				await rm(plugin.path, { recursive: true, maxRetries: 10, retryDelay: 1000 });
+				spinner.setText("Uninstalled successfully");
+			});
 		} else {
 			// Stop the plugin and remove the link.
-			await stop({ quiet: true, uuid: options.uuid });
-			unlinkSync(plugin.path);
-		}
+			await output.spin("Unlinking", async (_, spinner) => {
+				await stop({ quiet: true, uuid: options.uuid });
+				unlinkSync(plugin.path);
 
-		output.success("Unlinked successfully");
+				spinner.setText("Unlinked successfully");
+			});
+		}
 	},
 	{
 		delete: false,

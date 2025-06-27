@@ -185,7 +185,10 @@ class ConsoleStdOut {
 	 * @param task Task that the spinner represents.
 	 * @returns A promise fulfilled when the {@link task} completes.
 	 */
-	public async spin(message: string, task?: (writer: ConsoleStdOut) => Promise<number | void> | void): Promise<void> {
+	public async spin(
+		message: string,
+		task?: (writer: ConsoleStdOut, spin: Spinner) => Promise<number | void> | void,
+	): Promise<void> {
 		// Confirm we can spin.
 		if (this.options.level < MessageLevel.LOG) {
 			return;
@@ -203,7 +206,9 @@ class ConsoleStdOut {
 		} else {
 			try {
 				this.startSpinner();
-				await task(this);
+				await task(this, {
+					setText: (message: string) => (this.message = message),
+				});
 
 				if (this.isLoading) {
 					this.success();
@@ -309,6 +314,13 @@ class ConsoleStdOut {
 		return this;
 	}
 }
+
+/**
+ * Spinner that indicates a busy status.
+ */
+type Spinner = {
+	setText(message: string): void;
+};
 
 /**
  * Provides logging and exiting facilities as part of reporting an error.

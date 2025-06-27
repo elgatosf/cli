@@ -1,5 +1,17 @@
 import ignore from "ignore";
-import { cpSync, createReadStream, existsSync, lstatSync, mkdirSync, readlinkSync, rmSync, type Stats } from "node:fs";
+import { get } from "lodash";
+import {
+	cpSync,
+	createReadStream,
+	existsSync,
+	lstatSync,
+	mkdirSync,
+	type PathLike,
+	readlinkSync,
+	type RmOptions,
+	rmSync,
+	type Stats,
+} from "node:fs";
 import { lstat, mkdir, readdir, readFile } from "node:fs/promises";
 import { platform } from "node:os";
 import { basename, join, resolve } from "node:path";
@@ -218,6 +230,34 @@ function checkStats(path: string, check: (stats?: Stats) => boolean): boolean {
 	}
 
 	return check(stats);
+}
+
+/**
+ * Removes files and directories at the specified path. When an error is encountered, the retry delay
+ * will be awaited, and the removal retried. This will continue until the removal was successful, or
+ * the max retries is reached.
+ * @param path Path to remove.
+ * @param options Removal options.
+ */
+export async function rm(path: PathLike, options?: RmOptions): Promise<void> {
+	const { maxRetries = 0, retryDelay = 100, ...opts } = options ?? {};
+
+	let callCount = 0;
+	const run = async (): Promise<void> => {
+		try {
+			callCount++;
+			rmSync(path, opts);
+		} catch (e) {
+			if (callCount <= maxRetries && get(e, "code") === "EBUSY") {
+				await new Promise((res) => setTimeout(res, retryDelay));
+				await run();
+			} else {
+				throw e;
+			}
+		}
+	};
+
+	await run();
 }
 
 /**
