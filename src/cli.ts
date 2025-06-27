@@ -3,8 +3,6 @@ import { program } from "commander";
 import { config, create, link, list, pack, restart, setDeveloperMode, stop, unlink, validate } from "./commands";
 import { packageManager } from "./package-manager";
 
-program.version(packageManager.getVersion({ checkEnvironment: true }), "-v", "display CLI version");
-
 program
 	.command("create")
 	.description("Stream Deck plugin creation wizard.")
@@ -96,4 +94,14 @@ configCommand
 	.description("Resets all configuration.")
 	.action(() => config.reset());
 
-program.parse();
+program
+	.version(packageManager.getVersion({ checkEnvironment: true }), "-v", "display CLI version")
+	.option("-l, --list", "display list of installed plugins")
+	.action((opts) => {
+		if (opts.list) {
+			list();
+		} else {
+			program.help();
+		}
+	})
+	.parse();
