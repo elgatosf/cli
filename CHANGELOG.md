@@ -11,6 +11,13 @@
 
 # Change Log
 
+## vNext
+
+### ✨ New
+
+-   Add `list` command to display list of installed plugins.
+-   Add `unlink` command to unlink installed plugins.
+
 ## 1.4.0
 
 ### ♻️ Update
