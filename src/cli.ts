@@ -20,13 +20,13 @@ program
 	.command("unlink")
 	.argument("<uuid>")
 	.option("-d|--delete", "Enable deletion of non-linked plugins.")
+	.description("Unlinks the plugin from Stream Deck.")
 	.action((uuid, opts) => unlink({ uuid, ...opts }));
 
-program.option("-l|--list").description("Prints a list of installed plugins").action(list);
 program
 	.command("list")
 	.option("-a|--all", "Show all plugins", false)
-	.description("Prints a list of installed plugins")
+	.description("Display list of installed plugins.")
 	.action((opts) => list(opts));
 
 program
