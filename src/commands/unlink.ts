@@ -1,8 +1,10 @@
+import chalk from "chalk";
 import { unlinkSync } from "node:fs";
 
 import { command } from "../common/command";
-import { getPlugins } from "../stream-deck";
-import { rm } from "../system/fs";
+import type { StdOut } from "../common/stdout";
+import { getPlugins, type PluginInfo } from "../stream-deck";
+import { isResourceBusyError, rm } from "../system/fs";
 import { stop } from "./stop";
 
 /**
@@ -24,12 +26,15 @@ export const unlink = command<Options>(
 					.exit(1);
 			}
 
-			// Stop the plugin and remove it.
-			await output.spin("Uninstalling", async (_, spinner) => {
-				await stop({ quiet: true, uuid: options.uuid });
-				await rm(plugin.path, { recursive: true, maxRetries: 10, retryDelay: 1000 });
-				spinner.setText("Uninstalled successfully");
-			});
+			try {
+				await deletePlugin(plugin, output);
+			} catch (e) {
+				if (isResourceBusyError(e)) {
+					return output.log().log(chalk.red("Plugin cannot be removed as it is in use")).exit(1);
+				} else {
+					throw e;
+				}
+			}
 		} else {
 			// Stop the plugin and remove the link.
 			await output.spin("Unlinking", async (_, spinner) => {
@@ -44,6 +49,25 @@ export const unlink = command<Options>(
 		delete: false,
 	},
 );
+
+/**
+ * Deletes the specified plugin.
+ * @param plugin Plugin information.
+ * @param output Output to log to.
+ */
+async function deletePlugin(plugin: PluginInfo, output: StdOut): Promise<void> {
+	// Stop the plugin and remove it.
+	await output.spin("Uninstalling", async (_, spinner) => {
+		try {
+			await stop({ quiet: true, uuid: plugin.uuid });
+			await rm(plugin.path, { recursive: true, maxRetries: 10, retryDelay: 1000 });
+			spinner.setText("Uninstalled successfully");
+		} catch (e) {
+			spinner.setText("Uninstalling failed");
+			throw e;
+		}
+	});
+}
 
 /**
  * Options for {@link unlink}.

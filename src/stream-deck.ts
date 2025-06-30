@@ -226,3 +226,5 @@ class PluginInfo {
 		return this._targetPath;
 	}
 }
+
+export { type PluginInfo };

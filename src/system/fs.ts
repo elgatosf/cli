@@ -248,7 +248,7 @@ export async function rm(path: PathLike, options?: RmOptions): Promise<void> {
 			callCount++;
 			rmSync(path, opts);
 		} catch (e) {
-			if (callCount <= maxRetries && get(e, "code") === "EBUSY") {
+			if (callCount <= maxRetries && isResourceBusyError(e)) {
 				await new Promise((res) => setTimeout(res, retryDelay));
 				await run();
 			} else {
@@ -258,6 +258,15 @@ export async function rm(path: PathLike, options?: RmOptions): Promise<void> {
 	};
 
 	await run();
+}
+
+/**
+ * Determines whether the specified error indicates the resource was busy.
+ * @param e The error
+ * @returns `true` when the error was caused due to a busy resource; otherwise `false`.
+ */
+export function isResourceBusyError(e: unknown): boolean {
+	return get(e, "code") === "EBUSY";
 }
 
 /**
