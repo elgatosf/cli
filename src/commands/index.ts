@@ -1,3 +1,4 @@
+export { addAction } from "./add-action";
 export * as config from "./config";
 export { create } from "./create";
 export { setDeveloperMode } from "./dev";
