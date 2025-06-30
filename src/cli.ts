@@ -1,6 +1,6 @@
 import { program } from "commander";
 
-import { config, create, link, pack, restart, setDeveloperMode, stop, validate } from "./commands";
+import { addAction, config, create, link, pack, restart, setDeveloperMode, stop, validate } from "./commands";
 import { packageManager } from "./package-manager";
 
 program.version(packageManager.getVersion({ checkEnvironment: true }), "-v", "display CLI version");
@@ -56,6 +56,17 @@ program
 	.option("--force-update-check", "Forces an update check", false)
 	.option("--no-update-check", "Disables updating schemas", true)
 	.action((path, opts) => pack({ ...opts, path }));
+
+program
+	.command("add-action")
+	.description("Adds a new action to an existing Stream Deck plugin.")
+	.option("-n, --name <name>", "Name of the action")
+	.option("-i, --action-id <actionId>", "Action identifier (appended to plugin UUID)")
+	.option("-d, --description <description>", "Description of the action")
+	.option("--ui", "Create property inspector UI", true)
+	.option("--no-ui", "Skip creating property inspector UI")
+	.option("-y, --yes", "Skip confirmation prompt", false)
+	.action((opts) => addAction(opts));
 
 const configCommand = program.command("config").description("Manage the local configuration.");
 

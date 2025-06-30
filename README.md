@@ -35,6 +35,7 @@ Commands:
   dev [options]                 Enables developer mode.
   validate [options] [path]     Validates the Stream Deck plugin.
   pack|bundle [options] [path]  Creates a .streamDeckPlugin file from the plugin.
+  add-action [options]          Adds a new action to an existing Stream Deck plugin.
   config                        Manage the local configuration.
   help [command]                display help for command
 
@@ -50,6 +51,37 @@ The `streamdeck create` command enables you to scaffold a new Stream Deck plugin
 <p align="center">
   <img src="./assets/cli-create.gif">
 </p>
+
+
+## Adding actions to a plugin
+
+The `streamdeck add-action` command allows you to quickly add new actions to an existing Stream Deck plugin. The command can be used both interactively (with prompts) or with command-line parameters for automation.
+
+### Interactive mode
+
+Running the command without parameters will start an interactive prompt:
+
+```bash
+streamdeck add-action
+```
+
+This will ask you for:
+- Action name (display name)
+- Action identifier (unique ID within the plugin)
+- Action description
+- Whether to create a property inspector UI
+
+### Command-line mode
+
+You can also provide all parameters directly via command-line options:
+
+```bash
+streamdeck add-action --name "My Action" --action-id "my-action" --description "Does something awesome" (--ui|--no-ui) [--yes]
+```
+
+Notes:
+- The `--yes` option can be used to skip confirmation prompts, allowing for quick creation of actions without manual intervention.
+- The `--ui` option specifies whether to create a property inspector UI for the action. The `--no-ui` option can be used to skip creating a UI file.
 
 ## Further Reading
 
