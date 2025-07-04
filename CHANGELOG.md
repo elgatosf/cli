@@ -11,6 +11,12 @@
 
 # Change Log
 
+## vNext
+
+### 🐞 Fix
+
+-   Resolve DEP0190 warning when using Node.js 24 or higher.
+
 ## 1.4.0
 
 ### ♻️ Update
