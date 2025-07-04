@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { lstatSync, symlinkSync } from "node:fs";
+import { lstatSync, symlinkSync, unlinkSync } from "node:fs";
 import { basename, resolve } from "node:path";
 
 import { command } from "../common/command";
@@ -37,9 +37,9 @@ export const link = command<LinkOptions>(
 		// Check if there is a conflict with an already installed plugin.
 		const existing = getPlugins().find((p) => p.uuid === uuid);
 		if (existing) {
-			if (existing.sourcePath !== null && resolve(existing.sourcePath) === resolve(options.path)) {
-				feedback.success("Linked successfully");
-				return;
+			if (existing.targetPath !== null && resolve(existing.targetPath) === resolve(options.path)) {
+				// Remove the existing link and re-link later to ensure a valid junction is established.
+				unlinkSync(resolve(getPluginsPath(), basename(options.path)));
 			} else {
 				return feedback
 					.error("Linking failed")
