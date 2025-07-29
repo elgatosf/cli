@@ -66,6 +66,7 @@ program
 	.option("--version <version>", "Plugin version; value will be written to the manifest")
 	.option("--force-update-check", "Forces an update check", false)
 	.option("--no-update-check", "Disables updating schemas", true)
+	.option("--ignore-validation", "Bypass validation errors (not recommended)", false)
 	.action((path, opts) => pack({ ...opts, path }));
 
 const configCommand = program.command("config").description("Manage the local configuration.");

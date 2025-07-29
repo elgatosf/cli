@@ -18,6 +18,10 @@
 -   Add `list` command to display list of installed plugins.
 -   Add `unlink` command to unlink installed plugins.
 
+### 🐞 Fix
+
+-   Resolve DEP0190 warning when using Node.js 24 or higher.
+
 ## 1.4.0
 
 ### ♻️ Update

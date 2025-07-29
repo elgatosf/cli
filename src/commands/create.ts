@@ -42,9 +42,9 @@ export const create = command(async (options, stdout) => {
 	await stdout.spin("Generating plugin", () => renderTemplate(destination, pluginInfo));
 
 	// Install node dependencies, build the plugin, and finalize the setup.
-	const { packageManager } = getConfig();
-	await stdout.spin("Installing dependencies", () => run(packageManager, ["install"], { cwd: destination }));
-	await stdout.spin("Building plugin", () => run(packageManager, ["run", "build"], { cwd: destination }));
+	const { packageManager: npm } = getConfig();
+	await stdout.spin("Installing dependencies", () => run(`${npm} install`, { cwd: destination }));
+	await stdout.spin("Building plugin", () => run(`${npm} run build`, { cwd: destination }));
 	await stdout.spin("Finalizing setup", () => finalize(destination, pluginInfo));
 
 	stdout.log().log(chalk.green("Successfully created plugin!"));
@@ -278,7 +278,7 @@ async function tryOpenVSCode(destination: string, stdout: StdOut): Promise<void>
 	});
 
 	if (vsCode.confirm) {
-		run("code", ["./", "--goto", "src/plugin.ts"], { cwd: destination });
+		run("code ./ --goto src/plugin.ts", { cwd: destination });
 	}
 }
 

@@ -31,11 +31,15 @@ export const pack = command<PackOptions>(
 			});
 		} catch (err) {
 			if (err instanceof StdoutError) {
-				versioner.undo();
-				stdout.exit(1);
+				if (options.ignoreValidation) {
+					stdout.log().log(chalk.yellow("Ignore validation flag found, bypassing validation errors")).log();
+				} else {
+					versioner.undo();
+					stdout.exit(1);
+				}
+			} else {
+				throw err;
 			}
-
-			throw err;
 		}
 
 		// Check if there is already a file at the desired save location.
@@ -94,6 +98,7 @@ export const pack = command<PackOptions>(
 		force: false,
 		output: process.cwd(),
 		version: null,
+		ignoreValidation: false,
 	},
 );
 
@@ -215,6 +220,12 @@ type PackOptions = ValidateOptions & {
 	 * When `true`, the output will overwrite an existing `.streamDeckPlugin` file if it already exists.
 	 */
 	force?: boolean;
+
+	/**
+	 * When `true`, allows for bypassing validation errors (not recommended); may result in unexpected
+	 * behavior. Default `false`.
+	 */
+	ignoreValidation?: boolean;
 
 	/**
 	 * Output directory where the plugin package will be written too; defaults to cwd.
