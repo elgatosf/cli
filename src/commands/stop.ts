@@ -17,7 +17,8 @@ export const stop = command<StopOptions>(async ({ uuid }, output) => {
 
 	// When Stream Deck isn't running, warn the user.
 	if (!(await isStreamDeckRunning())) {
-		return output.info("Stream Deck is not running.").exit();
+		output.info("Stream Deck is not running.");
+		return;
 	}
 
 	// Stop the plugin.

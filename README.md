@@ -25,18 +25,20 @@ Usage: streamdeck [options] [command]
 
 Options:
   -v                            display CLI version
+  -l, --list                    display list of installed plugins
   -h, --help                    display help for command
 
 Commands:
   create                        Stream Deck plugin creation wizard.
   link [path]                   Links the plugin to Stream Deck.
+  unlink [options] <uuid>       Unlinks the plugin from Stream Deck.
+  list [options]                Display list of installed plugins.
   restart|r <uuid>              Starts the plugin in Stream Deck; if the plugin is already running, it is stopped first.
   stop|s <uuid>                 Stops the plugin in Stream Deck.
   dev [options]                 Enables developer mode.
   validate [options] [path]     Validates the Stream Deck plugin.
   pack|bundle [options] [path]  Creates a .streamDeckPlugin file from the plugin.
   config                        Manage the local configuration.
-  help [command]                display help for command
 
 Alias:
   streamdeck

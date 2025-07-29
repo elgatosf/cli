@@ -1,9 +1,7 @@
 import { program } from "commander";
 
-import { config, create, link, pack, restart, setDeveloperMode, stop, validate } from "./commands";
+import { config, create, link, list, pack, restart, setDeveloperMode, stop, unlink, validate } from "./commands";
 import { packageManager } from "./package-manager";
-
-program.version(packageManager.getVersion({ checkEnvironment: true }), "-v", "display CLI version");
 
 program
 	.command("create")
@@ -15,6 +13,19 @@ program
 	.argument("[path]", "Path of the plugin to link.")
 	.description("Links the plugin to Stream Deck.")
 	.action((path) => link({ path }));
+
+program
+	.command("unlink")
+	.argument("<uuid>")
+	.option("-d|--delete", "Enable deletion of non-linked plugins.")
+	.description("Unlinks the plugin from Stream Deck.")
+	.action((uuid, opts) => unlink({ uuid, ...opts }));
+
+program
+	.command("list")
+	.option("-a|--all", "Show all plugins", false)
+	.description("Display list of installed plugins.")
+	.action((opts) => list(opts));
 
 program
 	.command("restart")
@@ -84,4 +95,14 @@ configCommand
 	.description("Resets all configuration.")
 	.action(() => config.reset());
 
-program.parse();
+program
+	.version(packageManager.getVersion({ checkEnvironment: true }), "-v", "display CLI version")
+	.option("-l, --list", "display list of installed plugins")
+	.action((opts) => {
+		if (opts.list) {
+			list();
+		} else {
+			program.help();
+		}
+	})
+	.parse();
