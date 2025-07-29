@@ -11,7 +11,7 @@
 
 # Change Log
 
-## vNext
+## 1.5.0
 
 ### ✨ New
 
