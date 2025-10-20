@@ -1,8 +1,7 @@
 import find from "find-process";
-import { Dirent, existsSync, readdirSync, readlinkSync } from "node:fs";
+import { Dirent, readdirSync, readlinkSync } from "node:fs";
 import os from "node:os";
 import { basename, join, resolve } from "node:path";
-import { Registry } from "rage-edit";
 
 const PLUGIN_SUFFIX = ".sdPlugin";
 
@@ -56,59 +55,14 @@ export function isPluginInstalled(uuid: string): boolean {
 }
 
 /**
- * Gets the path to the Stream Deck application.
- * @returns The path.
- */
-export const getStreamDeckPath = ((): (() => Promise<string>) => {
-	let appPath: string | undefined = undefined;
-	return async () => (appPath ??= await __getStreamDeckPath());
-
-	/**
-	 * Gets the path to the Stream Deck application.
-	 * @returns The path.
-	 */
-	async function __getStreamDeckPath(): Promise<string> {
-		if (os.platform() === "darwin") {
-			return "/Applications/Elgato Stream Deck.app/Contents/MacOS/Stream Deck";
-		} else {
-			// Before checking the registry, check if the default path exists.
-			const defaultWinPath = "C:\\Program Files\\Elgato\\StreamDeck\\StreamDeck.exe";
-			if (existsSync(defaultWinPath)) {
-				return defaultWinPath;
-			}
-
-			// Otherwise, attempt to get the installation directory from the registry.
-			const registryValue = await Registry.get(
-				"HKEY_CURRENT_USER\\Software\\Elgato Systems GmbH\\StreamDeck",
-				"InstallDir",
-			);
-
-			if (registryValue && typeof registryValue === "string") {
-				const winPath = join(registryValue, "StreamDeck.exe");
-				if (existsSync(winPath)) {
-					return winPath;
-				}
-			}
-
-			throw new Error("StreamDeck.exe could not be found");
-		}
-	}
-})();
-
-/**
  * Determines if the Stream Deck application is currently running.
  * @returns `true` when the application is running; otherwise `false`.
  */
 export async function isStreamDeckRunning(): Promise<boolean> {
-	const appPath = await getStreamDeckPath();
+	const name = os.platform() === "darwin" ? "Elgato Stream Deck" : "StreamDeck.exe";
+	const processes = await find("name", name);
 
-	if (os.platform() === "darwin") {
-		const processes = await find("name", "Elgato Stream Deck");
-		return processes.some((p) => p.cmd.startsWith(appPath));
-	} else {
-		const processes = await find("name", "StreamDeck.exe");
-		return processes.some((p) => p.cmd.startsWith(`"${appPath}"`));
-	}
+	return processes.length > 0;
 }
 
 /**
