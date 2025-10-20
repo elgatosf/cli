@@ -11,6 +11,12 @@
 
 # Change Log
 
+## 1.5.1
+
+### ♻️ Update
+
+-   Reduce strictness of Stream Deck app location checking.
+
 ## 1.5.0
 
 ### ✨ New
