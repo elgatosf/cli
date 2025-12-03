@@ -11,6 +11,12 @@
 
 # Change Log
 
+## 1.6.0
+
+### ♻️ Update
+
+-   Updated template to use `@elgato/streamdeck` version 2.
+
 ## 1.5.1
 
 ### ♻️ Update
