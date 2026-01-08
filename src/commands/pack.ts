@@ -159,7 +159,7 @@ async function getPackageContents(
 			// When the entry is the manifest, remove the `Nodejs.Debug` flag.
 			if (file.path.relative === "manifest.json") {
 				delete manifest.Nodejs?.Debug;
-				const sanitizedManifest = JSON.stringify(manifest, undefined, "".repeat(4));
+				const sanitizedManifest = JSON.stringify(manifest, undefined, "\t");
 
 				const stream = new Readable();
 				stream.push(sanitizedManifest, "utf-8");
