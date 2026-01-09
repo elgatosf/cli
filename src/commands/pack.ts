@@ -195,11 +195,15 @@ async function version(path: string, version: string | null): Promise<VersionRev
 		// Detect the original line ending style (CRLF or LF)
 		const lineEnding = original.includes("\r\n") ? "\r\n" : "\n";
 
+		// Detect the original indentation style (tabs or spaces)
+		const indentMatch = original.match(/^[\t ]+/m);
+		const indent = indentMatch?.[0].startsWith("\t") ? "\t" : indentMatch?.[0] ?? "\t";
+
 		// Ensure the version in the manifest has the correct number of segments, [{major}.{minor}.{patch}.{build}]
 		version ??= manifest.Version?.toString() || "";
 		manifest.Version = `${version}${".0".repeat(Math.max(0, 4 - version.split(".").length))}`;
 
-		let stringified = JSON.stringify(manifest, undefined, "\t");
+		let stringified = JSON.stringify(manifest, undefined, indent);
 
 		// Preserve original line endings
 		if (lineEnding === "\r\n") {
