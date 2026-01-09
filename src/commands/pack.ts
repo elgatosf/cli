@@ -192,10 +192,21 @@ async function version(path: string, version: string | null): Promise<VersionRev
 		original = await readFile(manifestPath, { encoding: "utf-8" });
 		const manifest = JSON.parse(original) as Partial<Manifest>;
 
+		// Detect the original line ending style (CRLF or LF)
+		const lineEnding = original.includes("\r\n") ? "\r\n" : "\n";
+
 		// Ensure the version in the manifest has the correct number of segments, [{major}.{minor}.{patch}.{build}]
 		version ??= manifest.Version?.toString() || "";
 		manifest.Version = `${version}${".0".repeat(Math.max(0, 4 - version.split(".").length))}`;
-		write(JSON.stringify(manifest, undefined, "\t"));
+
+		let stringified = JSON.stringify(manifest, undefined, "\t");
+
+		// Preserve original line endings
+		if (lineEnding === "\r\n") {
+			stringified = stringified.replaceAll("\n", "\r\n");
+		}
+
+		write(stringified);
 	}
 
 	return {
