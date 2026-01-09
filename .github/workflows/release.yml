@@ -16,7 +16,7 @@ jobs:
 
     permissions:
       contents: read
-      id-token: write
+      id-token: write # Required for OIDC
 
     steps:
       - name: "📥 Checkout"
@@ -25,7 +25,7 @@ jobs:
       - name: "🗃️ Setup Node"
         uses: actions/setup-node@v4
         with:
-          node-version: "20.19.0"
+          node-version: "24"
           registry-url: "https://registry.npmjs.org"
 
       - name: "📐 Install dependencies"
@@ -42,6 +42,4 @@ jobs:
         id: pkg
 
       - name: "📤 Publish"
-        run: npm publish --provenance --access public --tag ${{ steps.pkg.outputs.version-tag }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --tag ${{ steps.pkg.outputs.version-tag }}
