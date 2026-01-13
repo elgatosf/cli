@@ -197,8 +197,7 @@ async function version(path: string, version: string | null): Promise<VersionRev
 
 		// Detect the original indentation style (tabs or spaces)
 		const indentMatch = original.match(/^[\t ]+/m);
-		const indent = indentMatch?.[0].startsWith("\t") ? "\t" : indentMatch?.[0] ?? "\t";
-
+		const indent = indentMatch?.[0] ?? "\t";
 		// Ensure the version in the manifest has the correct number of segments, [{major}.{minor}.{patch}.{build}]
 		version ??= manifest.Version?.toString() || "";
 		manifest.Version = `${version}${".0".repeat(Math.max(0, 4 - version.split(".").length))}`;
@@ -207,7 +206,7 @@ async function version(path: string, version: string | null): Promise<VersionRev
 
 		// Preserve original line endings
 		if (lineEnding === "\r\n") {
-			stringified = stringified.replaceAll("\n", "\r\n");
+			stringified = stringified.replace(/(?<!\r)\n/g, "\r\n");
 		}
 
 		write(stringified);
