@@ -10,7 +10,7 @@ import type { ReadableStream } from "node:stream/web";
 import { command } from "../common/command";
 import { StdoutError } from "../common/stdout";
 import { getPluginId } from "../stream-deck";
-import { type FileInfo, getFiles, mkdirIfNotExists, readJsonFile, sizeAsString } from "../system/fs";
+import { type FileInfo, getFiles, mkdirIfNotExists, sizeAsString } from "../system/fs";
 import { defaultOptions, validate, type ValidateOptions } from "./validate";
 
 /**
@@ -142,7 +142,9 @@ async function getPackageContents(
 	fileFn?: (file: FileInfo, stream?: ReadableStream) => Promise<void> | void,
 ): Promise<PackageInfo> {
 	// Get the manifest, and generate the base contents.
-	const manifest = await readJsonFile<Manifest>(join(path, "manifest.json"));
+	const manifestPath = join(path, "manifest.json");
+	const originalManifestContent = await readFile(manifestPath, { encoding: "utf-8" });
+	const manifest = JSON.parse(originalManifestContent) as Manifest;
 	const contents: PackageInfo = {
 		files: [],
 		manifest,
@@ -159,7 +161,7 @@ async function getPackageContents(
 			// When the entry is the manifest, remove the `Nodejs.Debug` flag.
 			if (file.path.relative === "manifest.json") {
 				delete manifest.Nodejs?.Debug;
-				const sanitizedManifest = JSON.stringify(manifest, undefined, "".repeat(4));
+				const sanitizedManifest = stringifyManifest(manifest, originalManifestContent);
 
 				const stream = new Readable();
 				stream.push(sanitizedManifest, "utf-8");
@@ -178,6 +180,30 @@ async function getPackageContents(
 }
 
 /**
+ * Stringifies a manifest object while preserving the original formatting (line endings and indentation).
+ * @param manifest The manifest object to stringify.
+ * @param originalContent The original file content to detect formatting from.
+ * @returns The stringified manifest with preserved formatting.
+ */
+function stringifyManifest(manifest: Partial<Manifest>, originalContent: string): string {
+	// Detect the original line ending style (CRLF or LF)
+	const lineEnding = originalContent.includes("\r\n") ? "\r\n" : "\n";
+
+	// Detect the original indentation style (tabs or spaces)
+	const indentMatch = originalContent.match(/^[\t ]+/m);
+	const indent = indentMatch?.[0] ?? "\t";
+
+	let stringified = JSON.stringify(manifest, undefined, indent);
+
+	// Preserve original line endings
+	if (lineEnding === "\r\n") {
+		stringified = stringified.replace(/(?<!\r)\n/g, "\r\n");
+	}
+
+	return stringified;
+}
+
+/**
  * Versions the manifest at the specified {@link path}.
  * @param path Path to the directory where the manifest is contained.
  * @param version Optional preferred version.
@@ -192,24 +218,11 @@ async function version(path: string, version: string | null): Promise<VersionRev
 		original = await readFile(manifestPath, { encoding: "utf-8" });
 		const manifest = JSON.parse(original) as Partial<Manifest>;
 
-		// Detect the original line ending style (CRLF or LF)
-		const lineEnding = original.includes("\r\n") ? "\r\n" : "\n";
-
-		// Detect the original indentation style (tabs or spaces)
-		const indentMatch = original.match(/^[\t ]+/m);
-		const indent = indentMatch?.[0] ?? "\t";
 		// Ensure the version in the manifest has the correct number of segments, [{major}.{minor}.{patch}.{build}]
 		version ??= manifest.Version?.toString() || "";
 		manifest.Version = `${version}${".0".repeat(Math.max(0, 4 - version.split(".").length))}`;
 
-		let stringified = JSON.stringify(manifest, undefined, indent);
-
-		// Preserve original line endings
-		if (lineEnding === "\r\n") {
-			stringified = stringified.replace(/(?<!\r)\n/g, "\r\n");
-		}
-
-		write(stringified);
+		write(stringifyManifest(manifest, original));
 	}
 
 	return {
