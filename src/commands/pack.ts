@@ -2,7 +2,7 @@ import { Manifest } from "@elgato/schemas/streamdeck/plugins";
 import { ZipWriter } from "@zip.js/zip.js";
 import chalk from "chalk";
 import { createReadStream, createWriteStream, existsSync, writeFileSync } from "node:fs";
-import { readFile, rm } from "node:fs/promises";
+import { rm } from "node:fs/promises";
 import { basename, dirname, join, resolve } from "node:path";
 import { Readable, Writable } from "node:stream";
 import type { ReadableStream } from "node:stream/web";
@@ -10,7 +10,7 @@ import type { ReadableStream } from "node:stream/web";
 import { command } from "../common/command";
 import { StdoutError } from "../common/stdout";
 import { getPluginId } from "../stream-deck";
-import { type FileInfo, getFiles, mkdirIfNotExists, sizeAsString } from "../system/fs";
+import { type FileInfo, getFiles, mkdirIfNotExists, readJsonFile, sizeAsString } from "../system/fs";
 import { defaultOptions, validate, type ValidateOptions } from "./validate";
 
 /**
@@ -143,11 +143,10 @@ async function getPackageContents(
 ): Promise<PackageInfo> {
 	// Get the manifest, and generate the base contents.
 	const manifestPath = join(path, "manifest.json");
-	const originalManifestContent = await readFile(manifestPath, { encoding: "utf-8" });
-	const manifest = JSON.parse(originalManifestContent) as Manifest;
+	const manifest = await readJsonFile<Manifest>(manifestPath);
 	const contents: PackageInfo = {
 		files: [],
-		manifest,
+		manifest: manifest.value,
 		size: 0,
 		sizePad: 0,
 	};
@@ -160,8 +159,8 @@ async function getPackageContents(
 		if (fileFn) {
 			// When the entry is the manifest, remove the `Nodejs.Debug` flag.
 			if (file.path.relative === "manifest.json") {
-				delete manifest.Nodejs?.Debug;
-				const sanitizedManifest = stringifyManifest(manifest, originalManifestContent);
+				delete manifest.value.Nodejs?.Debug;
+				const sanitizedManifest = manifest.stringify();
 
 				const stream = new Readable();
 				stream.push(sanitizedManifest, "utf-8");
@@ -180,30 +179,6 @@ async function getPackageContents(
 }
 
 /**
- * Stringifies a manifest object while preserving the original formatting (line endings and indentation).
- * @param manifest The manifest object to stringify.
- * @param originalContent The original file content to detect formatting from.
- * @returns The stringified manifest with preserved formatting.
- */
-function stringifyManifest(manifest: Partial<Manifest>, originalContent: string): string {
-	// Detect the original line ending style (CRLF or LF)
-	const lineEnding = originalContent.includes("\r\n") ? "\r\n" : "\n";
-
-	// Detect the original indentation style (tabs or spaces)
-	const indentMatch = originalContent.match(/^[\t ]+/m);
-	const indent = indentMatch?.[0] ?? "\t";
-
-	let stringified = JSON.stringify(manifest, undefined, indent);
-
-	// Preserve original line endings
-	if (lineEnding === "\r\n") {
-		stringified = stringified.replace(/(?<!\r)\n/g, "\r\n");
-	}
-
-	return stringified;
-}
-
-/**
  * Versions the manifest at the specified {@link path}.
  * @param path Path to the directory where the manifest is contained.
  * @param version Optional preferred version.
@@ -215,14 +190,13 @@ async function version(path: string, version: string | null): Promise<VersionRev
 	let original: string | undefined;
 
 	if (existsSync(manifestPath)) {
-		original = await readFile(manifestPath, { encoding: "utf-8" });
-		const manifest = JSON.parse(original) as Partial<Manifest>;
+		const manifest = await readJsonFile<Manifest>(manifestPath);
 
 		// Ensure the version in the manifest has the correct number of segments, [{major}.{minor}.{patch}.{build}]
-		version ??= manifest.Version?.toString() || "";
-		manifest.Version = `${version}${".0".repeat(Math.max(0, 4 - version.split(".").length))}`;
+		version ??= manifest.value.Version?.toString() || "";
+		manifest.value.Version = `${version}${".0".repeat(Math.max(0, 4 - version.split(".").length))}`;
 
-		write(stringifyManifest(manifest, original));
+		write(manifest.stringify());
 	}
 
 	return {
