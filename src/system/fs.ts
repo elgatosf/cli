@@ -165,18 +165,54 @@ export async function mkdirIfNotExists(path: string): Promise<void> {
  * @param path Path to the JSON file.
  * @returns Contents parsed as JSON.
  */
-export async function readJsonFile<T>(path: string): Promise<T> {
+export async function readJsonFile<T>(path: string): Promise<JsonFile<T>> {
 	if (!existsSync(path)) {
 		throw new Error(`JSON file not found, ${path}`);
 	}
 
 	try {
 		const contents = await readFile(path, { encoding: "utf-8" });
-		return JSON.parse(contents);
+		const value = JSON.parse(contents) as T;
+
+		return {
+			value,
+			stringify(): string {
+				// Detect the original line ending style (CRLF or LF)
+				const lineEnding = contents.includes("\r\n") ? "\r\n" : "\n";
+
+				// Detect the original indentation style (tabs or spaces)
+				const indentMatch = contents.match(/^[\t ]+/m);
+				const indent = indentMatch?.[0] ?? "\t";
+
+				let stringified = JSON.stringify(value, undefined, indent);
+
+				// Preserve original line endings
+				if (lineEnding === "\r\n") {
+					stringified = stringified.replace(/(?<!\r)\n/g, "\r\n");
+				}
+
+				return stringified;
+			},
+		};
 	} catch (cause) {
 		throw new Error(`Failed to pase JSON file, ${path}`, { cause });
 	}
 }
+
+/**
+ * A JSON file with its parsed value and a method to stringify it while preserving formatting.
+ */
+export type JsonFile<T> = {
+	/**
+	 * The parsed value of the JSON file.
+	 */
+	readonly value: T;
+	/**
+	 * Stringifies the JSON value while preserving original formatting.
+	 * @returns The stringified JSON.
+	 */
+	stringify(): string;
+};
 
 /**
  * Defines how a path will be relocated.

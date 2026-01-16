@@ -2,7 +2,7 @@ import { Manifest } from "@elgato/schemas/streamdeck/plugins";
 import { ZipWriter } from "@zip.js/zip.js";
 import chalk from "chalk";
 import { createReadStream, createWriteStream, existsSync, writeFileSync } from "node:fs";
-import { readFile, rm } from "node:fs/promises";
+import { rm } from "node:fs/promises";
 import { basename, dirname, join, resolve } from "node:path";
 import { Readable, Writable } from "node:stream";
 import type { ReadableStream } from "node:stream/web";
@@ -142,10 +142,11 @@ async function getPackageContents(
 	fileFn?: (file: FileInfo, stream?: ReadableStream) => Promise<void> | void,
 ): Promise<PackageInfo> {
 	// Get the manifest, and generate the base contents.
-	const manifest = await readJsonFile<Manifest>(join(path, "manifest.json"));
+	const manifestPath = join(path, "manifest.json");
+	const manifest = await readJsonFile<Manifest>(manifestPath);
 	const contents: PackageInfo = {
 		files: [],
-		manifest,
+		manifest: manifest.value,
 		size: 0,
 		sizePad: 0,
 	};
@@ -158,8 +159,8 @@ async function getPackageContents(
 		if (fileFn) {
 			// When the entry is the manifest, remove the `Nodejs.Debug` flag.
 			if (file.path.relative === "manifest.json") {
-				delete manifest.Nodejs?.Debug;
-				const sanitizedManifest = JSON.stringify(manifest, undefined, "".repeat(4));
+				delete manifest.value.Nodejs?.Debug;
+				const sanitizedManifest = manifest.stringify();
 
 				const stream = new Readable();
 				stream.push(sanitizedManifest, "utf-8");
@@ -189,13 +190,13 @@ async function version(path: string, version: string | null): Promise<VersionRev
 	let original: string | undefined;
 
 	if (existsSync(manifestPath)) {
-		original = await readFile(manifestPath, { encoding: "utf-8" });
-		const manifest = JSON.parse(original) as Partial<Manifest>;
+		const manifest = await readJsonFile<Manifest>(manifestPath);
 
 		// Ensure the version in the manifest has the correct number of segments, [{major}.{minor}.{patch}.{build}]
-		version ??= manifest.Version?.toString() || "";
-		manifest.Version = `${version}${".0".repeat(Math.max(0, 4 - version.split(".").length))}`;
-		write(JSON.stringify(manifest, undefined, "\t"));
+		version ??= manifest.value.Version?.toString() || "";
+		manifest.value.Version = `${version}${".0".repeat(Math.max(0, 4 - version.split(".").length))}`;
+
+		write(manifest.stringify());
 	}
 
 	return {
