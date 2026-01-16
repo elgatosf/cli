@@ -208,7 +208,14 @@ export async function readJsonFile<T>(path: string): Promise<JsonFile<T>> {
  * A JSON file with its parsed value and a method to stringify it while preserving formatting.
  */
 export type JsonFile<T> = {
+	/**
+	 * The parsed value of the JSON file.
+	 */
 	value: T;
+	/**
+	 * Stringifies the JSON value while preserving original formatting.
+	 * @returns The stringified JSON.
+	 */
 	stringify(): string;
 };
 
