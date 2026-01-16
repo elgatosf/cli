@@ -172,15 +172,10 @@ export async function readJsonFile<T>(path: string): Promise<JsonFile<T>> {
 
 	try {
 		const contents = await readFile(path, { encoding: "utf-8" });
-		let _value = JSON.parse(contents) as T;
+		const value = JSON.parse(contents) as T;
 
 		return {
-			get value(): T {
-				return _value;
-			},
-			set value(v: T) {
-				_value = v;
-			},
+			value,
 			stringify(): string {
 				// Detect the original line ending style (CRLF or LF)
 				const lineEnding = contents.includes("\r\n") ? "\r\n" : "\n";
@@ -189,7 +184,7 @@ export async function readJsonFile<T>(path: string): Promise<JsonFile<T>> {
 				const indentMatch = contents.match(/^[\t ]+/m);
 				const indent = indentMatch?.[0] ?? "\t";
 
-				let stringified = JSON.stringify(_value, undefined, indent);
+				let stringified = JSON.stringify(value, undefined, indent);
 
 				// Preserve original line endings
 				if (lineEnding === "\r\n") {
@@ -211,7 +206,7 @@ export type JsonFile<T> = {
 	/**
 	 * The parsed value of the JSON file.
 	 */
-	value: T;
+	readonly value: T;
 	/**
 	 * Stringifies the JSON value while preserving original formatting.
 	 * @returns The stringified JSON.
