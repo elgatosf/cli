@@ -11,6 +11,16 @@
 
 # Change Log
 
+## 1.7.0
+
+### ✨ New
+
+-   Add smart-formatting of the manifest.json to retain preferred indentation and new-lines.
+
+### ♻️ Update
+
+-   Update `tar` and `tsup` dependencies.
+
 ## 1.6.0
 
 ### ♻️ Update
