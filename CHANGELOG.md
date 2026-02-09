@@ -11,6 +11,12 @@
 
 # Change Log
 
+## 1.7.1
+
+### ♻️ Update
+
+-   Add support for validating JSON files in UTF-8 with BOM.
+
 ## 1.7.0
 
 ### ✨ New

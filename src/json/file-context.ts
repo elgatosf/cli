@@ -27,7 +27,7 @@ export class JsonFileContext<T extends object> {
 		public readonly schema: JsonSchema<T>,
 	) {
 		if (existsSync(this.path)) {
-			const json = readFileSync(this.path, { encoding: "utf-8" });
+			const json = readFileSync(this.path, { encoding: "utf-8" }).replace(/^[\uFEFF]+/, "");
 			({ errors: this.errors, map: this._map } = this.schema.validate(json));
 		}
 	}
