@@ -8,13 +8,16 @@
 			"name": "Attach to Plugin",
 			"type": "node",
 			"request": "attach",
-			"processId": "${command:PickProcess}",
 			"outFiles": [
 				"${workspaceFolder}/bin/**/*.js"
 			],
 			"resolveSourceMapLocations": [
 				"${workspaceFolder}/**"
-			]
+			],
+			"streamDeckPlugin": true,
+			"timeout": 30000,
+			"restart": true,
+			"preLaunchTask": "watch"
 		}
 	]
 }
