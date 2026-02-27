@@ -1,0 +1,71 @@
+import { defineConfig } from "rolldown";
+import { exec } from "node:child_process";
+import path from "node:path";
+import url from "node:url";
+
+const isWatching = !!process.env.ROLLUP_WATCH;
+const sdPlugin = "<%- uuid %>";
+const sdPluginFolder = `${sdPlugin}.sdPlugin`;
+
+const config = defineConfig({
+	input: "src/plugin.ts",
+	output: {
+		file: `${sdPluginFolder}/bin/plugin.js`,
+		sourcemap: isWatching,
+		sourcemapPathTransform: (relativeSourcePath, sourcemapPath) => {
+			return url.pathToFileURL(path.resolve(path.dirname(sourcemapPath), relativeSourcePath)).href;
+		},
+		minify: !isWatching,
+	},
+	transform: {
+	decorator: {
+			legacy: true,
+		},
+	},
+	platform: "node",
+	resolve: {
+		conditionNames: ["node"],
+	},
+	plugins: [
+		{
+			name: "watch-externals",
+			buildStart() {
+				this.addWatchFile(`${sdPluginFolder}/manifest.json`);
+			},
+		},
+		{
+			name: "restart-stream-deck",
+			buildEnd() {
+				if (isWatching) {
+					exec(`streamdeck restart ${sdPlugin}`, (error, stdout, stderr) => {
+						if (stdout) console.log(stdout.trim());
+						if (stderr) console.error(stderr.trim());
+						if (error) console.error('Failed to restart Stream Deck:', error.message);
+					});
+				}
+			},
+		},
+		{
+			name: "emit-module-package-file",
+			generateBundle() {
+				this.emitFile({ fileName: "package.json", source: `{ "type": "module" }`, type: "asset" });
+			},
+		},
+	],
+});
+<% if (isPreBuild) { %>
+/*
+ * This is an intermediary fix for an upstream issue that causes the build process to hang indefinitely (particularly on macOS).
+ * As part of the creation of the plugin, this temporary plugin is applied during the build step, but removed as part of
+ * the finalizing process. If you're seeing this as part of the final output, you can safely remove it.
+ */
+config.plugins!.push({
+	closeBundle() {
+		process.exit(0);
+	},
+});
+/*
+ * End of fix.
+ */
+<% } %>
+export default config;

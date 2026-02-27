@@ -234,7 +234,7 @@ async function renderTemplate(destination: string, pluginInfo: PluginInfo): Prom
 		template.copy("src"),
 		template.copy("_.gitignore", ".gitignore"),
 		template.copy("package.json.ejs"),
-		template.copy("rollup.config.mjs.ejs"),
+		template.copy("rolldown.config.ts.ejs"),
 		template.copy("tsconfig.json.ejs"),
 	]);
 }
@@ -245,7 +245,7 @@ async function renderTemplate(destination: string, pluginInfo: PluginInfo): Prom
  * @param pluginInfo Information about the plugin.
  */
 async function finalize(destination: string, pluginInfo: PluginInfo): Promise<void> {
-	createTemplateRenderer(destination, pluginInfo, { isPreBuild: false }).copy("rollup.config.mjs.ejs");
+	createTemplateRenderer(destination, pluginInfo, { isPreBuild: false }).copy("rolldown.config.ts.ejs");
 
 	await link({
 		path: path.join(destination, `${pluginInfo.uuid}.sdPlugin`),
