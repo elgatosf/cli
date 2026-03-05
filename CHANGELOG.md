@@ -11,6 +11,12 @@
 
 # Change Log
 
+## 1.7.2
+
+### ♻️ Update
+
+-   Add support for Stream Deck VSCode extension in templated plugins.
+
 ## 1.7.1
 
 ### ♻️ Update
