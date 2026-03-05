@@ -9,7 +9,7 @@
 	},
 	"include": [
 		"src",
-		"rollup.config.ts"
+		"rolldown.config.ts"
 	],
 	"exclude": [
 		"bin",
