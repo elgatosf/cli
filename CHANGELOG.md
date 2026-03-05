@@ -11,6 +11,12 @@
 
 # Change Log
 
+## 1.7.3
+
+### ♻️ Update
+
+-   Migrate to `rolldown` for improved CLI build times.
+
 ## 1.7.1
 
 ### ♻️ Update
