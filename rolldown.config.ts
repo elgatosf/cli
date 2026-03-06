@@ -27,11 +27,11 @@ export default defineConfig({
 		banner,
 		file: "bin/streamdeck.mjs",
 		sourcemap: isWatching,
+		minify: !isWatching,
 	},
 	external,
 	platform: "node",
 	resolve: {
 		conditionNames: ["node"],
 	},
-	// minify: !isWatching,
 });
