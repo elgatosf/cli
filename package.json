@@ -52,7 +52,7 @@
     },
     "homepage": "https://github.com/elgatosf/cli#readme",
     "dependencies": {
-        "@elgato/schemas": "^0.4.1",
+        "@elgato/schemas": "^0.4.14",
         "@humanwhocodes/momoa": "^3.0.0",
         "@zip.js/zip.js": "^2.7.54",
         "ajv": "^8.17.1",
