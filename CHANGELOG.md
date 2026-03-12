@@ -16,6 +16,7 @@
 ### ♻️ Update
 
 -   Migrate to `rolldown` for improved CLI build times.
+-   Update `@elgato/schemas` dependency. 
 
 ## 1.7.1
 
