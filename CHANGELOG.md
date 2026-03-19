@@ -11,11 +11,12 @@
 
 # Change Log
 
-## 1.7.2
+## 1.7.3
 
 ### ♻️ Update
 
--   Add support for Stream Deck VSCode extension in templated plugins.
+-   Migrate to `rolldown` for improved CLI build times.
+-   Update `@elgato/schemas` dependency. 
 
 ## 1.7.1
 
