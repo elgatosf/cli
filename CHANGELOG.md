@@ -11,12 +11,18 @@
 
 # Change Log
 
+## 1.7.4
+
+### ♻️ Update
+
+-   Update template to default to Stream Deck 7.1 and Node.js 24.
+
 ## 1.7.3
 
 ### ♻️ Update
 
 -   Migrate to `rolldown` for improved CLI build times.
--   Update `@elgato/schemas` dependency. 
+-   Update `@elgato/schemas` dependency.
 
 ## 1.7.1
 
