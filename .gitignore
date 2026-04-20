@@ -2,6 +2,7 @@
 node_modules/
 
 # Build and temporary files
+.wireit/
 bin/
 dist/
 /.tmp/
