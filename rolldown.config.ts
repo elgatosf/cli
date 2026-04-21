@@ -1,6 +1,6 @@
 import { defineConfig } from "rolldown";
 
-const isWatching = !!process.env.npm_config_watch;
+const isWatching = !!(process.env.npm_config_watch || process.env.ROLLUP_WATCH);
 
 const banner = `#!/usr/bin/env node
 
