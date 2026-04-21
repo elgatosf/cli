@@ -56,7 +56,8 @@
             "clean": true,
             "files": [
                 "src/**/*.ts",
-                "tsconfig.json"
+                "tsconfig.json",
+                "tsup.config.ts"
             ],
             "output": [
                 "dist/"
