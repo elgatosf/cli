@@ -18,16 +18,61 @@
         "node": ">=20.1.0"
     },
     "scripts": {
-        "build": "npm run build:bin && npm run build:exports",
-        "build:bin": "rm -rf ./dist && rolldown --config rolldown.config.ts",
-        "build:exports": "tsup",
-        "watch": "npm run watch:bin & npm run watch:exports",
-        "watch:bin": "rolldown --config rolldown.config.ts --watch",
-        "watch:exports": "tsup --watch",
+        "build": "wireit",
+        "build:bin": "wireit",
+        "build:exports": "wireit",
+        "dev": "npm run build --watch",
+        "dev:bin": "npm run build:bin --watch",
+        "dev:exports": "npm run build:exports --watch",
         "lint": "eslint --max-warnings 0",
         "lint:fix": "prettier \"./src/**/*.ts\" --write",
         "preversion": "npm run lint",
+        "typecheck": "wireit",
         "version": "npm run build"
+    },
+    "wireit": {
+        "build": {
+            "dependencies": [
+                "build:bin",
+                "build:exports"
+            ]
+        },
+        "build:bin": {
+            "command": "rolldown --config rolldown.config.ts",
+            "clean": true,
+            "files": [
+                "src/**/*.ts",
+                "rolldown.config.ts"
+            ],
+            "output": [
+                "bin/"
+            ],
+            "dependencies": [
+                "typecheck"
+            ]
+        },
+        "build:exports": {
+            "command": "tsup",
+            "clean": true,
+            "files": [
+                "src/**/*.ts",
+                "tsconfig.json",
+                "tsup.config.ts"
+            ],
+            "output": [
+                "dist/"
+            ],
+            "dependencies": [
+                "typecheck"
+            ]
+        },
+        "typecheck": {
+            "command": "tsc --noEmit",
+            "files": [
+                "src/**/*.ts",
+                "tsconfig.json"
+            ]
+        }
     },
     "prettier": "@elgato/prettier-config",
     "repository": {
@@ -70,17 +115,20 @@
         "tar": "^7.5.3"
     },
     "devDependencies": {
-        "@elgato/eslint-config": "^0.1.0",
-        "@elgato/prettier-config": "^0.2.4",
+        "@elgato/eslint-config": "^0.3.2",
+        "@elgato/prettier-config": "^0.3.3",
         "@tsconfig/node20": "^20.1.4",
         "@types/ejs": "^3.1.5",
         "@types/inquirer": "^9.0.7",
         "@types/lodash": "^4.17.14",
         "@types/node": "^22.10.7",
         "@types/semver": "^7.5.8",
+        "eslint": "^9.39.4",
+        "prettier": "^3.8.1",
         "rolldown": "1.0.0-rc.8",
         "tslib": "^2.8.1",
         "tsup": "^8.5.1",
-        "typescript": "^5.7.3"
+        "typescript": "^5.7.3",
+        "wireit": "^0.14.12"
     }
 }
