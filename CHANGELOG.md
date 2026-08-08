@@ -15,7 +15,7 @@
 
 ### ✨ New
 
-- Add `--skip-file-list` flag to omit outputting the list of files after packaging.
+- Add `--no-file-list` flag to omit outputting the list of files after packaging.
 
 ## 1.7.4
 
