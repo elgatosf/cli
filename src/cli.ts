@@ -67,6 +67,7 @@ program
 	.option("--force-update-check", "Forces an update check", false)
 	.option("--no-update-check", "Disables updating schemas", true)
 	.option("--ignore-validation", "Bypass validation errors (not recommended)", false)
+	.option("--skip-file-list", "Omits listing the packaged files after packaging", false)
 	.action((path, opts) => pack({ ...opts, path }));
 
 const configCommand = program.command("config").description("Manage the local configuration.");
