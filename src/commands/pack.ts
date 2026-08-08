@@ -62,16 +62,20 @@ export const pack = command<PackOptions>(
 		const contents = await getPackageContents(sourcePath, pkgBuilder.add);
 		pkgBuilder.close();
 
-		// Print a summary of the contents.
+		// Print the summary.
 		stdout.log(`📦 ${contents.manifest.Name} (v${contents.manifest.Version})`);
-		stdout.log();
-		stdout.log(chalk.cyan("Plugin Contents"));
 
-		contents.files.forEach((file, i) => {
-			stdout.log(
-				`${chalk.dim(i === contents.files.length - 1 ? "└─" : "├─")}  ${file.size.text.padEnd(contents.sizePad)}  ${file.path.relative}`,
-			);
-		});
+		// Print the contents.
+		if (options.fileList) {
+			stdout.log();
+			stdout.log(chalk.cyan("Plugin Contents"));
+
+			contents.files.forEach((file, i) => {
+				stdout.log(
+					`${chalk.dim(i === contents.files.length - 1 ? "└─" : "├─")}  ${file.size.text.padEnd(contents.sizePad)}  ${file.path.relative}`,
+				);
+			});
+		}
 
 		// Print the package details.
 		stdout
@@ -99,6 +103,7 @@ export const pack = command<PackOptions>(
 		output: process.cwd(),
 		version: null,
 		ignoreValidation: false,
+		fileList: true,
 	},
 );
 
@@ -232,6 +237,11 @@ type PackOptions = ValidateOptions & {
 	 * Output directory where the plugin package will be written too; defaults to cwd.
 	 */
 	output?: string;
+
+	/**
+	 * Determines whether the list of packaged files should be output after packaging.
+	 */
+	fileList?: boolean;
 
 	/**
 	 * Optional version of the plugin; this will be set in the manifest before bundling.

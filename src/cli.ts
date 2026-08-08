@@ -66,6 +66,7 @@ program
 	.option("--version <version>", "Plugin version; value will be written to the manifest")
 	.option("--force-update-check", "Forces an update check", false)
 	.option("--no-update-check", "Disables updating schemas", true)
+	.option("--no-file-list", "Disables showing the list of files after packaging")
 	.option("--ignore-validation", "Bypass validation errors (not recommended)", false)
 	.action((path, opts) => pack({ ...opts, path }));
 
