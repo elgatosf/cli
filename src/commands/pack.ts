@@ -66,7 +66,7 @@ export const pack = command<PackOptions>(
 		stdout.log(`📦 ${contents.manifest.Name} (v${contents.manifest.Version})`);
 
 		// Print the contents.
-		if (!options.noFileList) {
+		if (options.fileList) {
 			stdout.log();
 			stdout.log(chalk.cyan("Plugin Contents"));
 
@@ -103,7 +103,7 @@ export const pack = command<PackOptions>(
 		output: process.cwd(),
 		version: null,
 		ignoreValidation: false,
-		noFileList: false,
+		fileList: true,
 	},
 );
 
@@ -239,9 +239,9 @@ type PackOptions = ValidateOptions & {
 	output?: string;
 
 	/**
-	 * When `true`, the list of packaged files will not be output to the console.
+	 * Determines whether the list of packaged files should be output after packaging.
 	 */
-	noFileList?: boolean;
+	fileList?: boolean;
 
 	/**
 	 * Optional version of the plugin; this will be set in the manifest before bundling.
