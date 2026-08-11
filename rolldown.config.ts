@@ -11,13 +11,6 @@ const banner = `#!/usr/bin/env node
  * @copyright Copyright (c) Corsair Memory Inc.
  */`;
 
-// Ignore @elgato/schema to enable auto-update.
-const external = [
-	"@elgato/schemas",
-	"@elgato/schemas/streamdeck/plugins/",
-	"@elgato/schemas/streamdeck/plugins/json",
-];
-
 /**
  * CLI bundling.
  */
@@ -29,7 +22,6 @@ export default defineConfig({
 		sourcemap: isWatching,
 		minify: !isWatching,
 	},
-	external,
 	platform: "node",
 	resolve: {
 		conditionNames: ["node"],
