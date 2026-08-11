@@ -111,8 +111,7 @@
         "lodash": "^4.17.21",
         "log-symbols": "^7.0.0",
         "rage-edit": "^1.2.0",
-        "semver": "^7.6.3",
-        "tar": "^7.5.3"
+        "semver": "^7.6.3"
     },
     "devDependencies": {
         "@elgato/eslint-config": "^0.3.2",
