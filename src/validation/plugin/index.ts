@@ -13,7 +13,7 @@ import { manifestUuids } from "./rules/manifest-uuids";
 import { pathIsDirectoryAndUuid } from "./rules/path-input";
 
 /**
- * Validates the Stream Deck plugin as the specified within the options.
+ * Validates a Stream Deck plugin.
  * @param opts The options used to validate the plugin.
  * @returns The validation result.
  */

@@ -6,19 +6,19 @@ import { schemaStore } from "../../json/store";
 /**
  * Gets the JSON schemas associated with validating a Stream Deck plugin.
  * @param param0 The options.
- * @param param0.updateCheck Determines whether an remote update check should occur.
+ * @param param0.updateCheck Determines whether a remote update check should occur.
  * @returns The JSON schemas.
  */
 export async function getJsonSchemas({ updateCheck }: Options): Promise<PluginJsonSchemas> {
 	return {
 		layout: await schemaStore.get({
 			_default: layout,
-			path: "/streamdeck/plugins/layout.json",
+			path: "streamdeck/plugins/layout.json",
 			updateCheck,
 		}),
 		manifest: await schemaStore.get({
 			_default: manifest,
-			path: "/streamdeck/plugins/manifest.json",
+			path: "streamdeck/plugins/manifest.json",
 			updateCheck,
 		}),
 	};
