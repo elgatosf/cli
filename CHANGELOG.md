@@ -11,6 +11,12 @@
 
 # Change Log
 
+## 1.8.1
+
+### ✨ Update
+
+- Updated validation to update schemas from https://schemas.elgato.com.
+
 ## 1.8.0
 
 ### ✨ New
