@@ -103,16 +103,25 @@ export function updateConfig(updater: (config: object, defaultConfig: Config) =>
 }
 
 /**
+ * Gets the path to the local directory that is responsible for storing files.
+ * @returns The directory path.
+ */
+export function getFileStoreDir(): string {
+	if (platform() === "win32") {
+		const appData = process.env.APPDATA ?? join(homedir(), "AppData/Roaming");
+		return join(appData, "Elgato/MakerCLI/");
+	} else {
+		return join(homedir(), ".config/com.elgato/maker-cli/");
+	}
+}
+
+/**
  * Gets the path to the local configuration file.
  * @returns Configuration file path.
  */
 export function getFilePath(): string {
-	if (platform() === "win32") {
-		const appData = process.env.APPDATA ?? join(homedir(), "AppData/Roaming");
-		return join(appData, "Elgato/MakerCLI/config.json");
-	} else {
-		return join(homedir(), ".config/com.elgato/maker-cli/config.json");
-	}
+	const fileStoreDir = getFileStoreDir();
+	return join(fileStoreDir, "config.json");
 }
 
 /**

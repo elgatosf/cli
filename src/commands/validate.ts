@@ -3,8 +3,8 @@ import { resolve } from "node:path";
 import { command } from "../common/command";
 import { StdoutError } from "../common/stdout";
 import { store } from "../common/storage";
-import { packageManager } from "../package-manager";
 import { validatePlugin } from "../validation/plugin";
+import { getJsonSchemas } from "../validation/plugin/schemas";
 
 /**
  * Key within the store for the value that records the last update check.
@@ -42,22 +42,18 @@ export const validate = command<ValidateOptions>(async (options, stdout) => {
 		fail();
 	}
 
-	// Determine whether the schemas should be updated.
-	if (canUpdateCheck(options)) {
-		const update = await packageManager.checkUpdate("@elgato/schemas");
-		if (update) {
-			await stdout.spin("Updating validation rules", async () => {
-				await packageManager.install(update);
-				stdout.info(`Validation rules updated`);
-			});
-		}
+	const updateCheck = canUpdateCheck(options);
 
-		// Log the update check.
+	// Validate the plugin and write the output (ignoring success if we should be quiet).
+	const result = await validatePlugin({
+		path: resolve(options.path),
+		schemas: await getJsonSchemas({ updateCheck }),
+	});
+
+	if (updateCheck) {
 		store.set(LAST_UPDATE_CHECK_STORE_KEY, new Date());
 	}
 
-	// Validate the plugin and write the output (ignoring success if we should be quiet).
-	const result = await validatePlugin(resolve(options.path));
 	if (result.hasErrors() || result.hasWarnings() || !options.quietSuccess) {
 		result.writeTo(stdout);
 	}
